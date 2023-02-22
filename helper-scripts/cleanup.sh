@@ -3,6 +3,8 @@
 # scratch space. It is used to clean up the task, i.g. copy the results to the
 # shared scratch space, send a notification etc.
 
+echo -e "\n\n============================\n\n"
+
 # Copy the results to the shared scratch space
 echo "Copying the results to the shared scratch space"
 echo "That is $SCRATCH/$SLURM_JOB_ID/logs"

@@ -25,3 +25,5 @@ echo "The task directory is $TASK_DIR"
 # Export the path to the LOG_DIR to the environment
 export LOG_DIR="$TMPDIR/log"
 echo "The log directory is $LOG_DIR"
+
+echo -e "\n\n============================\n\n"
