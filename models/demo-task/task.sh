@@ -1,3 +1,5 @@
+echo "All further logs are saved in $LOG_DIR"
+
 echo "Hello World!" >"$LOG_DIR/hello_world.txt"
 
 # Log the python version

@@ -5,5 +5,7 @@
 
 # Copy the results to the shared scratch space
 echo "Copying the results to the shared scratch space"
-mkdir -p "$SCRATCH/$SLURM_JOB_ID/results"
-cp -r "$LOG_DIR" "$SCRATCH/$SLURM_JOB_ID/results"
+echo "That is $SCRATCH/$SLURM_JOB_ID/logs"
+
+mkdir -p "$SCRATCH/$SLURM_JOB_ID/logs"
+cp -r "$LOG_DIR" "$SCRATCH/$SLURM_JOB_ID/logs"
