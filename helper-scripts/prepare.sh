@@ -3,9 +3,6 @@
 # task for execution, i.g. copy the training data to the local scratch space, compile
 # the code, etc.
 
-# enable interpretation of backslash escapes for echo
-set -e
-
 # Print CPU information
 lscpu
 echo -e "\n\n"
