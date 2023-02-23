@@ -9,6 +9,6 @@
 #SBATCH --constraint=EPYC_7742
 
 module load python
-module load cuda/10.1
+module load cuda/11.7.0
 
 source job.sh
