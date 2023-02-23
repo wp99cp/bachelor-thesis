@@ -4,6 +4,11 @@
 
 # Load the modules
 echo "Loading modules required for build"
-module list &> /dev/null || source /cluster/apps/modules/init/bash
+# shellcheck disable=SC2046
+module() { eval `/cluster/apps/modules/bin/modulecmd bash $*`; }
+export -f module
+
+MODULESHOME=/cluster/apps/modules
+export MODULESHOME
 
 module load python/3.10.4
