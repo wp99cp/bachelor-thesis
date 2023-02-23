@@ -8,4 +8,7 @@
 #SBATCH --open-mode=truncate
 #SBATCH --constraint=EPYC_7742
 
+module load python
+module load cuda/10.1
+
 source job.sh
