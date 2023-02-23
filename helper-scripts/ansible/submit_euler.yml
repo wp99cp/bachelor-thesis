@@ -1,0 +1,4 @@
+- hosts: euler
+  remote_user: pucyril
+  roles:
+    - submit_task_to_euler
