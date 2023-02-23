@@ -38,6 +38,8 @@ python -m ipykernel install --user --name bachelor_thesis
 
 :::
 
+```bash
+
 ## Switch Conda Environment
 
 To switch between environments, use the following command:

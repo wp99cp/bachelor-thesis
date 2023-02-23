@@ -26,6 +26,13 @@ export default {
                     ]
                 },
 
+                {
+                    text: 'Models',
+                    items: [
+                        {text: 's2cloudless', link: 'docs/s2cloudless'},
+                    ]
+                }
+
 
             ]
         },
