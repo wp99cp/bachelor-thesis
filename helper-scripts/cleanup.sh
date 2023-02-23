@@ -7,7 +7,9 @@ echo -e "\n\n============================\n\n"
 
 # Copy the results to the shared scratch space
 echo "Copying the results to the shared scratch space"
-echo "That is $SCRATCH/$SLURM_JOB_ID/logs"
+echo "That is $SCRATCH/$SLURM_JOB_ID"
 
-mkdir -p "$SCRATCH/$SLURM_JOB_ID/logs"
-cp -r "$LOG_DIR" "$SCRATCH/$SLURM_JOB_ID/logs"
+mkdir -p "$SCRATCH/$SLURM_JOB_ID"
+cp -r "$LOG_DIR" "$SCRATCH/$SLURM_JOB_ID"
+
+echo -e "\n"
