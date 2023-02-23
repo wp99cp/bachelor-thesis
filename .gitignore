@@ -1,3 +1,4 @@
 .idea
 /pre-processing/data-augmentation/.ipynb_checkpoints/*
 /tmp/**/*
+/**/.ipynb_checkpoints**
