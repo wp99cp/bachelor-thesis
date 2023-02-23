@@ -16,6 +16,7 @@ cp -r "$DATA_DIR" "$TMPDIR"
 
 # Update the environment variable DATA_DIR to point to the local scratch space
 export DATA_DIR="$TMPDIR/data"
+mkdir -p "$DATA_DIR"
 echo "The training data is now located in $DATA_DIR"
 
 # Export the task directory to the environment
@@ -24,6 +25,7 @@ echo "The task directory is $TASK_DIR"
 
 # Export the path to the LOG_DIR to the environment
 export LOG_DIR="$TMPDIR/log"
+mkdir -p "$LOG_DIR"
 echo "The log directory is $LOG_DIR"
 
 echo -e "\n\n============================\n\n"

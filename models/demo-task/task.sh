@@ -1,5 +1,7 @@
 echo "All further logs are saved in $LOG_DIR"
 
+# Create logfile
+touch "$LOG_DIR/hello_world.txt"
 echo "Hello World!" >"$LOG_DIR/hello_world.txt"
 
 # Log the python version
