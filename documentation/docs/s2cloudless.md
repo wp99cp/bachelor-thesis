@@ -22,3 +22,18 @@ conda install --file environment.txt
 ```
 
 :::
+
+The results are somewhat similar, however not always.
+
+![s2cloudless](./images/s2cloudless_res.png)
+
+Here a significant difference can be seen:
+![s2cloudless](./images/s2cloudless_res2.png)
+
+## Strengths of the model
+
+- cloud mask seems to be very accurate for well-defined clouds, e.g. for single, non-connected cumulus clouds (dense clouds).
+
+## Weaknesses of the model
+
+- cloud mask is not accurate for clouds with a lot of noise, e.g. Cirrus clouds
