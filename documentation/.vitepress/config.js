@@ -23,6 +23,7 @@ export default {
                     items: [
                         {text: 'Python and Conda', link: 'docs/python_and_conda'},
                         {text: 'Working with Euler', link: 'docs/euler'},
+                        {text: 'Sentinel2 Bands', link: 'docs/sentinel2_bands'},
                     ]
                 },
 
