@@ -24,6 +24,14 @@ See [Wikipedia](https://en.wikipedia.org/wik i/Landsat_8).
 
 The data is available for free from the [Copernicus Open Access Hub](https://scihub.copernicus.eu/dhus/#/home).
 
+## Available Data
+
+Source: Skakun et al. (2022), Cloud Mask Intercomparison eXercise (CMIX): An evaluation of cloud masking algorithms for Landsat 8 and Sentinel-2
+![summary_of_datasets_available.png](./images/summary_of_datasets_available.png)
+![quality_of_available_datasets.png](./images/quality_of_available_datasets.png)
+
+
+
 ## Downloaded Data
 
 The data is already downloaded and stored in `pf/pfstud/nimbus/downloaded_data`.

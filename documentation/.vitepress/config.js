@@ -30,6 +30,7 @@ export default {
                 {
                     text: 'Models',
                     items: [
+                        {text: 'Overview', link: 'docs/algorithms'},
                         {text: 's2cloudless', link: 'docs/s2cloudless'},
                     ]
                 }
