@@ -34,6 +34,9 @@ In some situations s2cloudless is significantly better than the downloaded cloud
 ![s2cloudless](./images/s2cloudless_res3.png)
 ![s2cloudless](./images/s2cloudless_res4.png)
 
+Or the other way around:
+![s2cloudless](./images/s2cloudless_res5.png)
+
 ## Strengths of the model
 
 - cloud mask seems to be very accurate for well-defined clouds, e.g. for single, non-connected cumulus clouds (dense clouds).
