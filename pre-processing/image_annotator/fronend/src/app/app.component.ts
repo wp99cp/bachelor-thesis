@@ -1,15 +1,31 @@
 import {Component, OnInit} from '@angular/core';
 
+enum Classes {
+    Background = 0,
+    Snow = 1,
+    Clouds = 2,
+    Water = 3
+}
+
+const Background_Color = [255, 255, 255]
+const Snow_Color = [38, 211, 192]
+const Clouds_Color = [192, 38, 211]
+const Water_Color = [211, 192, 38]
+const Class_Colors = [Background_Color, Snow_Color, Clouds_Color, Water_Color]
+
+const SCENE_CODES = ['original', '0']
+
+const BASE_URL = 'http://192.168.2.38:5000';
+
 @Component({
     selector: 'app-root',
     templateUrl: './app.component.html',
     styleUrls: ['./app.component.scss']
 })
 export class AppComponent implements OnInit {
-    alternative_switcher_texts = ['the original image', 'another day\'s image']
-    alternative_image_switcher_state = 0;
-    public current_color = 1;
-    private colors = [[255, 192, 203], [255, 127, 80], [255, 255, 255]]
+    public current_color = Classes.Clouds;
+
+    // order of colors is important
     private canvas_history: ImageData[] = []
     private current_image_id: string | null = null;
     public loading_next: boolean = false;
@@ -29,6 +45,63 @@ export class AppComponent implements OnInit {
         let lineWidth = 0
         let isMousedown = false
         let points: { x: number; y: number; lineWidth: number; }[] = []
+
+        // set shortcut listeners for actions
+        document.addEventListener('keydown', (e: KeyboardEvent) => {
+
+            // undo
+            if (e.key === '-') {
+                this.undoDraw();
+            }
+
+            if (e.key === 'Enter') {
+                this.next_img()
+            }
+
+            if (e.key === '/') {
+                this.clear()
+            }
+
+        });
+
+        // add shortcut listeners for band switching
+        // those listeners must be pressed, once released, the band will be switched back to the original one
+        document.addEventListener('keydown', (e: KeyboardEvent) => {
+
+            // if any number is pressed, switch to the corresponding band
+            if (SCENE_CODES.includes(e.key)) {
+                this.switch_to_alternative(e.key);
+            }
+
+            if (e.key === '.') {
+
+                // hide annotations
+                const canvas_id = 'canvas';
+                const canvas = document.getElementById(canvas_id)
+                canvas!.style.display = 'none';
+
+            }
+
+        });
+
+        document.addEventListener('keyup', (e: KeyboardEvent) => {
+
+            // if any number is pressed, switch to the corresponding band
+            if (SCENE_CODES.includes(e.key)) {
+                this.switch_to_original();
+            }
+
+            if (e.key === '.') {
+
+                // hide annotations
+                const canvas_id = 'canvas';
+                const canvas = document.getElementById(canvas_id)
+                canvas!.style.display = 'block';
+
+            }
+
+        });
+
 
         const requestIdleCallback = window.requestIdleCallback || function (fn: () => void) {
             setTimeout(fn, 1)
@@ -94,7 +167,7 @@ export class AppComponent implements OnInit {
                 const imageData = context.getImageData(0, 0, canvas.width, canvas.height)
                 const data = imageData.data
                 for (let i = 0; i < data.length; i += 4) {
-                    if (data[i] === this.colors[2][0] && data[i + 1] === this.colors[2][1] && data[i + 2] === this.colors[2][2]) {
+                    if (data[i] === Background_Color[0] && data[i + 1] === Background_Color[1] && data[i + 2] === Background_Color[2]) {
                         data[i + 3] = 0
                     }
                 }
@@ -146,7 +219,7 @@ export class AppComponent implements OnInit {
      * @return {void}
      */
     private draw_on_canvas(context: CanvasRenderingContext2D, stroke: string | any[], path: Path2D) {
-        const color = this.colors[this.current_color]
+        const color = Class_Colors[this.current_color]
 
         context.strokeStyle = `rgb(${color[0]}, ${color[1]}, ${color[2]})`
         context.fillStyle = `rgb(${color[0]}, ${color[1]}, ${color[2]})`
@@ -176,17 +249,28 @@ export class AppComponent implements OnInit {
         }
     }
 
-    switch_to_alternative() {
+    switch_to_alternative(scene_code: string) {
 
-        const alternative = document.getElementById('alternative_image')
-        if (alternative!.style.display === 'block') {
-            alternative!.style.display = 'none'
-            this.alternative_image_switcher_state = 0
-        } else {
-            alternative!.style.display = 'block'
-            this.alternative_image_switcher_state = 1
+        const scene_codes = JSON.parse(JSON.stringify(SCENE_CODES));
+
+        // remove current scene from list
+        const index = scene_codes.indexOf(scene_code);
+        if (index > -1) scene_codes.splice(index, 1);
+        else throw new Error('scene code not found')
+
+        // hide all scenes
+        for (const code of scene_codes) {
+            const scene = document.getElementById('scene_' + code)
+            scene!.style.display = 'none'
         }
 
+        const scene = document.getElementById('scene_' + scene_code)
+        scene!.style.display = 'block'
+
+    }
+
+    switch_to_original() {
+        this.switch_to_alternative('original');
     }
 
     clear() {
@@ -236,7 +320,7 @@ export class AppComponent implements OnInit {
 
             // send the image as a post to the backend
             const xhr = new XMLHttpRequest()
-            xhr.open('POST', 'http://192.168.1.223:5000/update_mask/' + this.current_image_id)
+            xhr.open('POST', BASE_URL + '/update_mask/' + this.current_image_id)
             xhr.setRequestHeader('Content-Type', 'image/png')
             xhr.send(JSON.stringify({image: dataURL}))
 
@@ -251,26 +335,28 @@ export class AppComponent implements OnInit {
 
             // make a request to the backend to get the image
             // backend is at port 5000
-            const url = 'http://192.168.1.223:5000/next_image'
+            const url = BASE_URL + '/next_image'
             fetch(url)
                 .then(response => response.json())
                 .then(json => {
 
-                    const base_path = 'http://192.168.1.223:5000/imgs/';
-                    (document.getElementById('alternative_image') as HTMLImageElement)!.src = base_path + json['image_alt'];
-                    (document.getElementById('image_to_annotate') as HTMLImageElement)!.src = base_path + json['image'];
+                    console.log(json)
 
-                    this.current_image_id = json['image'];
+                    const base_path = BASE_URL + '/imgs/';
 
+                    // Load all scenes
+                    for (const scene_code of SCENE_CODES) {
+                        console.log('loading scene scene_' + scene_code);
+                        (document.getElementById('scene_' + scene_code) as HTMLImageElement)!.src = base_path + json['scene_' + scene_code];
+                    }
 
-                    this.switch_to_alternative();
-                    this.switch_to_alternative();
-
+                    this.current_image_id = json['scene_original'];
+                    this.switch_to_original();
                     this.loading_next = false;
                 });
 
 
-        }, 500);
+        }, 250);
 
     }
 

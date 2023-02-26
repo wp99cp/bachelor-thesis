@@ -1,4 +1,4 @@
-name: bachelor_thesis
+name: sentinel_annotator
 channels:
   - conda-forge
   - defaults

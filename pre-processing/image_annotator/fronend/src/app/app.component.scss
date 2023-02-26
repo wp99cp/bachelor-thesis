@@ -3,10 +3,9 @@
 }
 
 .annotator {
-  margin: 50px;
   display: block;
-  height: 512px;
-  width: 512px;
+  height: 1024px;
+  width: 1024px;
 }
 
 #canvas {
@@ -14,24 +13,11 @@
   z-index: 1;
 }
 
-.controls {
-  position: fixed;
-  z-index: 2;
-  display: grid;
-  margin: 50px;
-  left: 620px;
-  top: 0;
-}
-
-.controls button {
-  margin: 10px;
-}
-
 #alternative_image {
   opacity: 1;
   display: none;
-  width: 512px;
-  height: 512px;
+  width: 1024px;
+  height: 1024px;
 }
 
 #canvas {
@@ -39,5 +25,5 @@
 }
 
 .hidden {
-  display: none;
+  opacity: 0;
 }

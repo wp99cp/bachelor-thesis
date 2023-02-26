@@ -33,12 +33,11 @@ def get_next_pair():
     day_of_image = file_name.split("_")[2].split(".")[0]
 
     days.remove(day_of_image)
-    another_day = days.pop()
 
-    # get the other image of the pair
-    other_file_name = file_name.replace(day_of_image, another_day)
-
-    return jsonify({"image": file_name, "image_alt": other_file_name})
+    return {
+        "scene_original": file_name,
+        "scene_0": file_name.replace(day_of_image, days.pop()),
+    }
 
 
 @app.route('/next_image', methods=['GET'])

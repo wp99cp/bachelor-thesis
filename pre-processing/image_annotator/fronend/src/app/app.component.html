@@ -1,36 +1,65 @@
-<p>You're viewing {{alternative_switcher_texts[alternative_image_switcher_state]}}</p>
+<div class="flex flex-row">
 
-<div class="annotator" [ngClass]="{'hidden' : loading_next}">
-    <canvas id="canvas" width="512" height="512"></canvas>
-    <img class="background-image" src="empty" width="512" height="512" id="image_to_annotate"/>
-    <img class="background-image" src="empty" width="512" height="512" id="alternative_image"/>
-</div>
+    <div class="annotator p-5" [ngClass]="{'hidden' : loading_next}">
+        <canvas id="canvas" width="1024" height="1024"></canvas>
 
-<button class="m-2 material-icons bg-pink-200 py-4 px-4 rounded-full" id="snow" (click)="set(0)"
-        [ngClass]="{'bg-pink-600 ring-2 ring-offset-4 ring-offset-slate-50' : current_color==0}">
-    ac_unit
-</button>
-<button class="m-2 material-icons bg-orange-200  py-4 px-4 rounded-full" id="clouds" (click)="set(1)"
-        [ngClass]="{'bg-orange-600 ring-2 ring-offset-4 ring-offset-slate-50' : current_color==1}">
+        <img class="background-image" src="" width="1024" height="1024" id="scene_original"/>
+        <img class="background-image" src="" width="1024" height="1024" id="scene_0"/>
+    </div>
 
-    filter_drama
-</button>
-<button class="m-2 material-icons bg-gray-200 py-4 px-4 rounded-full" id="eraser" (click)="set(2)"
-        [ngClass]="{'bg-gray-500 ring-2 ring-offset-4 ring-offset-slate-50' : current_color==2}">
-    format_color_reset
-</button>
+    <div class="p-5">
 
-<div class="controls">
 
-    <button class="bg-blue-200 text-white font-bold py-2 px-4 rounded-full" id="next" (click)="next_img()">Next</button>
+        <div class="controls flex flex-row p-5">
 
-    <button class="bg-blue-500 text-white font-bold py-2 px-4 rounded-full" id="undo" (click)="undoDraw()">Undo</button>
-    <button class="bg-red-500 text-white font-bold py-2 px-4 rounded-full" id="redo" (click)="clear()">clear all
-    </button>
+            <button class="m-2 material-icons bg-teal-600 py-4 px-4 rounded-full" id="snow" (click)="set(1)"
+                    [ngClass]="{'ring-2 ring-offset-4 ring-offset-slate-50' : current_color==1}">
+                ac_unit
+            </button>
 
-    <button class="bg-green-500 text-white font-bold py-2 px-4 rounded-full" id="alternative_switcher"
-            (click)="switch_to_alternative()">
-        Switch to {{alternative_switcher_texts[(alternative_image_switcher_state + 1) % 2]}}
-    </button>
+            <button class="m-2 material-icons bg-fuchsia-600  py-4 px-4 rounded-full" id="clouds" (click)="set(2)"
+                    [ngClass]="{'ring-2 ring-offset-4 ring-offset-slate-50' : current_color==2}">
+                filter_drama
+            </button>
 
+            <button class="m-2 material-icons bg-yellow-500 py-4 px-4 rounded-full" id="water" (click)="set(3)"
+                    [ngClass]="{'ring-2 ring-offset-4 ring-offset-slate-50' : current_color==3}">
+                water
+            </button>
+
+            <button class="m-2 material-icons bg-gray-200 py-4 px-4 rounded-full" id="eraser" (click)="set(0)"
+                    [ngClass]="{'ring-2 ring-offset-4 ring-offset-slate-50' : current_color==0}">
+                format_color_reset
+            </button>
+
+        </div>
+
+
+        <div class="controls flex flex-col p-5">
+
+            <button class="bg-blue-200 text-white font-bold py-2 px-4 rounded-full" id="next" (click)="next_img()">
+                Next (ENTER)
+            </button>
+
+            <button class="bg-blue-500 text-white font-bold py-2 px-4 rounded-full" id="undo" (click)="undoDraw()">Undo
+                (-)
+            </button>
+
+            <button class="bg-red-500 text-white font-bold py-2 px-4 rounded-full" id="redo" (click)="clear()">clear all
+                (/)
+            </button>
+
+        </div>
+
+        <div class="w-96 p-5">
+            <span>You can switch between different bands using the number block on the keyboard.</span>
+            <br/>
+            <br/>
+            <span>
+                <b>The following bands are available:</b><br/>
+                0 - Switch to another day
+            </span>
+        </div>
+
+    </div>
 </div>
