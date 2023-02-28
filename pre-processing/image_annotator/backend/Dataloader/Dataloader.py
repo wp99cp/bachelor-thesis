@@ -61,7 +61,7 @@ class Dataloader:
         self.change_current_date("20210710T101559")
 
         # As we are looking at the cloud probability map, we can set the threshold to 0.0
-        self.cloud_detector = S2PixelCloudDetector(threshold=0, average_over=4, dilation_size=0, all_bands=True)
+        self.cloud_detector = S2PixelCloudDetector(threshold=0.4, average_over=4, dilation_size=2, all_bands=True)
 
     def change_current_date(self, date):
         assert date in self.available_dates, "Date not available"
@@ -79,13 +79,7 @@ class Dataloader:
         window = self._find_uncovered_square()
         self._load_bands_windowed(window)
 
-        scene_cloud_masks = self._compute_s2cloud_masks()
-
-        # Colorize the cloud map using "viridis" colormap
-        col_map = cm.get_cmap('viridis', 256)
-        arr_cmap = col_map(scene_cloud_masks[0])
-        scene_cloud_masks = np.transpose(arr_cmap[:, :, :3], (2, 0, 1))
-        print("Finished loading scene_cloud_masks. Shape:", arr_cmap.shape)
+        scene_cloud_probs, cloud_mask04, cloud_mask06 = self._compute_s2cloud_masks()
 
         # false color RGB with band B02, B03, B12
         false_color = self.bands_windowed[0, :, :, [11, 2, 1]]
@@ -104,9 +98,12 @@ class Dataloader:
             true_color,
             tci_windowed,
             false_color,
-            scene_cloud_masks,
+            scene_cloud_probs,
             highlights,
-            self.tci_windowed]
+            self.tci_windowed,
+            cloud_mask04,
+            cloud_mask06,
+        ]
 
         # Generate PNGs
         scene_names = [f"scene_original" if i == 0 else f"scene_{i - 1}" for i in range(len(scenes))]
@@ -163,8 +160,21 @@ class Dataloader:
 
         bands_windowed = self.bands_windowed.copy()
 
+        scene_cloud_probs = self.cloud_detector.get_cloud_probability_maps(bands_windowed)
+
+        # Colorize the cloud map using "viridis" colormap
+        col_map = cm.get_cmap('viridis', 256)
+        arr_cmap = col_map(scene_cloud_probs[0])
+        scene_cloud_probs = np.transpose(arr_cmap[:, :, :3], (2, 0, 1))
+
+        cloud_mask_04 = self.cloud_detector.get_mask_from_prob(scene_cloud_probs, threshold=0.4)
+        cloud_mask_04 = np.stack([cloud_mask_04[0], cloud_mask_04[0], cloud_mask_04[0]], axis=0)
+
+        cloud_mask_06 = self.cloud_detector.get_mask_from_prob(scene_cloud_probs, threshold=0.6)
+        cloud_mask_06 = np.stack([cloud_mask_06[0], cloud_mask_06[0], cloud_mask_06[0]], axis=0)
+
         # Compute cloud probabilities
-        return self.cloud_detector.get_cloud_probability_maps(bands_windowed)
+        return scene_cloud_probs, cloud_mask_04, cloud_mask_06
 
     def _find_uncovered_square(self):
 
@@ -382,4 +392,3 @@ class Dataloader:
         with rasterio.open(f"{mask_dir}/mask_coverage.jp2", 'r+') as mask:
             mask.write(np.ones((1, window[2], window[3]), dtype='uint8'),
                        window=Window(*window))
-

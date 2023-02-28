@@ -34,6 +34,12 @@ export class AppComponent implements OnInit {
     private enter_is_down: boolean = false;
     private control_is_down: boolean = false;
 
+
+    private color_adding_mode: boolean = false;
+    private color_adding_mode_disabled: boolean = false;
+    private active_scene_code: string = 'scene_original';
+    public threshold: number = 12;
+
     ngOnInit(): void {
 
 
@@ -62,9 +68,23 @@ export class AppComponent implements OnInit {
                 this.enter_is_down = true;
             }
 
+            if (e.key === '+') {
+                this.color_adding_mode = true;
+                this.color_adding_mode_disabled = true;
+            }
+
             if (e.key === 'Control') {
                 this.control_is_down = true;
             }
+
+            if (e.key === 'ArrowUp') {
+                this.threshold += 1;
+            }
+
+            if (e.key === 'ArrowDown') {
+                this.threshold -= 1;
+            }
+
 
             if (this.control_is_down && this.enter_is_down) {
                 this.next_img()
@@ -116,6 +136,10 @@ export class AppComponent implements OnInit {
                 this.enter_is_down = false;
             }
 
+            if (e.key === '+') {
+                this.color_adding_mode = false;
+            }
+
             if (e.key === 'Control') {
                 this.control_is_down = false;
             }
@@ -164,6 +188,13 @@ export class AppComponent implements OnInit {
 
             canvas.addEventListener(ev, (e: any) => {
 
+                if (this.color_adding_mode) {
+                    points = [];
+                    isMousedown = false
+                    return;
+                }
+
+
                 if (points.length > 0) {
 
                     const fst_p = points[0];
@@ -198,9 +229,7 @@ export class AppComponent implements OnInit {
 
                 isMousedown = false
 
-                requestIdleCallback(function () {
-                    points = []
-                })
+                requestIdleCallback(() => points = []);
 
                 lineWidth = 0
             })
@@ -243,6 +272,12 @@ export class AppComponent implements OnInit {
      * @return {void}
      */
     private draw_on_canvas(context: CanvasRenderingContext2D, stroke: string | any[], path: Path2D) {
+
+        if (this.color_adding_mode) {
+            this.add_color_under_cursor(context, stroke);
+            return;
+        }
+
         const color = Class_Colors[this.current_color]
 
         context.strokeStyle = `rgb(${color[0]}, ${color[1]}, ${color[2]})`
@@ -275,6 +310,8 @@ export class AppComponent implements OnInit {
 
     switch_to_alternative(scene_code: string) {
 
+        this.active_scene_code = 'scene_' + scene_code
+
         const scene_codes = JSON.parse(JSON.stringify(SCENE_CODES));
 
         // remove current scene from list
@@ -294,6 +331,7 @@ export class AppComponent implements OnInit {
     }
 
     switch_to_original() {
+        this.active_scene_code = 'scene_original'
         this.switch_to_alternative('original');
     }
 
@@ -385,5 +423,96 @@ export class AppComponent implements OnInit {
 
     }
 
+
+    private async add_color_under_cursor(context: CanvasRenderingContext2D, stroke: string | any[]) {
+
+        const current_position = stroke[stroke.length - 1];
+
+        this.color_adding_mode_disabled = true;
+
+        const image = document.getElementById(this.active_scene_code) as HTMLImageElement;
+        const marked_pixels: any = await this.find_similar_pixels(image, current_position.x, current_position.y);
+        5
+        const color = Class_Colors[this.current_color]
+        context.strokeStyle = `rgb(${color[0]}, ${color[1]}, ${color[2]})`
+        context.fillStyle = `rgb(${color[0]}, ${color[1]}, ${color[2]})`
+
+        console.log("Similar pixels computed: ", marked_pixels.length)
+
+        marked_pixels.forEach((pixel: any) => {
+            context.fillRect(pixel.x, pixel.y, 1, 1);
+        });
+
+        this.canvas_history.push(context.getImageData(0, 0,1024, 1024))
+        console.log("Color added")
+
+    }
+
+    private find_similar_pixels(image: HTMLImageElement, x: number, y: number) {
+
+        const canvas = document.createElement('canvas');
+        canvas.width = 1024;
+        canvas.height = 1024;
+
+        const ctx = canvas.getContext('2d');
+
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.src = image.src;
+
+
+        return new Promise((resolve) => {
+            const threshold = this.threshold ** 2;
+            const imageData = new Uint8ClampedArray(canvas.width * canvas.height * 4);
+            const visited = new Uint8Array(canvas.width * canvas.height);
+            const similar_pixels: any = [];
+
+            img.onload = () => {
+                ctx?.drawImage(img, 0, 0, canvas.width, canvas.height);
+                const color = ctx?.getImageData(x, y, 1, 1).data.slice(0, 3);
+                if (!color) throw new Error('color is null')
+
+                // Copy the pixel data from the canvas into the imageData array
+                const canvasData = ctx?.getImageData(0, 0, canvas.width, canvas.height).data;
+                if (!canvasData) throw new Error('canvasData is null')
+                for (let i = 0; i < canvasData.length; i++) {
+                    imageData[i] = canvasData[i];
+                }
+
+                const queue = [{x, y}];
+                while (queue.length) {
+                    const {x, y} = queue.shift()!;
+                    const index = (y * canvas.width + x) * 4;
+
+                    // Check if pixel is within bounds and hasn't been visited
+                    if (x < 0 || y < 0 || x >= canvas.width || y >= canvas.height || visited[index / 4]) {
+                        continue;
+                    }
+
+                    // Check if pixel color is similar to the target color
+                    const pixelColor = imageData.subarray(index, index + 3);
+                    if (Math.abs(pixelColor[0] - color[0]) + Math.abs(pixelColor[1] - color[1]) + Math.abs(pixelColor[2] - color[2]) > threshold) {
+                        continue;
+                    }
+
+                    // Add pixel to similar_pixels list
+                    similar_pixels.push({x, y});
+
+                    // Mark pixel as visited
+                    visited[index / 4] = 1;
+
+                    // Add adjacent pixels to queue
+                    queue.push({x: x - 1, y}); // left
+                    queue.push({x: x + 1, y}); // right
+                    queue.push({x, y: y - 1}); // top
+                    queue.push({x, y: y + 1}); // bottom
+                }
+
+                resolve(similar_pixels);
+            };
+        });
+
+
+    }
 
 }
