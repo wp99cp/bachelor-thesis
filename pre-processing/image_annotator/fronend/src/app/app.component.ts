@@ -13,7 +13,7 @@ const Clouds_Color = [192, 38, 211]
 const Water_Color = [211, 192, 38]
 const Class_Colors = [Background_Color, Snow_Color, Clouds_Color, Water_Color]
 
-const SCENE_CODES = ['original', '0']
+const SCENE_CODES = ['original', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
 
 const BASE_URL = 'http://192.168.2.38:5000';
 
@@ -29,6 +29,10 @@ export class AppComponent implements OnInit {
     private canvas_history: ImageData[] = []
     private current_image_id: string | null = null;
     public loading_next: boolean = false;
+
+
+    private enter_is_down: boolean = false;
+    private control_is_down: boolean = false;
 
     ngOnInit(): void {
 
@@ -55,6 +59,14 @@ export class AppComponent implements OnInit {
             }
 
             if (e.key === 'Enter') {
+                this.enter_is_down = true;
+            }
+
+            if (e.key === 'Control') {
+                this.control_is_down = true;
+            }
+
+            if (this.control_is_down && this.enter_is_down) {
                 this.next_img()
             }
 
@@ -98,6 +110,14 @@ export class AppComponent implements OnInit {
                 const canvas = document.getElementById(canvas_id)
                 canvas!.style.display = 'block';
 
+            }
+
+            if (e.key === 'Enter') {
+                this.enter_is_down = false;
+            }
+
+            if (e.key === 'Control') {
+                this.control_is_down = false;
             }
 
         });
@@ -185,6 +205,10 @@ export class AppComponent implements OnInit {
                 lineWidth = 0
             })
         }
+
+
+        this.switch_to_original();
+
 
     }
 
