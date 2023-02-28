@@ -27,7 +27,7 @@ export class AppComponent implements OnInit {
 
     // order of colors is important
     private canvas_history: ImageData[] = []
-    private current_image_id: string | null = null;
+    private current_image_ref: string | null = null;
     public loading_next: boolean = false;
 
 
@@ -332,7 +332,7 @@ export class AppComponent implements OnInit {
         const context = canvas.getContext('2d')
         if (!context) throw new Error('context is null')
 
-        if (!first_time && this.current_image_id !== null) {
+        if (!first_time && this.current_image_ref !== null) {
 
 
             const dataURL = canvas.toDataURL('image/png')
@@ -344,7 +344,7 @@ export class AppComponent implements OnInit {
 
             // send the image as a post to the backend
             const xhr = new XMLHttpRequest()
-            xhr.open('POST', BASE_URL + '/update_mask/' + this.current_image_id)
+            xhr.open('POST', BASE_URL + '/update_mask/' + this.current_image_ref)
             xhr.setRequestHeader('Content-Type', 'image/png')
             xhr.send(JSON.stringify({image: dataURL}))
 
@@ -364,17 +364,18 @@ export class AppComponent implements OnInit {
                 .then(response => response.json())
                 .then(json => {
 
-                    console.log(json)
+                    const scenes = json['scenes'];
+                    console.log(scenes);
+                    this.current_image_ref = json['ref'];
 
                     const base_path = BASE_URL + '/imgs/';
 
                     // Load all scenes
                     for (const scene_code of SCENE_CODES) {
                         console.log('loading scene scene_' + scene_code);
-                        (document.getElementById('scene_' + scene_code) as HTMLImageElement)!.src = base_path + json['scene_' + scene_code];
+                        (document.getElementById('scene_' + scene_code) as HTMLImageElement)!.src = base_path + scenes['scene_' + scene_code];
                     }
 
-                    this.current_image_id = json['scene_original'];
                     this.switch_to_original();
                     this.loading_next = false;
                 });

@@ -1,9 +1,11 @@
 import os
+import uuid
 
 import cv2
 import numpy as np
 import rasterio
 from IPython import get_ipython
+from PIL import Image
 from matplotlib import cm, pyplot as plt
 from rasterio.windows import Window
 from s2cloudless import S2PixelCloudDetector
@@ -21,6 +23,10 @@ MSK_CLDPRB_20m = "MSK_CLDPRB_20m.jp2"
 MSK_CLDPRB_60m = "MSK_CLDPRB_60m.jp2"
 MSK_SNWPRB_20m = "MSK_SNWPRB_20m.jp2"
 MSK_SNWPRB_60m = "MSK_SNWPRB_60m.jp2"
+
+img_src = f"{TMP_DIR}/res/imgs"
+if not os.path.exists(img_src):
+    os.makedirs(img_src)
 
 
 def _clip_percentile(img, low=5, high=95):
@@ -42,7 +48,7 @@ class Dataloader:
     def __init__(self):
 
         # get date out of filename
-        self.window = None
+        self.refs = {}
         products_path = os.listdir(f"{DATA_DIR}/raw_data_32TNS_1C")
 
         # get all available dates
@@ -52,7 +58,7 @@ class Dataloader:
         if not os.path.exists(TMP_DIR):
             os.makedirs(TMP_DIR)
 
-        self.change_current_date(self.available_dates[1])
+        self.change_current_date("20210710T101559")
 
         # As we are looking at the cloud probability map, we can set the threshold to 0.0
         self.cloud_detector = S2PixelCloudDetector(threshold=0, average_over=4, dilation_size=0, all_bands=True)
@@ -66,11 +72,12 @@ class Dataloader:
         self._load_bands()
         self._load_mask_coverage()
 
-    def get_scenes_next_scenes(self):
+    def generate_next(self):
+
+        ref = str(uuid.uuid1())
 
         window = self._find_uncovered_square()
         self._load_bands_windowed(window)
-        self.window = window
 
         scene_cloud_masks = self._compute_s2cloud_masks()
 
@@ -93,7 +100,30 @@ class Dataloader:
         tci_windowed = self.tci_windowed.copy()
         tci_windowed = tci_windowed / 255.0
 
-        return [true_color, tci_windowed, false_color, scene_cloud_masks, highlights, self.tci_windowed]
+        scenes = [
+            true_color,
+            tci_windowed,
+            false_color,
+            scene_cloud_masks,
+            highlights,
+            self.tci_windowed]
+
+        # Generate PNGs
+        scene_names = [f"scene_original" if i == 0 else f"scene_{i - 1}" for i in range(len(scenes))]
+        for i, scene in enumerate(scenes):
+            img = Image.fromarray(np.uint8(scene * 255).transpose(1, 2, 0))
+            img.save(f'{img_src}/{ref}_{scene_names[i]}.png')
+            scene_names[i] = f'{ref}_{scene_names[i]}.png'
+
+        self.refs[ref] = {
+            "current_date": self.current_date,
+            "window": window,
+            "scenes": scene_names
+        }
+
+        print("\n\n=======================================\n\n")
+
+        return ref
 
     def _load_bands_windowed(self, window):
         bands_windowed = [None] * 13
@@ -137,12 +167,15 @@ class Dataloader:
         return self.cloud_detector.get_cloud_probability_maps(bands_windowed)
 
     def _find_uncovered_square(self):
+
         # create a binary matrix to represent the area
         area = np.zeros(self.shape, dtype=bool)
 
         border = 2048
 
-        if self.mask_coverage is None or len(self.mask_coverage) == 0:
+        assert self.mask_coverage is not None, "Mask coverage not loaded"
+        if len(self.mask_coverage) == 0:
+            self.mask_coverage = [[border, border, 512, 512]]
             return [border, border, 512, 512]
 
         # mark all covered positions as True in the area matrix
@@ -175,6 +208,10 @@ class Dataloader:
             window[0] = self.shape[0] - window[2]
         if window[1] + window[3] > self.shape[1]:
             window[1] = self.shape[1] - window[3]
+
+        # add the window to the list of covered areas
+        assert len(window) == 4, "Window must be a tuple of length 4"
+        self.mask_coverage.append(tuple(np.array(window)))
 
         return window
 
@@ -232,8 +269,8 @@ class Dataloader:
         }
 
         # Create the empty JP2 file
-        with rasterio.open(path, 'w', **profile) as mask_coverage:
-            mask_coverage.write(np.zeros((1, height, width), dtype='uint8'))
+        with rasterio.open(path, 'w', **profile) as mask:
+            mask.write(np.zeros((1, height, width), dtype='uint8'))
 
     def _load_bands(self):
         print("Loading bands for date: ", self.current_date)
@@ -306,8 +343,12 @@ class Dataloader:
             get_ipython().system(
                 'unzip "$DATA_DIR/raw_data_32TNS_2A/"$(ls "$DATA_DIR/raw_data_32TNS_2A" | grep $date) -d $TMP_DIR')
 
-    def update_mask(self, imgdata):
-        mask_dir = f"{MASKS_DIR}/{self.current_date}"
+    def update_mask(self, ref, imgdata):
+
+        window = self.refs[ref]["window"]
+        current_date = self.refs[ref]["current_date"]
+
+        mask_dir = f"{MASKS_DIR}/{current_date}"
         with rasterio.open(f"{mask_dir}/mask.jp2", 'r+') as mask:
             filename = TMP_DIR + "/mask.png"
             with open(filename, 'wb') as f:
@@ -328,24 +369,17 @@ class Dataloader:
             print("Min/Max: ", np.min(mask_img), np.max(mask_img))
 
             # Write to mask
-            mask.write(mask_img, window=Window(*self.window), indexes=1)
+            mask.write(mask_img, window=Window(*window), indexes=1)
 
-            # print mask using matplotlib
-            plt.imshow(mask.read(1))
-            plt.title("Mask of " + self.current_date)
-            plt.savefig(f"{mask_dir}/mask.png")
+    def mark_scene_as_done(self, ref):
 
-    def mark_scene_as_done(self):
+        window = self.refs[ref]["window"]
+        current_date = self.refs[ref]["current_date"]
+
         print("Loading mask coverage...")
-        self.mask_coverage.append(self.window)
-
-        mask_dir = f"{MASKS_DIR}/{self.current_date}"
+        mask_dir = f"{MASKS_DIR}/{current_date}"
 
         with rasterio.open(f"{mask_dir}/mask_coverage.jp2", 'r+') as mask:
-            mask.write(np.ones((1, self.window[2], self.window[3]), dtype='uint8'),
-                       window=Window(*self.window))
+            mask.write(np.ones((1, window[2], window[3]), dtype='uint8'),
+                       window=Window(*window))
 
-            # print mask using matplotlib
-            plt.imshow(mask.read(1))
-            plt.title("Mask Coverage of " + self.current_date)
-            plt.savefig(f"{mask_dir}/mask_coverage.png")
