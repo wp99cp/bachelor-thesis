@@ -94,6 +94,35 @@ class Dataloader:
         tci_windowed = self.tci_windowed.copy()
         tci_windowed = tci_windowed / 255.0
 
+        exoLab_classifications = self.exolabs_classification.read(window=Window(*window))
+        exoLab_snow_classifications = exoLab_classifications[0, :, :]
+        exoLab_classifications = exoLab_classifications[1, :, :]
+
+        # map and convert to RGB
+        cmap = plt.cm.get_cmap('tab20', np.max(exoLab_snow_classifications) + 1)
+        exoLab_snow_classifications = np.array(cmap(exoLab_snow_classifications))
+        exoLab_snow_classifications = exoLab_snow_classifications[:, :, :3]
+        exoLab_snow_classifications = exoLab_snow_classifications.transpose(2, 0, 1)
+
+        # map and convert to RGB
+        cmap = plt.cm.get_cmap('tab20', np.max(exoLab_classifications) + 1)
+        exoLab_classifications = np.array(cmap(exoLab_classifications))
+        exoLab_classifications = exoLab_classifications[:, :, :3]
+        exoLab_classifications = exoLab_classifications.transpose(2, 0, 1)
+
+        # glacier and surface water (both are at 30m resolution)
+        window = (window[0] // 3, window[1] // 3, window[2] // 3, window[3] // 3)
+        surface_water_mask = self.exolabs_classification.read(2, window=Window(*window))
+
+        # upscale to 512x512 using cv2
+        surface_water_mask = cv2.resize(surface_water_mask, (512, 512), interpolation=cv2.INTER_NEAREST)
+
+        # map and convert to RGB
+        cmap = plt.cm.get_cmap('tab20', np.max(surface_water_mask) + 1)
+        surface_water_mask = np.array(cmap(surface_water_mask))
+        surface_water_mask = surface_water_mask[:, :, :3]
+        surface_water_mask = surface_water_mask.transpose(2, 0, 1)
+
         scenes = [
             true_color,
             tci_windowed,
@@ -103,6 +132,9 @@ class Dataloader:
             self.tci_windowed,
             cloud_mask04,
             cloud_mask06,
+            exoLab_snow_classifications,
+            exoLab_classifications,
+            surface_water_mask
         ]
 
         # Generate PNGs
@@ -342,6 +374,30 @@ class Dataloader:
         }
 
         self.shape = (self.bands[1].height, self.bands[1].width)
+
+        # ==========
+        # open ExoLabs classification
+        # ==========
+        ExoLabs_path = f"{TMP_DIR}/ExoLabs_classification_S2/"
+
+        # convert date to ExoLabs format, i.g. from "20210710T101559" to 2021-07-10
+        date = self.current_date[:4] + '-' + self.current_date[4:6] + '-' + self.current_date[6:8]
+
+        # search for the ExoLabs classification file
+        ExoLabs_files = os.listdir(ExoLabs_path)
+        ExoLabs_file = [f for f in ExoLabs_files if f.startswith(f"S2_32TNS_{date}")]
+        self.exolabs_classification = rasterio.open(f"{TMP_DIR}/ExoLabs_classification_S2/{ExoLabs_file[0]}")
+
+        # ==========
+        # open auxiliary data
+        # ==========
+
+        surfaceWater = f"{TMP_DIR}/32TNS_auxiliary_data/32TNS_30m_JRC_surfaceWater.tif"
+        self.surfaceWater = rasterio.open(surfaceWater)
+
+        glacier = f"{TMP_DIR}/32TNS_auxiliary_data/32TNS_30m_Glacier_RGIv6.tif"
+        self.glacier = rasterio.open(glacier)
+
         print("Loaded bands complete")
 
     def _load_data_set(self):
@@ -353,6 +409,9 @@ class Dataloader:
                 'unzip "$DATA_DIR/raw_data_32TNS_1C/"$(ls "$DATA_DIR/raw_data_32TNS_1C" | grep $date) -d $TMP_DIR')
             get_ipython().system(
                 'unzip "$DATA_DIR/raw_data_32TNS_2A/"$(ls "$DATA_DIR/raw_data_32TNS_2A" | grep $date) -d $TMP_DIR')
+
+        get_ipython().system('unzip "$DATA_DIR/ExoLabs_classification_S2.zip -d $TMP_DIR')
+        get_ipython().system('unzip "$DATA_DIR/32TNS_auxiliary_data.zip -d $TMP_DIR')
 
     def update_mask(self, ref, mask_img):
 
