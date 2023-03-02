@@ -58,7 +58,7 @@ class Dataloader:
         if not os.path.exists(TMP_DIR):
             os.makedirs(TMP_DIR)
 
-        self.change_current_date(self.available_dates[0])  # "20210710T101559")
+        self.change_current_date("20210908T101559") # self.available_dates[0])
 
         # As we are looking at the cloud probability map, we can set the threshold to 0.0
         self.cloud_detector = S2PixelCloudDetector(threshold=0.4, average_over=4, dilation_size=2, all_bands=True)
@@ -99,26 +99,27 @@ class Dataloader:
         exoLab_classifications = exoLab_classifications[1, :, :]
 
         # map and convert to RGB
-        cmap = plt.cm.get_cmap('tab20', np.max(exoLab_snow_classifications) + 1)
+        cmap = plt.cm.get_cmap('nipy_spectral', np.max(exoLab_snow_classifications) + 1)
         exoLab_snow_classifications = np.array(cmap(exoLab_snow_classifications))
         exoLab_snow_classifications = exoLab_snow_classifications[:, :, :3]
         exoLab_snow_classifications = exoLab_snow_classifications.transpose(2, 0, 1)
 
         # map and convert to RGB
-        cmap = plt.cm.get_cmap('tab20', np.max(exoLab_classifications) + 1)
+        cmap = plt.cm.get_cmap('nipy_spectral', np.max(exoLab_classifications) + 1)
         exoLab_classifications = np.array(cmap(exoLab_classifications))
         exoLab_classifications = exoLab_classifications[:, :, :3]
         exoLab_classifications = exoLab_classifications.transpose(2, 0, 1)
 
         # glacier and surface water (both are at 30m resolution)
-        window = (window[0] // 3, window[1] // 3, window[2] // 3, window[3] // 3)
-        surface_water_mask = self.exolabs_classification.read(2, window=Window(*window))
+        window_60m = window.copy()
+        window_60m = (window_60m[0] // 3, window_60m[1] // 3, window_60m[2] // 3, window_60m[3] // 3)
+        surface_water_mask = self.exolabs_classification.read(2, window=Window(*window_60m))
 
         # upscale to 512x512 using cv2
         surface_water_mask = cv2.resize(surface_water_mask, (512, 512), interpolation=cv2.INTER_NEAREST)
 
         # map and convert to RGB
-        cmap = plt.cm.get_cmap('tab20', np.max(surface_water_mask) + 1)
+        cmap = plt.cm.get_cmap('nipy_spectral', np.max(surface_water_mask) + 1)
         surface_water_mask = np.array(cmap(surface_water_mask))
         surface_water_mask = surface_water_mask[:, :, :3]
         surface_water_mask = surface_water_mask.transpose(2, 0, 1)
