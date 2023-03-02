@@ -102,7 +102,7 @@ export class AppComponent implements OnInit {
 
             if (e.key === '.') {
                 const canvas = document.querySelectorAll('canvas')
-                canvas.forEach((canvas: HTMLCanvasElement) =>  {
+                canvas.forEach((canvas: HTMLCanvasElement) => {
                     canvas!.style.opacity = '0';
                 });
             }
@@ -115,7 +115,7 @@ export class AppComponent implements OnInit {
 
             if (e.key === '.') {
                 const canvas = document.querySelectorAll('canvas')
-                canvas.forEach((canvas: HTMLCanvasElement) =>  {
+                canvas.forEach((canvas: HTMLCanvasElement) => {
                     canvas!.style.opacity = '1';
                 });
             }
@@ -219,7 +219,7 @@ export class AppComponent implements OnInit {
                 }
 
                 this.merge_and_update_canvases();
-                this.canvas_history.push(this.canvas_data)
+                this.canvas_history.push(new Uint8ClampedArray(this.canvas_data))
 
                 isMousedown = false
                 requestIdleCallback(() => points = []);
@@ -382,13 +382,20 @@ export class AppComponent implements OnInit {
 
     undoDraw() {
 
+        if (this.canvas_history.length <= 1) throw new Error('cannot undo. history is empty')
+        console.log("undoing draw, hstory length: " + this.canvas_history.length)
+
         this.canvas_history.pop();
 
-        this.canvas_data = this.canvas_history[this.canvas_history.length - 1];
+        this.canvas_data = new Uint8ClampedArray(this.canvas_history[this.canvas_history.length - 1]);
 
         const readonly_canvas = document.getElementById('canvas_readonly') as HTMLCanvasElement
         const context = readonly_canvas.getContext('2d')!;
         context.putImageData(new ImageData(this.canvas_data, RAW_MASK_DIM, RAW_MASK_DIM), 0, 0);
+
+        const canvas = document.getElementById('canvas_write') as HTMLCanvasElement
+        const context2 = canvas.getContext('2d')!;
+        context2.clearRect(0, 0, canvas.width, canvas.height);
 
     }
 
@@ -471,7 +478,7 @@ export class AppComponent implements OnInit {
         const readonly_canvas = document.getElementById('canvas_readonly') as HTMLCanvasElement
         const context = readonly_canvas.getContext('2d')!
         context.putImageData(new ImageData(this.canvas_data, RAW_MASK_DIM, RAW_MASK_DIM), 0, 0);
-        this.canvas_history.push(this.canvas_data)
+        this.canvas_history.push(new Uint8ClampedArray(this.canvas_data))
 
     }
 
