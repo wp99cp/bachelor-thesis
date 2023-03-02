@@ -174,6 +174,7 @@ export class AppComponent implements OnInit {
             })
         }
 
+
         for (const ev of ['touchend', 'touchleave', 'mouseup']) {
 
             canvas.addEventListener(ev, async (e: any) => {
@@ -217,18 +218,47 @@ export class AppComponent implements OnInit {
                 }
                 context.putImageData(imageData, 0, 0)
 
-                this.canvas_data = context.getImageData(0, 0, canvas.width, canvas.height).data;
+                this.normalize_colors(this.current_color);
                 this.canvas_history.push(this.canvas_data)
-                this.get_coords(e, canvas);
 
                 isMousedown = false
-
                 requestIdleCallback(() => points = []);
+
 
             });
         }
 
         this.switch_to_original();
+
+    }
+
+    private normalize_colors(last_color: number) {
+
+        const context = this.get_context();
+
+        // update canvas_data
+        const imageData = context.getImageData(0, 0, RAW_MASK_DIM, RAW_MASK_DIM)
+        this.canvas_data = imageData.data
+
+        // check every pixel
+        for (let i = 0; i < this.canvas_data.length; i += 4) {
+            const [r, g, b, a] = [this.canvas_data[i], this.canvas_data[i + 1], this.canvas_data[i + 2], this.canvas_data[i + 3]];
+            if (a === 0) continue;
+
+            // check if [r, g, b] is a known color Class_Colors
+            const color_index = Class_Colors.findIndex(([cr, cg, cb]) => cr === r && cg === g && cb === b);
+
+            // if it is not known, replace it with the last color
+            if (color_index === -1) {
+                this.canvas_data[i] = Class_Colors[last_color][0];
+                this.canvas_data[i + 1] = Class_Colors[last_color][1];
+                this.canvas_data[i + 2] = Class_Colors[last_color][2];
+                this.canvas_data[i + 3] = 255;
+            }
+
+        }
+
+        context.putImageData(imageData, 0, 0)
 
     }
 
@@ -371,7 +401,7 @@ export class AppComponent implements OnInit {
 
         if (!first_time && this.current_image_ref !== null) {
 
-
+            this.normalize_colors(Classes.Background);
             const class_image = new Array(RAW_MASK_DIM).fill(0).map(() => new Array(RAW_MASK_DIM).fill(0));
 
             for (let i = 0; i < RAW_MASK_DIM ** 2; i++) {
@@ -380,24 +410,18 @@ export class AppComponent implements OnInit {
                 const y = Math.floor(i / RAW_MASK_DIM);
 
                 const color = this.canvas_data.slice(i * 4, i * 4 + 4);
-                if (color[3] < 255) {
+                if (color[3] < 255 || (color[0] === 0 && color[1] === 0 && color[2] === 0)) {
                     class_image[y][x] = Classes.Background;
                     continue;
                 }
 
-                let class_nr = Classes.Background;
-
-                // search for the class with the min distance to the color
-                let min_dist = Infinity;
+                // search for the corresponding color class
                 for (const [class_nr_, color_] of Object.entries(Class_Colors)) {
-                    const dist = Math.sqrt((color[0] - color_[0]) ** 2 + (color[1] - color_[1]) ** 2 + (color[2] - color_[2]) ** 2)
-                    if (dist < min_dist) {
-                        min_dist = dist;
-                        class_nr = parseInt(class_nr_);
+                    if (color[0] === color_[0] && color[1] === color_[1] && color[2] === color_[2]) {
+                        class_image[y][x] = class_nr_;
+                        break;
                     }
                 }
-
-                class_image[y][x] = class_nr;
 
             }
 

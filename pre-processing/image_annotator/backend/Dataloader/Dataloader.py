@@ -370,8 +370,8 @@ class Dataloader:
             np.clip(mask_img, 0, 255, out=mask_img)
 
             # plot the mask using matplotlib and the verdis palette
-            plt.figure(figsize=(20, 20))
-            plt.imshow(mask_img, cmap=plt.cm.get_cmap('Set1', np.max(mask_img)))
+            plt.figure(figsize=(16, 16))
+            plt.imshow(mask_img, cmap=plt.cm.get_cmap('Set1', np.max(mask_img) + 1))
             plt.savefig(f"{mask_dir}/mask.png")
 
             print("Min/Max: ", np.min(mask_img), np.max(mask_img))
