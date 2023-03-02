@@ -58,7 +58,7 @@ class Dataloader:
         if not os.path.exists(TMP_DIR):
             os.makedirs(TMP_DIR)
 
-        self.change_current_date("20210710T101559")
+        self.change_current_date(self.available_dates[0]) # "20210710T101559")
 
         # As we are looking at the cloud probability map, we can set the threshold to 0.0
         self.cloud_detector = S2PixelCloudDetector(threshold=0.4, average_over=4, dilation_size=2, all_bands=True)

@@ -110,7 +110,8 @@ export class AppComponent implements OnInit {
                 // hide annotations
                 const canvas_id = 'canvas';
                 const canvas = document.getElementById(canvas_id)
-                canvas!.style.display = 'none';
+                canvas!.style.opacity = '0';
+
 
             }
 
@@ -128,7 +129,7 @@ export class AppComponent implements OnInit {
                 // hide annotations
                 const canvas_id = 'canvas';
                 const canvas = document.getElementById(canvas_id)
-                canvas!.style.display = 'block';
+                canvas!.style.opacity = '1';
 
             }
 
