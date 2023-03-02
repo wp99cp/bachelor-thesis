@@ -65,9 +65,11 @@ export class AppComponent implements OnInit {
 
         this.next_img(true)
 
-        const canvas = document.querySelectorAll('canvas')[0]
-        canvas.width = 512
-        canvas.height = 512
+        const canvass = document.querySelectorAll('canvas');
+        canvass.forEach((canvas: HTMLCanvasElement) => {
+            canvas.width = 512
+            canvas.height = 512
+        });
 
         let isMousedown = false
         let points: { x: number; y: number }[] = []
@@ -132,11 +134,10 @@ export class AppComponent implements OnInit {
             setTimeout(fn, 1)
         };
 
-        const context = this.get_context()
-        if (!context) throw new Error('context is null')
-        context.imageSmoothingEnabled = false
 
         let path = new Path2D();
+
+        const canvas = document.getElementById('canvas_write') as HTMLCanvasElement;
 
         for (const ev of ["touchstart", "mousedown"]) {
             canvas.addEventListener(ev, (e: any) => {
@@ -146,9 +147,8 @@ export class AppComponent implements OnInit {
 
                 const {x, y} = this.get_coords(e, canvas)
 
-                context.lineWidth = 2
                 points.push({x, y})
-                this.draw_on_canvas(context, points, path);
+                this.draw_on_canvas(points, path);
 
             })
         }
@@ -170,15 +170,16 @@ export class AppComponent implements OnInit {
 
                 let {x, y} = this.get_coords(e, canvas)
                 points.push({x, y})
-                this.draw_on_canvas(context, points, path);
+                this.draw_on_canvas(points, path);
             })
         }
 
+        const write_canvas = document.getElementById('canvas_write') as HTMLCanvasElement;
+        const context = write_canvas.getContext('2d')! as CanvasRenderingContext2D;
 
         for (const ev of ['touchend', 'touchleave', 'mouseup']) {
 
             canvas.addEventListener(ev, async (e: any) => {
-
 
                 isMousedown = false
 
@@ -216,9 +217,8 @@ export class AppComponent implements OnInit {
                         data[i + 3] = 0
                     }
                 }
-                context.putImageData(imageData, 0, 0)
 
-                this.normalize_colors(this.current_color);
+                this.merge_and_update_canvases();
                 this.canvas_history.push(this.canvas_data)
 
                 isMousedown = false
@@ -232,33 +232,36 @@ export class AppComponent implements OnInit {
 
     }
 
-    private normalize_colors(last_color: number) {
+    private merge_and_update_canvases() {
 
-        const context = this.get_context();
+        const write_canvas = document.getElementById('canvas_write') as HTMLCanvasElement;
+        const write_context = write_canvas.getContext('2d')! as CanvasRenderingContext2D;
 
         // update canvas_data
-        const imageData = context.getImageData(0, 0, RAW_MASK_DIM, RAW_MASK_DIM)
-        this.canvas_data = imageData.data
+        const imageData = write_context.getImageData(0, 0, RAW_MASK_DIM, RAW_MASK_DIM).data;
 
         // check every pixel
-        for (let i = 0; i < this.canvas_data.length; i += 4) {
-            const [r, g, b, a] = [this.canvas_data[i], this.canvas_data[i + 1], this.canvas_data[i + 2], this.canvas_data[i + 3]];
-            if (a === 0) continue;
+        if (imageData.length !== this.canvas_data.length) throw new Error('imageData and canvas_data have different length');
+        for (let i = 0; i < imageData.length; i += 4) {
 
-            // check if [r, g, b] is a known color Class_Colors
-            const color_index = Class_Colors.findIndex(([cr, cg, cb]) => cr === r && cg === g && cb === b);
+            // skip transparent pixels
+            if (imageData[i + 3] === 0) continue;
 
-            // if it is not known, replace it with the last color
-            if (color_index === -1) {
-                this.canvas_data[i] = Class_Colors[last_color][0];
-                this.canvas_data[i + 1] = Class_Colors[last_color][1];
-                this.canvas_data[i + 2] = Class_Colors[last_color][2];
-                this.canvas_data[i + 3] = 255;
-            }
+            // set correct color
+            this.canvas_data[i] = Class_Colors[this.current_color][0];
+            this.canvas_data[i + 1] = Class_Colors[this.current_color][1];
+            this.canvas_data[i + 2] = Class_Colors[this.current_color][2];
+            this.canvas_data[i + 3] = this.current_color == Classes.Background ? 0 : 255;
 
         }
 
-        context.putImageData(imageData, 0, 0)
+        // clear write canvas
+        write_context.clearRect(0, 0, write_canvas.width, write_canvas.height);
+
+        // update readonly canvas
+        const canvas = document.getElementById('canvas_readonly') as HTMLCanvasElement;
+        const context = canvas.getContext('2d')! as CanvasRenderingContext2D;
+        context.putImageData(new ImageData(this.canvas_data, RAW_MASK_DIM, RAW_MASK_DIM), 0, 0);
 
     }
 
@@ -294,8 +297,10 @@ export class AppComponent implements OnInit {
      * @param path
      * @return {void}
      */
-    private draw_on_canvas(context: CanvasRenderingContext2D, stroke: string | any[], path: Path2D) {
+    private draw_on_canvas(stroke: string | any[], path: Path2D) {
 
+        const canvas = document.getElementById('canvas_write') as HTMLCanvasElement
+        const context = canvas.getContext('2d')!;
 
         const color = Class_Colors[this.current_color]
 
@@ -326,8 +331,6 @@ export class AppComponent implements OnInit {
             context.moveTo(point.x, point.y)
             context.stroke()
         }
-
-        this.canvas_data = context.getImageData(0, 0, RAW_MASK_DIM, RAW_MASK_DIM).data;
 
     }
 
@@ -361,21 +364,16 @@ export class AppComponent implements OnInit {
     }
 
     clear() {
-        const context = this.get_context();
 
         // clear the canvas and clear the history
-        this.canvas_data = Uint8ClampedArray.from({length: RAW_MASK_DIM * RAW_MASK_DIM * 4}, () => 0);
-
-        context.putImageData(new ImageData(this.canvas_data, RAW_MASK_DIM, RAW_MASK_DIM), 0, 0);
         this.canvas_history = [];
+        this.canvas_data = Uint8ClampedArray.from({length: RAW_MASK_DIM * RAW_MASK_DIM * 4}, () => 0);
+        const canvass = document.querySelectorAll('canvas');
+        canvass.forEach(canvas => {
+            const context = canvas.getContext('2d')!;
+            context.clearRect(0, 0, canvas.width, canvas.height);
+        });
 
-    }
-
-    private get_context() {
-        const canvas = document.getElementById('canvas') as HTMLCanvasElement
-        const context = canvas.getContext('2d')
-        if (!context) throw new Error('context is null')
-        return context;
     }
 
     set_color(c: number) {
@@ -386,9 +384,10 @@ export class AppComponent implements OnInit {
 
         this.canvas_history.pop();
 
-        const context = this.get_context();
-
         this.canvas_data = this.canvas_history[this.canvas_history.length - 1];
+
+        const readonly_canvas = document.getElementById('canvas_readonly') as HTMLCanvasElement
+        const context = readonly_canvas.getContext('2d')!;
         context.putImageData(new ImageData(this.canvas_data, RAW_MASK_DIM, RAW_MASK_DIM), 0, 0);
 
     }
@@ -401,7 +400,6 @@ export class AppComponent implements OnInit {
 
         if (!first_time && this.current_image_ref !== null) {
 
-            this.normalize_colors(Classes.Background);
             const class_image = new Array(RAW_MASK_DIM).fill(0).map(() => new Array(RAW_MASK_DIM).fill(0));
 
             for (let i = 0; i < RAW_MASK_DIM ** 2; i++) {
@@ -470,7 +468,8 @@ export class AppComponent implements OnInit {
 
         await this.mark_similar_pixels(current_position.x, current_position.y);
 
-        const context = this.get_context();
+        const readonly_canvas = document.getElementById('canvas_readonly') as HTMLCanvasElement
+        const context = readonly_canvas.getContext('2d')!
         context.putImageData(new ImageData(this.canvas_data, RAW_MASK_DIM, RAW_MASK_DIM), 0, 0);
         this.canvas_history.push(this.canvas_data)
 

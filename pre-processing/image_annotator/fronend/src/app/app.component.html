@@ -1,7 +1,9 @@
 <div class="flex flex-row">
 
     <div class="annotator p-5" [ngClass]="{'hidden' : loading_next}">
-        <canvas id="canvas" width="1024" height="1024" style="width: 1024px; height: 1024px"></canvas>
+
+        <canvas id="canvas_write" width="1024" height="1024" style="width: 1024px; height: 1024px; z-index: 99"></canvas>
+        <canvas id="canvas_readonly" width="1024" height="1024" style="width: 1024px; height: 1024px"></canvas>
 
         <img class="background-image" src="" width="1024" height="1024" id="scene_original"/>
         <img class="background-image" src="" width="1024" height="1024" id="scene_0"/>

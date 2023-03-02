@@ -8,7 +8,7 @@
   width: 1024px;
 }
 
-#canvas {
+#canvas_write, #canvas_readonly {
   position: fixed;
   z-index: 1;
 }
