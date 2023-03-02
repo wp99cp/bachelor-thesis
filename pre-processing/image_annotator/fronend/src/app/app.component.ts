@@ -101,10 +101,10 @@ export class AppComponent implements OnInit {
             if (SCENE_CODES.includes(e.key)) this.switch_to_alternative(e.key);
 
             if (e.key === '.') {
-                // hide annotations
-                const canvas_id = 'canvas';
-                const canvas = document.getElementById(canvas_id)
-                canvas!.style.opacity = '0';
+                const canvas = document.querySelectorAll('canvas')
+                canvas.forEach((canvas: HTMLCanvasElement) =>  {
+                    canvas!.style.opacity = '0';
+                });
             }
 
         });
@@ -114,10 +114,10 @@ export class AppComponent implements OnInit {
             if (SCENE_CODES.includes(e.key)) this.switch_to_original();
 
             if (e.key === '.') {
-                // hide annotations
-                const canvas_id = 'canvas';
-                const canvas = document.getElementById(canvas_id)
-                canvas!.style.opacity = '1';
+                const canvas = document.querySelectorAll('canvas')
+                canvas.forEach((canvas: HTMLCanvasElement) =>  {
+                    canvas!.style.opacity = '1';
+                });
             }
 
             if (e.key === 'Enter') this.enter_is_down = false;
