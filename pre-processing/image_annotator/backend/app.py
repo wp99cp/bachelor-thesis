@@ -64,7 +64,7 @@ def update_mask(ref):
     # save the retrieved image to the "res/masks" folder
     # the image is saved as bytes in request.data
     data_json = json.loads(request.data)
-    imgdata = base64.b64decode(data_json['image'].split(',')[1])
+    imgdata = data_json['image']
     dataloader.update_mask(ref, imgdata)
 
     return jsonify({"success": True})

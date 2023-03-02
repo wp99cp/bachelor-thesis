@@ -1,7 +1,7 @@
 <div class="flex flex-row">
 
     <div class="annotator p-5" [ngClass]="{'hidden' : loading_next}">
-        <canvas id="canvas" width="1024" height="1024"></canvas>
+        <canvas id="canvas" width="1024" height="1024" style="width: 1024px; height: 1024px"></canvas>
 
         <img class="background-image" src="" width="1024" height="1024" id="scene_original"/>
         <img class="background-image" src="" width="1024" height="1024" id="scene_0"/>
@@ -18,27 +18,30 @@
 
     </div>
 
+    <canvas id="canvas_tmp" width="512" height="512" style="width: 512px; height: 512px"></canvas>
+
+
     <div class="p-5">
 
 
         <div class="controls flex flex-row p-5">
 
-            <button class="m-2 material-icons bg-teal-600 py-4 px-4 rounded-full" id="snow" (click)="set(1)"
+            <button class="m-2 material-icons bg-teal-600 py-4 px-4 rounded-full" id="snow" (click)="set_color(1)"
                     [ngClass]="{'ring-2 ring-offset-4 ring-offset-slate-50' : current_color==1}">
                 ac_unit
             </button>
 
-            <button class="m-2 material-icons bg-fuchsia-600  py-4 px-4 rounded-full" id="clouds" (click)="set(2)"
+            <button class="m-2 material-icons bg-fuchsia-600  py-4 px-4 rounded-full" id="clouds" (click)="set_color(2)"
                     [ngClass]="{'ring-2 ring-offset-4 ring-offset-slate-50' : current_color==2}">
                 filter_drama
             </button>
 
-            <button class="m-2 material-icons bg-yellow-500 py-4 px-4 rounded-full" id="water" (click)="set(3)"
+            <button class="m-2 material-icons bg-yellow-500 py-4 px-4 rounded-full" id="water" (click)="set_color(3)"
                     [ngClass]="{'ring-2 ring-offset-4 ring-offset-slate-50' : current_color==3}">
                 water
             </button>
 
-            <button class="m-2 material-icons bg-gray-200 py-4 px-4 rounded-full" id="eraser" (click)="set(0)"
+            <button class="m-2 material-icons bg-gray-200 py-4 px-4 rounded-full" id="eraser" (click)="set_color(0)"
                     [ngClass]="{'ring-2 ring-offset-4 ring-offset-slate-50' : current_color==0}">
                 format_color_reset
             </button>

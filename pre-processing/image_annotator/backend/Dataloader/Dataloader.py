@@ -58,7 +58,7 @@ class Dataloader:
         if not os.path.exists(TMP_DIR):
             os.makedirs(TMP_DIR)
 
-        self.change_current_date(self.available_dates[0]) # "20210710T101559")
+        self.change_current_date(self.available_dates[0])  # "20210710T101559")
 
         # As we are looking at the cloud probability map, we can set the threshold to 0.0
         self.cloud_detector = S2PixelCloudDetector(threshold=0.4, average_over=4, dilation_size=2, all_bands=True)
@@ -266,7 +266,7 @@ class Dataloader:
 
         # Set up the options for creating the empty JP2 file
         profile = {
-            'driver': 'JP2OpenJPEG',
+            'driver': 'GTiff',
             'dtype': np.uint8,
             'nodata': 0,
             'width': width,
@@ -276,6 +276,7 @@ class Dataloader:
             'transform': self.profiles["10m"]["transform"],
             'blockxsize': 512,
             'blockysize': 512,
+            'compress': 'lzw',
         }
 
         # Create the empty JP2 file
@@ -353,28 +354,25 @@ class Dataloader:
             get_ipython().system(
                 'unzip "$DATA_DIR/raw_data_32TNS_2A/"$(ls "$DATA_DIR/raw_data_32TNS_2A" | grep $date) -d $TMP_DIR')
 
-    def update_mask(self, ref, imgdata):
+    def update_mask(self, ref, mask_img):
 
         window = self.refs[ref]["window"]
         current_date = self.refs[ref]["current_date"]
 
         mask_dir = f"{MASKS_DIR}/{current_date}"
         with rasterio.open(f"{mask_dir}/mask.jp2", 'r+') as mask:
-            filename = TMP_DIR + "/mask.png"
-            with open(filename, 'wb') as f:
-                f.write(imgdata)
-
-            mask_img = plt.imread(filename)
-
             # convert to numpy array
             mask_img = np.array(mask_img)
-            mask_img = mask_img[:, :, 0]
-            mask_img = cv2.resize(mask_img, (512, 512), interpolation=cv2.INTER_LINEAR)
-
-            # convert to 0-255 range
-            mask_img = mask_img * 255
             mask_img = mask_img.astype('uint8')
+
+            # reshape to 2D array
+            mask_img = mask_img.reshape((512, 512))
             np.clip(mask_img, 0, 255, out=mask_img)
+
+            # plot the mask using matplotlib and the verdis palette
+            plt.figure(figsize=(20, 20))
+            plt.imshow(mask_img, cmap=plt.cm.get_cmap('Set1', np.max(mask_img)))
+            plt.savefig(f"{mask_dir}/mask.png")
 
             print("Min/Max: ", np.min(mask_img), np.max(mask_img))
 
