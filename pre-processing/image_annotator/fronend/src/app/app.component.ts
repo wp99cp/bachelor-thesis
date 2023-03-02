@@ -58,6 +58,9 @@ export class AppComponent implements OnInit {
     private active_scene_code: string = 'scene_original';
     public threshold: number = 5;
 
+    private color_adding_mode_disabled: boolean = false;
+
+
     ngOnInit(): void {
 
         this.next_img(true)
@@ -116,34 +119,58 @@ export class AppComponent implements OnInit {
             }
 
             if (e.key === 'Enter') this.enter_is_down = false;
-            if (e.key === '+') this.color_adding_mode = false;
             if (e.key === 'Control') this.control_is_down = false;
+
+            if (e.key === '+') {
+                this.color_adding_mode = false;
+                this.color_adding_mode_disabled = true;
+            }
 
         });
 
+        const requestIdleCallback = window.requestIdleCallback || function (fn: () => void) {
+            setTimeout(fn, 1)
+        };
+
+        const context = this.get_context()
+        if (!context) throw new Error('context is null')
+        context.imageSmoothingEnabled = false
+
+        let path = new Path2D();
 
         for (const ev of ["touchstart", "mousedown"]) {
             canvas.addEventListener(ev, (e: any) => {
 
+                points = [];
                 isMousedown = true
-                points = [this.get_coords(e, canvas)];
+
+                const {x, y} = this.get_coords(e, canvas)
+
+                context.lineWidth = 2
+                points.push({x, y})
+                this.draw_on_canvas(context, points, path);
 
             })
         }
 
+
         for (const ev of ['touchmove', 'mousemove']) {
             canvas.addEventListener(ev, async (e: any) => {
+
 
                 if (!isMousedown) return
                 e.preventDefault()
 
+
                 if (this.color_adding_mode) {
+                    points = [];
                     await this.run_selection(this.get_coords(e, canvas));
                     return;
                 }
 
-                points.push(this.get_coords(e, canvas))
-
+                let {x, y} = this.get_coords(e, canvas)
+                points.push({x, y})
+                this.draw_on_canvas(context, points, path);
             })
         }
 
@@ -151,14 +178,52 @@ export class AppComponent implements OnInit {
 
             canvas.addEventListener(ev, async (e: any) => {
 
+
                 isMousedown = false
 
                 if (this.color_adding_mode) {
+                    points = [];
                     await this.run_selection(this.get_coords(e, canvas));
                     return;
                 }
 
-                await this.draw_stroke(points)
+
+                if (points.length > 0) {
+
+                    const fst_p = points[0];
+                    const lst_p = points[points.length - 1];
+
+                    const dx = fst_p.x - lst_p.x;
+                    const dy = fst_p.y - lst_p.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+
+                    if (distance < 25 || this.current_color === 2) {
+                        path.closePath();
+                        context.fill(path)
+                    }
+
+                }
+
+                path = new Path2D();
+
+
+                // remove white pixels form canvas
+                const imageData = context.getImageData(0, 0, canvas.width, canvas.height)
+                const data = imageData.data
+                for (let i = 0; i < data.length; i += 4) {
+                    if (data[i] === Background_Color[0] && data[i + 1] === Background_Color[1] && data[i + 2] === Background_Color[2]) {
+                        data[i + 3] = 0
+                    }
+                }
+                context.putImageData(imageData, 0, 0)
+
+                this.canvas_data = context.getImageData(0, 0, canvas.width, canvas.height).data;
+                this.canvas_history.push(this.canvas_data)
+                this.get_coords(e, canvas);
+
+                isMousedown = false
+
+                requestIdleCallback(() => points = []);
 
             });
         }
@@ -192,41 +257,47 @@ export class AppComponent implements OnInit {
     }
 
 
-    private async draw_stroke(stroke: any[]) {
+    /**
+     * This function takes in an array of points and draws them onto the canvas.
+     * @param context
+     * @param {array} stroke array of points to draw on the canvas
+     * @param path
+     * @return {void}
+     */
+    private draw_on_canvas(context: CanvasRenderingContext2D, stroke: string | any[], path: Path2D) {
+
 
         const color = Class_Colors[this.current_color]
 
-        const mark_pixels = (index: any) => {
-            this.canvas_data[index] = color[0];
-            this.canvas_data[index + 1] = color[1];
-            this.canvas_data[index + 2] = color[2];
-            this.canvas_data[index + 3] = color[3];
+        context.imageSmoothingEnabled = false
+        context.strokeStyle = `rgb(${color[0]}, ${color[1]}, ${color[2]})`
+        context.fillStyle = `rgb(${color[0]}, ${color[1]}, ${color[2]})`
+        context.lineCap = 'square'
+        context.lineJoin = 'round'
+
+        const l = stroke.length - 1
+        if (stroke.length >= 3) { // continue line
+            const xc = (stroke[l].x + stroke[l - 1].x) / 2
+            const yc = (stroke[l].y + stroke[l - 1].y) / 2
+            context.lineWidth = 2
+
+            context.quadraticCurveTo(stroke[l - 1].x, stroke[l - 1].y, xc, yc)
+            context.stroke()
+            context.beginPath()
+            context.moveTo(xc, yc)
+
+            path.lineTo(xc, yc)
+
+        } else {  // start a new line
+            const point = stroke[l];
+            context.lineWidth = point.lineWidth
+            context.strokeStyle = point.current_color
+            context.beginPath()
+            context.moveTo(point.x, point.y)
+            context.stroke()
         }
 
-        let prev_pkt = null;
-
-        for (const p of stroke) {
-
-            if (prev_pkt === null) {
-                prev_pkt = p;
-                continue;
-            }
-
-            // draw line between previous and current point
-            const slope = (p.y - prev_pkt.y) / (p.x - prev_pkt.x);
-            const intercept = p.y - slope * p.x;
-
-            for (let x = Math.min(p.x, prev_pkt.x); x <= Math.max(p.x, prev_pkt.x); x++) {
-                const y = slope * x + intercept;
-                const index = (Math.floor(y) * RAW_MASK_DIM + Math.floor(x)) * 4;
-                mark_pixels(index);
-            }
-
-            prev_pkt = p;
-        }
-
-        const context = this.get_context();
-        context.putImageData(new ImageData(this.canvas_data, RAW_MASK_DIM, RAW_MASK_DIM), 0, 0);
+        this.canvas_data = context.getImageData(0, 0, RAW_MASK_DIM, RAW_MASK_DIM).data;
 
     }
 
@@ -311,12 +382,22 @@ export class AppComponent implements OnInit {
                 const color = this.canvas_data.slice(i * 4, i * 4 + 4);
                 if (color[3] < 255) {
                     class_image[y][x] = Classes.Background;
+                    continue;
                 }
 
-                for (const [class_code, class_color] of Object.entries(Class_Colors)) {
-                    if (color[0] === class_color[0] && color[1] === class_color[1] && color[2] === class_color[2] && color[3] === class_color[3])
-                        class_image[y][x] = parseInt(class_code);
+                let class_nr = Classes.Background;
+
+                // search for the class with the min distance to the color
+                let min_dist = Infinity;
+                for (const [class_nr_, color_] of Object.entries(Class_Colors)) {
+                    const dist = Math.sqrt((color[0] - color_[0]) ** 2 + (color[1] - color_[1]) ** 2 + (color[2] - color_[2]) ** 2)
+                    if (dist < min_dist) {
+                        min_dist = dist;
+                        class_nr = parseInt(class_nr_);
+                    }
                 }
+
+                class_image[y][x] = class_nr;
 
             }
 
@@ -342,7 +423,6 @@ export class AppComponent implements OnInit {
                 .then(json => {
 
                     const scenes = json['scenes'];
-                    console.log(scenes);
                     this.current_image_ref = json['ref'];
 
                     const base_path = BASE_URL + '/imgs/';
@@ -362,10 +442,8 @@ export class AppComponent implements OnInit {
 
     }
 
-
     private async run_selection(current_position: any) {
 
-        console.log('running selection')
         await this.mark_similar_pixels(current_position.x, current_position.y);
 
         const context = this.get_context();
