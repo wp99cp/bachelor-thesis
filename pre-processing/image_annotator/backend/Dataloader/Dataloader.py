@@ -58,7 +58,12 @@ class Dataloader:
         if not os.path.exists(TMP_DIR):
             os.makedirs(TMP_DIR)
 
-        self.change_current_date("20210908T101559") # self.available_dates[0])
+        # Those days are selected in a way to have a good mix of snow and cloud coverage
+        # Images are distributed over several months to have a good mix of seasons
+        selected_dates = ["20211227T102339", "20210720T101559", "20210908T101559", "20210819T101559", "20211018T101939"]
+
+        # randomly set a date
+        self.change_current_date(np.random.choice(selected_dates))
 
         # As we are looking at the cloud probability map, we can set the threshold to 0.0
         self.cloud_detector = S2PixelCloudDetector(threshold=0.4, average_over=4, dilation_size=2, all_bands=True)

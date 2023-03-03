@@ -2,7 +2,8 @@
 
     <div class="annotator p-5" [ngClass]="{'hidden' : loading_next}">
 
-        <canvas id="canvas_write" width="1024" height="1024" style="width: 1024px; height: 1024px; z-index: 99"></canvas>
+        <canvas id="canvas_write" width="1024" height="1024"
+                style="width: 1024px; height: 1024px; z-index: 99"></canvas>
         <canvas id="canvas_readonly" width="1024" height="1024" style="width: 1024px; height: 1024px"></canvas>
 
         <img class="background-image" src="" width="1024" height="1024" id="scene_original"/>
@@ -43,6 +44,11 @@
                 water
             </button>
 
+            <button class="m-2 material-icons bg-red-600 py-4 px-4 rounded-full" id="exclude" (click)="set_color(4)"
+                    [ngClass]="{'ring-2 ring-offset-4 ring-offset-slate-50' : current_color==0}">
+                disabled_by_default
+            </button>
+
             <button class="m-2 material-icons bg-gray-200 py-4 px-4 rounded-full" id="eraser" (click)="set_color(0)"
                     [ngClass]="{'ring-2 ring-offset-4 ring-offset-slate-50' : current_color==0}">
                 format_color_reset
@@ -53,15 +59,15 @@
 
         <div class="controls flex flex-col p-5">
 
-            <button class="bg-blue-200 text-white font-bold py-2 px-4 rounded-full" id="next" >
+            <button class="bg-blue-200 text-white font-bold py-2 px-4 rounded-full" id="next">
                 Next (CTRL + ENTER)
             </button>
 
-            <button class="bg-blue-500 text-white font-bold py-2 px-4 rounded-full" id="undo" >Undo
+            <button class="bg-blue-500 text-white font-bold py-2 px-4 rounded-full" id="undo">Undo
                 (-)
             </button>
 
-            <button class="bg-red-500 text-white font-bold py-2 px-4 rounded-full" id="redo" >clear all
+            <button class="bg-red-500 text-white font-bold py-2 px-4 rounded-full" id="redo">clear all
                 (/)
             </button>
 
@@ -79,15 +85,22 @@
                 2 - s2cloudless probability map<br/>
                 3 - highlights <br/>
                 4 - sentinel TCI inverted<br/>
+                5 - cloud mask (.4 threshold)<br/>
+                6 - cloud mask (.6 threshold)<br/>
+                7 - exoLabs snow classification<br/>
+                8 - exoLabs classification<br/>
             </span>
         </div>
 
         <div class="w-96 p-5">
-            <span>Holding down "+" Marks all pixel with similar color</span>
+            <span><b>Additional Commands</b></span>
             <br/>
-            <span>The threshold can be adjusted using the the UP/DOWN arrow keys</span>
+            <span>- Holding down "+" Marks all pixel with similar color</span>
             <br/>
-            <span>The threshold is currently set to: {{threshold}}</span>
+            <span>- The threshold can be adjusted using the the UP/DOWN arrow keys.
+                The threshold is currently set to: {{threshold}}</span>
+            <br />
+            <span>- Pressing "." hides all annotations.</span>
         </div>
 
     </div>

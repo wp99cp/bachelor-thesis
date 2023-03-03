@@ -13,9 +13,11 @@ const Background_Color = [255, 255, 255, 0]
 const Snow_Color = [38, 211, 192, 255]
 const Clouds_Color = [192, 38, 211, 255]
 const Water_Color = [211, 192, 38, 255]
-const Class_Colors = [Background_Color, Snow_Color, Clouds_Color, Water_Color]
+const Exclude = [255, 0, 0, 255]
+const Class_Colors = [Background_Color, Snow_Color, Clouds_Color, Water_Color, Exclude]
 const SCENE_CODES = ['original', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
-const BASE_URL = 'http://192.168.1.223:5000';
+
+const BASE_URL = 'http://192.168.2.38:5000';
 const RAW_MASK_DIM = 512;
 
 function is_similar_color(pixelColor: Uint8ClampedArray, color: number[], threshold: number) {
