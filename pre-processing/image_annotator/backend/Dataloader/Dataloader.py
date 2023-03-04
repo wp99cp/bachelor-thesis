@@ -63,7 +63,7 @@ class Dataloader:
         selected_dates = ["20211227T102339", "20210720T101559", "20210908T101559", "20210819T101559", "20211018T101939"]
 
         # randomly set a date
-        self.change_current_date(np.random.choice(selected_dates))
+        self.change_current_date("20211008T101829") # (np.random.choice(selected_dates))
 
         # As we are looking at the cloud probability map, we can set the threshold to 0.0
         self.cloud_detector = S2PixelCloudDetector(threshold=0.4, average_over=4, dilation_size=2, all_bands=True)
