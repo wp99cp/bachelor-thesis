@@ -1,6 +1,7 @@
 # all PyTorch datasets must inherit from this base dataset class.
 import cv2
 import numpy as np
+import torch
 from torch.utils.data import Dataset
 
 from configs.config import NUM_ENCODED_CHANNELS, NUM_CLASSES
@@ -8,13 +9,14 @@ from configs.config import NUM_ENCODED_CHANNELS, NUM_CLASSES
 
 class SegmentationDataset(Dataset):
 
-    def __init__(self, imagePaths, maskPaths, transforms):
+    def __init__(self, imagePaths, maskPaths, transforms, apply_augmentations=True):
         # store the image and mask filepaths, and augmentation transforms
         self.imagePaths = imagePaths
         self.maskPaths = maskPaths
 
         # this is a set of transformations that will be applied to the image and mask
         self.transforms = transforms
+        self.apply_augmentations = apply_augmentations
 
     def __len__(self):
         # return the number of total samples contained in the dataset
@@ -30,11 +32,10 @@ class SegmentationDataset(Dataset):
         # grab the image path from the current index
         image_path = self.imagePaths[idx]
 
-        # load the image from disk, swap its channels from BGR to RGB,
-        # and read the associated mask from disk in grayscale mode
-        # as by default, OpenCV loads an image in the BGR format
-        image = cv2.imread(image_path)
-        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+        image = np.load(image_path)
+        image = image['arr_0'].astype(np.float32)
+        image = image / 255.0
+        image = np.moveaxis(image, 0, -1)
 
         # load the corresponding ground-truth segmentation mask in grayscale mode
         mask = cv2.imread(self.maskPaths[idx], cv2.IMREAD_UNCHANGED)
@@ -52,8 +53,20 @@ class SegmentationDataset(Dataset):
         if self.transforms is not None:
             # apply the transformations to both image and its mask
             image = self.transforms(image)
-            masks = self. \
-                transforms(masks)
+            masks = self.transforms(masks)
+
+        if self.apply_augmentations:
+
+            # apply the augmentation transforms
+            flip_prob = np.random.rand()
+            if flip_prob > 0.5:
+                image = torch.flip(image, dims=[1])
+                masks = torch.flip(masks, dims=[1])
+
+            flip_prob = np.random.rand()
+            if flip_prob > 0.5:
+                image = torch.flip(image, dims=[2])
+                masks = torch.flip(masks, dims=[2])
 
         # return a tuple of the image and its mask
         return image, masks

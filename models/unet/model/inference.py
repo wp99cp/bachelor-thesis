@@ -1,6 +1,7 @@
 import os
 
 import cv2
+import matplotlib
 import numpy as np
 import torch
 from matplotlib import pyplot as plt
@@ -16,17 +17,18 @@ def make_predictions(model, imagePath):
     with torch.no_grad():
         # load the image from disk, swap its color channels, cast it
         # to float data type, and scale its pixel values
-        image = cv2.imread(imagePath)
-        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-        image = image.astype("float32") / 255.0
-
-        # resize the image and make a copy of it for visualization
-        image = cv2.resize(image, (IMAGE_SIZE, IMAGE_SIZE))
+        image = np.load(imagePath)
+        image = image['arr_0']
+        image = image.astype(np.float32)
+        image = image / 255.0
         orig = image.copy()
+        orig = np.moveaxis(orig, 0, -1)
 
         # find the filename and generate the path to ground truth
         # mask
         filename = imagePath.split(os.path.sep)[-1]
+        # replace the extension of the image with .png
+        filename = filename.replace(".npz", ".png")
         groundTruthPath = os.path.join(MASK_DATASET_PATH, filename)
 
         # load the ground-truth segmentation mask in grayscale mode
@@ -37,7 +39,6 @@ def make_predictions(model, imagePath):
         # make the channel axis to be the leading one, add a batch
         # dimension, create a PyTorch tensor, and flash it to the
         # current device
-        image = np.transpose(image, (2, 0, 1))
         image = np.expand_dims(image, 0)
         image = torch.from_numpy(image).to(DEVICE)
 
@@ -59,12 +60,13 @@ def make_predictions(model, imagePath):
 
 def print_results(origImage, origMask, predMask):
     # initialize our figure
+    matplotlib.use('Agg')
     figure, ax = plt.subplots(nrows=1, ncols=6, figsize=(20, 5))
 
     # create a legend for the mask
 
     # plot the original image, its mask, and the predicted mask
-    ax[0].imshow(origImage)
+    ax[0].imshow(origImage[:, :, 0:3])
     ax[1].imshow(origMask)
 
     ax[2].imshow(predMask[0, :, :])

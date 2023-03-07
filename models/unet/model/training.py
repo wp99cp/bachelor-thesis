@@ -7,7 +7,7 @@ from torch.nn import BCEWithLogitsLoss
 from torch.optim import Adam
 from tqdm import tqdm
 
-from configs.config import DEVICE, INIT_LR, BATCH_SIZE, NUM_EPOCHS, BASE_OUTPUT
+from configs.config import DEVICE, INIT_LR, BATCH_SIZE, NUM_EPOCHS, BASE_OUTPUT, IMAGE_SIZE, CLASS_WEIGHTS
 from model.Model import UNet
 
 
@@ -15,8 +15,14 @@ def training(trainLoader, testLoader, trainDS, testDS):
     # initialize our UNet model
     unet = UNet().to(DEVICE)
 
+    class_weights = torch.tensor(CLASS_WEIGHTS)
+    class_weights = 1. / class_weights
+    class_weights = class_weights / class_weights.sum()
+    class_weights = class_weights.repeat(IMAGE_SIZE, IMAGE_SIZE, 1)
+    class_weights = class_weights.permute(2, 0, 1)
+
     # initialize loss function and optimizer
-    lossFunc = BCEWithLogitsLoss()
+    lossFunc = BCEWithLogitsLoss(pos_weight=class_weights.to(DEVICE))
     opt = Adam(unet.parameters(), lr=INIT_LR)
 
     # calculate steps per epoch for training and test set
@@ -82,6 +88,10 @@ def training(trainLoader, testLoader, trainDS, testDS):
         print("Train loss: {:.6f}, Test loss: {:.4f}".format(
             avgTrainLoss, avgTestLoss))
 
+        print("[INFO] saving the model...")
+        model_path = os.path.join(BASE_OUTPUT, "unet_intermediate.pth")
+        torch.save(unet.state_dict(), model_path)
+
     # display the total time needed to perform the training
     endTime = time.time()
     print("[INFO] total time taken to train the model: {:.2f}s".format(
@@ -104,3 +114,5 @@ def training(trainLoader, testLoader, trainDS, testDS):
 
     loss_plot_path = os.path.join(BASE_OUTPUT, "loss.png")
     plt.savefig(loss_plot_path)
+
+    print("[INFO] Training completed!\n")

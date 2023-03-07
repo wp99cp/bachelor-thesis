@@ -9,7 +9,7 @@ from torch.nn import ModuleList
 from torch.nn import ReLU
 from torchvision.transforms import CenterCrop
 
-from configs.config import NUM_CLASSES, IMAGE_SIZE
+from configs.config import NUM_CLASSES, IMAGE_SIZE, NUM_CHANNELS
 
 
 # Next, we define a Block module as the building unit of our encoder and decoder architecture.
@@ -33,7 +33,7 @@ class Block(Module):
 
 class Encoder(Module):
 
-    def __init__(self, channels=(3, 16, 32, 64)):
+    def __init__(self, channels=(NUM_CHANNELS, 16, 32, 64)):
         super().__init__()
 
         # store the encoder blocks and maxpooling layer
@@ -106,11 +106,10 @@ class Decoder(Module):
 
 class UNet(Module):
 
-    def __init__(self, encChannels=(3, 16, 32, 64),
+    def __init__(self, encChannels=(NUM_CHANNELS, 16, 32, 64),
                  decChannels=(64, 32, 16),
                  nbClasses=NUM_CLASSES, retainDim=True,
                  outSize=(IMAGE_SIZE, IMAGE_SIZE)):
-
         super().__init__()
 
         # initialize the encoder and decoder
@@ -125,7 +124,6 @@ class UNet(Module):
     def forward(self, x):
         # grab the features from the encoder
         encFeatures = self.encoder(x)
-
         # pass the encoder features through decoder making sure that
         # their dimensions are suited for concatenation
         decFeatures = self.decoder(encFeatures[::-1][0],
