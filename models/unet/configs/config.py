@@ -17,9 +17,9 @@ TEST_SPLIT = 0.15
 
 # define the number of channels in the input, number of classes,
 # and number of levels in the U-Net model
-NUM_CHANNELS = 5  # B02, B03, B04, B08, B08
-NUM_CLASSES = 4  # we have background, snow and clouds
-NUM_LEVELS = 3
+IMAGE_SIZE = 128  # defines the input image dimensions
+NUM_CHANNELS = 5  # sentinel bands: B02, B03, B04, B08
+NUM_CLASSES = 3  # we have snow, clouds and water (the background is not included)
 
 # initialize learning rate, number of epochs to train for, and the
 # batch size
@@ -27,17 +27,14 @@ INIT_LR = 0.0001
 NUM_EPOCHS = 25
 BATCH_SIZE = 64
 
-# define the input image dimensions
-IMAGE_SIZE = 128
-
 # define threshold to filter weak predictions
-THRESHOLD = 0.4
+THRESHOLD = 0.1
 
 # Number of channels used to encode the grayscale image
 NUM_ENCODED_CHANNELS = 5
 
-# class weights for background, snow, clouds, water
-CLASS_WEIGHTS = [0.62062, 0.12658, 0.24463, 0.00816]
+# class weights for snow, clouds, water
+CLASS_WEIGHTS = [0.12658, 0.24463, 0.00816]
 
 # ====================================
 # ====================================
@@ -64,7 +61,6 @@ def report_config():
     print(f"- Using device: {DEVICE}")
     print(f"- Using {NUM_CHANNELS} channels")
     print(f"- Using {NUM_CLASSES} classes")
-    print(f"- Using {NUM_LEVELS} levels")
     print(f"- Using {NUM_EPOCHS} epochs")
     print(f"- Using {BATCH_SIZE} batch size")
     print(f"- Using {IMAGE_SIZE} image size")

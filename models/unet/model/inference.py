@@ -61,7 +61,7 @@ def make_predictions(model, imagePath):
 def print_results(origImage, origMask, predMask):
     # initialize our figure
     matplotlib.use('Agg')
-    figure, ax = plt.subplots(nrows=1, ncols=6, figsize=(20, 5))
+    figure, ax = plt.subplots(nrows=1, ncols=5, figsize=(20, 5))
 
     # create a legend for the mask
 
@@ -69,19 +69,19 @@ def print_results(origImage, origMask, predMask):
     ax[0].imshow(origImage[:, :, 0:3])
     ax[1].imshow(origMask)
 
+    # ax[2].imshow(predMask[0, :, :])
     ax[2].imshow(predMask[0, :, :])
     ax[3].imshow(predMask[1, :, :])
     ax[4].imshow(predMask[2, :, :])
-    ax[5].imshow(predMask[3, :, :])
 
     # set the titles of the subplots
     ax[0].set_title("Image")
     ax[1].set_title("Original Mask")
 
-    ax[2].set_title("Predicted Background")
-    ax[3].set_title("Predicted Snow")
-    ax[4].set_title("Predicted Cloud")
-    ax[5].set_title("Predicted Water")
+    # ax[2].set_title("Predicted Background")
+    ax[2].set_title("Predicted Snow")
+    ax[3].set_title("Predicted Cloud")
+    ax[4].set_title("Predicted Water")
 
     # set the layout of the figure and display it
     figure.tight_layout()
