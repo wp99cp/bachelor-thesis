@@ -5,7 +5,8 @@ enum Classes {
     Background = 0,
     Snow = 1,
     Clouds = 2,
-    Water = 3
+    Water = 3,
+    Clouds_Semitransparant = 4
 }
 
 
@@ -13,9 +14,9 @@ const Background_Color = [255, 255, 255, 0]
 const Snow_Color = [38, 211, 192, 255]
 const Clouds_Color = [192, 38, 211, 255]
 const Water_Color = [211, 192, 38, 255]
-const Exclude = [255, 0, 0, 255]
-const Class_Colors = [Background_Color, Snow_Color, Clouds_Color, Water_Color, Exclude]
-const SCENE_CODES = ['original', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
+const Clouds_Semitransparant = [255, 0, 0, 255]
+const Class_Colors = [Background_Color, Snow_Color, Clouds_Color, Water_Color, Clouds_Semitransparant]
+const SCENE_CODES = ['original', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'Home']
 
 // load
 const BASE_URL = 'https://backend.annotator.emeal.ch';
@@ -460,9 +461,14 @@ export class AppComponent implements OnInit {
                     const base_path = BASE_URL + '/imgs/';
 
                     // Load all scenes
-                    for (const scene_code of SCENE_CODES) {
-                        console.log('loading scene scene_' + scene_code);
-                        (document.getElementById('scene_' + scene_code) as HTMLImageElement)!.src = base_path + scenes['scene_' + scene_code];
+                    for (let scene_code of SCENE_CODES) {
+
+                        const element = (document.getElementById('scene_' + scene_code) as HTMLImageElement);
+
+                        // map extra keys
+                        if (scene_code === 'Home') scene_code = '10';
+
+                        element!.src = base_path + scenes['scene_' + scene_code];
                     }
 
                     this.switch_to_original();

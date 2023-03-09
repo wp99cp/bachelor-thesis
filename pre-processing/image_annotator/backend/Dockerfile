@@ -18,4 +18,4 @@ RUN mkdir -p /projects/bachelor-thesis/data && mkdir -p /projects/bachelor-thesi
 EXPOSE 5000
 
 # Entrypoint
-CMD gunicorn --bind :5000 --workers 1 --threads 2 --timeout 60 app:app
+CMD python app.py

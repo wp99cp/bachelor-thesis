@@ -60,10 +60,11 @@ class Dataloader:
 
         # Those days are selected in a way to have a good mix of snow and cloud coverage
         # Images are distributed over several months to have a good mix of seasons
-        selected_dates = ["20211227T102339", "20210720T101559", "20210908T101559", "20210819T101559", "20211018T101939"]
+        selected_dates = [
+            "20211008T101829"]  # ["20211227T102339", "20210720T101559", "20210908T101559", "20210819T101559", "20211018T101939"]
 
         # randomly set a date
-        self.change_current_date("20211008T101829") # (np.random.choice(selected_dates))
+        self.change_current_date(np.random.choice(selected_dates))
 
         # As we are looking at the cloud probability map, we can set the threshold to 0.0
         self.cloud_detector = S2PixelCloudDetector(threshold=0.4, average_over=4, dilation_size=2, all_bands=True)
@@ -116,18 +117,31 @@ class Dataloader:
         exoLab_classifications = exoLab_classifications.transpose(2, 0, 1)
 
         # glacier and surface water (both are at 30m resolution)
-        window_60m = window.copy()
-        window_60m = (window_60m[0] // 3, window_60m[1] // 3, window_60m[2] // 3, window_60m[3] // 3)
-        surface_water_mask = self.exolabs_classification.read(2, window=Window(*window_60m))
+        # window_60m = window.copy()
+        # window_60m = (window_60m[0] // 3, window_60m[1] // 3, window_60m[2] // 3, window_60m[3] // 3)
+        # surface_water_mask = self.exolabs_classification.read(2, window=Window(*window_60m))
 
         # upscale to 512x512 using cv2
-        surface_water_mask = cv2.resize(surface_water_mask, (512, 512), interpolation=cv2.INTER_NEAREST)
+        # surface_water_mask = cv2.resize(surface_water_mask, (512, 512), interpolation=cv2.INTER_NEAREST)
 
         # map and convert to RGB
-        cmap = plt.cm.get_cmap('nipy_spectral', np.max(surface_water_mask) + 1)
-        surface_water_mask = np.array(cmap(surface_water_mask))
-        surface_water_mask = surface_water_mask[:, :, :3]
-        surface_water_mask = surface_water_mask.transpose(2, 0, 1)
+        # cmap = plt.cm.get_cmap('nipy_spectral', np.max(surface_water_mask) + 1)
+        # surface_water_mask = np.array(cmap(surface_water_mask))
+        # surface_water_mask = surface_water_mask[:, :, :3]
+        # surface_water_mask = surface_water_mask.transpose(2, 0, 1)
+
+        # load mask_windowed
+        mask_windowed = self.mask_windowed[0, :, :]
+        cmap = plt.cm.get_cmap('nipy_spectral', np.max(mask_windowed) + 1)
+        mask_windowed = np.array(cmap(mask_windowed))
+        mask_windowed = mask_windowed.transpose(2, 0, 1)
+
+        # load self.swiss_map_tile
+        swiss_map_tile = self.swiss_map_tile.read(window=Window(*window))
+        swiss_map_tile = swiss_map_tile / 255.0
+
+        print(f"swiss_map_tile.shape: {swiss_map_tile.shape}")
+        print(f"MIN/MAX: {np.min(swiss_map_tile)}, {np.max(swiss_map_tile)}")
 
         scenes = [
             true_color,
@@ -140,7 +154,8 @@ class Dataloader:
             cloud_mask06,
             exoLab_snow_classifications,
             exoLab_classifications,
-            surface_water_mask
+            mask_windowed,
+            swiss_map_tile
         ]
 
         # Generate PNGs
@@ -192,6 +207,10 @@ class Dataloader:
             bands_windowed[0, :, :, i] = band
 
         self.bands_windowed = bands_windowed
+
+        # load mask_windowed
+        self.mask_windowed = self.mask.read(window=Window(*window))
+
         print("Finished loading bands_windowed. Shape:", self.bands_windowed.shape)
 
     def _compute_s2cloud_masks(self):
@@ -270,11 +289,15 @@ class Dataloader:
 
         if not os.path.exists(mask_dir):
             os.makedirs(mask_dir)
-            self._create_empty_mask(f"{mask_dir}/mask_coverage.jp2")
             self._create_empty_mask(f"{mask_dir}/mask.jp2")
+            self._create_empty_mask(f"{mask_dir}/mask_coverage.jp2")
+
+        if not os.path.exists(f"{mask_dir}/mask_coverage.jp2"):
+            self._create_empty_mask(f"{mask_dir}/mask_coverage.jp2")
 
         with rasterio.open(f"{mask_dir}/mask_coverage.jp2") as src:
             img = src.read(1)
+
         labeled, n_comps = ndimage.label(img)
 
         # create a list to store the windows
@@ -393,6 +416,22 @@ class Dataloader:
         ExoLabs_files = os.listdir(ExoLabs_path)
         ExoLabs_file = [f for f in ExoLabs_files if f.startswith(f"S2_32TNS_{date}")]
         self.exolabs_classification = rasterio.open(f"{TMP_DIR}/ExoLabs_classification_S2/{ExoLabs_file[0]}")
+
+        mask_dir = f"{MASKS_DIR}/{self.current_date}"
+
+        if not os.path.exists(mask_dir):
+            os.makedirs(mask_dir)
+            self._create_empty_mask(f"{mask_dir}/mask.jp2")
+            self._create_empty_mask(f"{mask_dir}/mask_coverage.jp2")
+
+        if not os.path.exists(f"{mask_dir}/mask.jp2"):
+            self._create_empty_mask(f"{mask_dir}/mask.jp2")
+
+        self.mask = rasterio.open(f"{mask_dir}/mask.jp2")
+
+        # load swiss map tile
+        swiss_map_tile = f"{TMP_DIR}/32TNS_auxiliary_data/swiss_map_tile.tif"
+        self.swiss_map_tile = rasterio.open(swiss_map_tile)
 
         # ==========
         # open auxiliary data
