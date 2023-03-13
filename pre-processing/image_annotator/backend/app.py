@@ -1,16 +1,19 @@
-import base64
 import json
+import os
 import threading
+import time
+import zipfile
+from io import BytesIO
 from queue import Queue
 
 import matplotlib
 
 matplotlib.use('Agg')
 
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, send_file
 from flask_cors import CORS
 
-from Dataloader.Dataloader import Dataloader, img_src
+from Dataloader.Dataloader import Dataloader, img_src, MASKS_DIR
 
 app = Flask(__name__, static_folder=img_src)
 CORS(app)
@@ -68,6 +71,23 @@ def update_mask(ref):
     dataloader.update_mask(ref, imgdata)
 
     return jsonify({"success": True})
+
+
+@app.route('/download/masks', methods=['GET'])
+def download_masks():
+    date = time.strftime("%Y%m%d-%H%M%S")
+    fileName = "annotations_{}.zip".format(date)
+    memory_file = BytesIO()
+
+    file_path = MASKS_DIR
+
+    with zipfile.ZipFile(memory_file, 'w', zipfile.ZIP_DEFLATED) as zipf:
+        for root, dirs, files in os.walk(file_path):
+            for file in files:
+                zipf.write(os.path.join(root, file))
+    memory_file.seek(0)
+
+    return send_file(memory_file, as_attachment=True, download_name=fileName)
 
 
 if __name__ == '__main__':
