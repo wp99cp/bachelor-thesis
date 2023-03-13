@@ -48,6 +48,7 @@ class Dataloader:
     def __init__(self):
 
         # get date out of filename
+        self.points_of_interest = []
         self.refs = {}
         products_path = os.listdir(f"{DATA_DIR}/raw_data_32TNS_1C")
 
@@ -60,8 +61,8 @@ class Dataloader:
 
         # Those days are selected in a way to have a good mix of snow and cloud coverage
         # Images are distributed over several months to have a good mix of seasons
-        selected_dates = [
-            "20211008T101829"]  # ["20211227T102339", "20210720T101559", "20210908T101559", "20210819T101559", "20211018T101939"]
+        selected_dates = ["20211008T101829"]  # currently online "20210819T101559"
+        # ["20211227T102339", "20210720T101559", "20210908T101559", "20210819T101559", "20211018T101939"]
 
         # randomly set a date
         self.change_current_date(np.random.choice(selected_dates))
@@ -234,6 +235,17 @@ class Dataloader:
         return scene_cloud_probs, cloud_mask_04, cloud_mask_06
 
     def _find_uncovered_square(self):
+
+        print("Finding uncovered square...")
+        if len(self.points_of_interest) > 0:
+            print("Using points of interest, len:", len(self.points_of_interest))
+            uncovered_pos = self.points_of_interest.pop(0)
+            print("Uncovered pos:", uncovered_pos)
+
+            # convert the coordinates to pixel coordinates
+            coords = self.geo_to_pixel_coords(*uncovered_pos)
+            print("Pixel coords:", coords)
+            return [*coords, 512, 512]
 
         # create a binary matrix to represent the area
         area = np.zeros(self.shape, dtype=bool)
@@ -482,6 +494,13 @@ class Dataloader:
 
             # Write to mask
             mask.write(mask_img, window=Window(*window), indexes=1)
+
+    def set_points_of_interest(self, points_of_interest):
+        self.points_of_interest = points_of_interest
+
+    def geo_to_pixel_coords(self, x, y):
+        row, col = self.bands[1].index(x, y)
+        return row, col
 
     def mark_scene_as_done(self, ref):
 

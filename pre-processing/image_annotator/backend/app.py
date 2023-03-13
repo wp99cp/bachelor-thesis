@@ -8,6 +8,8 @@ from queue import Queue
 
 import matplotlib
 
+from Dataloader.revisit_points import load_center_points
+
 matplotlib.use('Agg')
 
 from flask import Flask, jsonify, request, send_file
@@ -91,5 +93,8 @@ def download_masks():
 
 
 if __name__ == '__main__':
+    points_of_interest = load_center_points(dataloader.current_date, dataloader)
+    dataloader.set_points_of_interest(points_of_interest)
+
     queued_refs.put(dataloader.generate_next())
     app.run(host='0.0.0.0', port=5000)

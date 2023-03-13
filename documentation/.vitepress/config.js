@@ -16,6 +16,8 @@ export default {
                         {text: 'Getting Started', link: 'docs/getting-started'},
                         {text: 'Data Source', link: 'docs/data_sources'},
                         {text: 'ExoLabs', link: 'docs/ExoLabs_Classifications'},
+                        {text: 'Hand Annotations', link: 'docs/hand_annotations'},
+
                     ]
                 },
 
