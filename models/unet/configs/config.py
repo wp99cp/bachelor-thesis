@@ -9,7 +9,7 @@ DATASET_PATH = os.environ['DATA_DIR'] if 'DATA_DIR' in os.environ else os.path.j
 # define the path to the images and masks dataset
 IMAGE_DATASET_PATH = os.path.join(DATASET_PATH, "images")
 MASK_DATASET_PATH = os.path.join(DATASET_PATH, "masks")
-BASE_OUTPUT = "res"
+BASE_OUTPUT = os.environ['RESULTS_DIR'] if 'RESULTS_DIR' in os.environ else 'res'
 
 # define the test split:
 # the fraction of the dataset we will keep aside for the test set
@@ -76,3 +76,4 @@ def report_config():
     print(f"- Using {MASK_DATASET_PATH} mask dataset path")
     print(f"- Using {PIN_MEMORY} pin memory")
     print("\n")
+

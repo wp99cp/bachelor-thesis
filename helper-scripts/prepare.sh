@@ -29,6 +29,11 @@ export DATA_DIR="$TMPDIR/data"
 echo "The training data is now located in $DATA_DIR"
 ls -l "$DATA_DIR"
 
+# create a RESULTS_DIR
+export RESULTS_DIR="$TMPDIR/results"
+mkdir -p "$RESULTS_DIR"
+echo "The results directory is $RESULTS_DIR"
+
 # Export the task directory to the environment
 export TASK_DIR="$PWD"
 echo "The task directory is $TASK_DIR"
