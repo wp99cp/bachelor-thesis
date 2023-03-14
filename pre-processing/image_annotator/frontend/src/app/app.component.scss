@@ -6,6 +6,7 @@
   display: block;
   height: 1024px;
   width: 1024px;
+  user-select: none;
 }
 
 #canvas_write, #canvas_readonly {
