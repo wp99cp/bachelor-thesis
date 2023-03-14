@@ -12,12 +12,18 @@ nvidia-smi
 echo -e "\n\n"
 
 # Copy the training data to the local scratch space
-cp -r "$DATA_DIR" "$TMPDIR"
+cp "$DATASET" "$TMPDIR"
+echo "Copied the training data to $TMPDIR"
+
+# Unzip the training data
+mkdir -p "$TMPDIR/data"
+unzip "$TMPDIR/dataset.zip" -d "$TMPDIR/data"
+echo "Unzipped the training data"
 
 # Update the environment variable DATA_DIR to point to the local scratch space
 export DATA_DIR="$TMPDIR/data"
-mkdir -p "$DATA_DIR"
 echo "The training data is now located in $DATA_DIR"
+ls -l "$DATA_DIR"
 
 # Export the task directory to the environment
 export TASK_DIR="$PWD"
