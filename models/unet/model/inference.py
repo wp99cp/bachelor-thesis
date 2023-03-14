@@ -4,10 +4,12 @@ import cv2
 import matplotlib
 import numpy as np
 import torch
-from matplotlib import pyplot as plt, cm
+from fontTools.merge import cmap
+from matplotlib import pyplot as plt
+from matplotlib.patches import Patch
 from pytorch_model_summary import summary
 
-from configs.config import IMAGE_SIZE, MASK_DATASET_PATH, DEVICE, BASE_OUTPUT, NUM_CHANNELS
+from configs.config import IMAGE_SIZE, MASK_DATASET_PATH, DEVICE, BASE_OUTPUT, NUM_CHANNELS, NUM_ENCODED_CHANNELS
 
 
 def make_predictions(model, imagePath):
@@ -65,6 +67,24 @@ def make_predictions(model, imagePath):
         print_results(orig, gtMask, predMask, filename)
 
 
+def colorize_mask(mask_):
+    # Create color map with 4 colors
+    cmap_ = np.array([
+        [255, 255, 255],  # background
+        [0, 0, 255],  # snow is blue
+        [0, 255, 0],  # clouds are green
+        [255, 0, 0],  # water is red
+        [0, 100, 0]  # semi-transparent clouds are dark green
+    ])
+
+    # convert to scalar type
+    mask_ = np.clip(mask_, 0, NUM_ENCODED_CHANNELS)
+    mask_ = mask_.astype(int)
+    mask_ = cmap_[mask_]
+    mask_ = mask_.astype(np.uint8)
+    return cmap_, mask_
+
+
 def print_results(origImage, origMask, predMask, imagePath: str):
     # initialize our figure
     matplotlib.use('Agg')
@@ -76,10 +96,7 @@ def print_results(origImage, origMask, predMask, imagePath: str):
     rgb = origImage[:, :, 1:4]
     rgb = (rgb - rgb.min()) / (rgb.max() - rgb.min())
 
-    norm = matplotlib.colors.Normalize(vmin=0, vmax=5, clip=True)
-    mapper = cm.ScalarMappable(norm=norm, cmap=cm.get_cmap('Accent', 5))
-
-    rgb_mask = mapper.to_rgba(origMask)
+    cmap, rgb_mask = colorize_mask(origMask)
 
     ax[0].imshow(rgb)
     ax[1].imshow(rgb_mask)
@@ -101,16 +118,12 @@ def print_results(origImage, origMask, predMask, imagePath: str):
     figure.colorbar(ax[5].imshow(predMask[3, :, :], vmin=0, vmax=1), ax=ax[5])
 
     # add legend to figure 1
-    legend_elements = [matplotlib.lines.Line2D([0], [0], marker='o', color='w', label='Background',
-                                               markerfacecolor='black', markersize=10),
-                       matplotlib.lines.Line2D([0], [0], marker='o', color='w', label='Snow',
-                                               markerfacecolor='blue', markersize=10),
-                       matplotlib.lines.Line2D([0], [0], marker='o', color='w', label='Cloud',
-                                               markerfacecolor='red', markersize=10),
-                       matplotlib.lines.Line2D([0], [0], marker='o', color='w', label='Water',
-                                               markerfacecolor='green', markersize=10),
-                       matplotlib.lines.Line2D([0], [0], marker='o', color='w', label='Semi-Transparent Cloud',
-                                               markerfacecolor='yellow', markersize=10)]
+    legend_elements = [
+        Patch(facecolor=cmap[0] / 255.0, label='Background'),
+        Patch(facecolor=cmap[1] / 255.0, label='Snow'),
+        Patch(facecolor=cmap[2] / 255.0, label='Clouds'),
+        Patch(facecolor=cmap[3] / 255.0, label='Water')
+    ]
 
     ax[0].legend(handles=legend_elements, loc='upper right')
 
