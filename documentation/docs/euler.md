@@ -41,6 +41,18 @@ To submit task, e.g. `demo-task`, to the cluster, you must follow the following 
 
 **(1) Preparation**
 
+::: details
+Some pip modules must be manually installed on the cluster. You can do this by running the following command:
+
+```bash
+pip install imutils
+pip install pytorch-model-summary
+```
+
+**Note:** You must run this command while loaded the correct python environment (e.g. `module load python_gpu/3.10.4`).
+
+:::
+
 1) Create a directory for your task containing a `task.sh` file and a `launch.sh` file.
    The launch file must source `job.sh`.
 
