@@ -13,7 +13,7 @@
 # load modules
 module load python/3.7.4
 module load cuda/11.7.0
-module list | echo
+module list >> "$LOG_DIR/used_modules.log"
 
 # Dataset Config
 export DATASET="/cluster/scratch/pucyril/dataset.zip"
