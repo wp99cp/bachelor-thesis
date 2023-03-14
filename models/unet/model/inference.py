@@ -5,13 +5,18 @@ import matplotlib
 import numpy as np
 import torch
 from matplotlib import pyplot as plt
+from pytorch_model_summary import summary
 
-from configs.config import IMAGE_SIZE, MASK_DATASET_PATH, DEVICE, BASE_OUTPUT
+from configs.config import IMAGE_SIZE, MASK_DATASET_PATH, DEVICE, BASE_OUTPUT, NUM_CHANNELS
 
 
 def make_predictions(model, imagePath):
     # set model to evaluation mode
     model.eval()
+
+    print(summary(model, torch.zeros((1, NUM_CHANNELS, IMAGE_SIZE, IMAGE_SIZE)).to(DEVICE),
+                  show_input=True,
+                  max_depth=2))
 
     # turn off gradient tracking
     with torch.no_grad():
