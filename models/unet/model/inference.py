@@ -4,7 +4,7 @@ import cv2
 import matplotlib
 import numpy as np
 import torch
-from matplotlib import pyplot as plt
+from matplotlib import pyplot as plt, cm
 from pytorch_model_summary import summary
 
 from configs.config import IMAGE_SIZE, MASK_DATASET_PATH, DEVICE, BASE_OUTPUT, NUM_CHANNELS
@@ -76,8 +76,13 @@ def print_results(origImage, origMask, predMask, imagePath: str):
     rgb = origImage[:, :, 1:4]
     rgb = (rgb - rgb.min()) / (rgb.max() - rgb.min())
 
+    norm = matplotlib.colors.Normalize(vmin=0, vmax=5, clip=True)
+    mapper = cm.ScalarMappable(norm=norm, cmap=cm.get_cmap('Accent', 5))
+
+    rgb_mask = mapper.to_rgba(origMask)
+
     ax[0].imshow(rgb)
-    ax[1].imshow(origMask)
+    ax[1].imshow(rgb_mask)
 
     # set the titles of the subplots
     ax[0].set_title("Image")
@@ -94,6 +99,20 @@ def print_results(origImage, origMask, predMask, imagePath: str):
     figure.colorbar(ax[3].imshow(predMask[1, :, :], vmin=0, vmax=1), ax=ax[3])
     figure.colorbar(ax[4].imshow(predMask[2, :, :], vmin=0, vmax=1), ax=ax[4])
     figure.colorbar(ax[5].imshow(predMask[3, :, :], vmin=0, vmax=1), ax=ax[5])
+
+    # add legend to figure 1
+    legend_elements = [matplotlib.lines.Line2D([0], [0], marker='o', color='w', label='Background',
+                                               markerfacecolor='black', markersize=10),
+                       matplotlib.lines.Line2D([0], [0], marker='o', color='w', label='Snow',
+                                               markerfacecolor='blue', markersize=10),
+                       matplotlib.lines.Line2D([0], [0], marker='o', color='w', label='Cloud',
+                                               markerfacecolor='red', markersize=10),
+                       matplotlib.lines.Line2D([0], [0], marker='o', color='w', label='Water',
+                                               markerfacecolor='green', markersize=10),
+                       matplotlib.lines.Line2D([0], [0], marker='o', color='w', label='Semi-Transparent Cloud',
+                                               markerfacecolor='yellow', markersize=10)]
+
+    ax[0].legend(handles=legend_elements, loc='upper right')
 
     # set the layout of the figure and display it
     figure.tight_layout()

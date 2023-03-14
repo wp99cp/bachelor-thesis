@@ -24,8 +24,8 @@ CLASS_NAMES = ["snow", "clouds", "water", "thin_clouds"]
 
 # initialize learning rate, number of epochs to train for, and the
 # batch size
-INIT_LR = 0.01
-MOMENTUM = 0.65
+INIT_LR = 0.001
+MOMENTUM = 0.75
 WEIGHT_DECAY = 0.005
 NUM_EPOCHS = 25
 BATCH_SIZE = 64
