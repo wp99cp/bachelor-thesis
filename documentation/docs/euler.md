@@ -85,6 +85,27 @@ ansible-playbook -i hosts.yml submit_euler.yml --extra-vars "task=demo-task comm
 2) You get notified via email when the task is finished. Results are saved under `$SCRATCH/<job.id>`. This means
    that the results are only available for a limited time.
 
+## Copy Dataset to Euler
+
+To copy the dataset to the cluster, you first need to create a zip folder containing the dataset.
+
+```bash
+zip -r dataset.zip .
+```
+
+Then you can use the `scp` command to copy the zip file to the cluster. The following command copies the zip file to the
+cluster:
+
+```bash
+scp -r dataset.zip pucyril@euler.ethz.ch:/cluster/scratch/pucyril
+```
+
+Monitor your running tasks with the following command (inside `/cluster/scratch/pucyril/<jobId>/log`)
+
+```bash
+watch "squeue && echo '' && tail -10 output.out"
+```
+
 ## Access
 
 To access the cluster, you need to be a member of the ETH domain. You can then use your ETH credentials to log in to the
