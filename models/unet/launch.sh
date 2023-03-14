@@ -13,6 +13,9 @@
 # load modules
 module load gcc/8.2.0
 module load python_gpu/3.10.4
+
+# report the modules
+mkdir -p "$TMPDIR/log"
 module list 2>&1 | tee "$TMPDIR/log/module-list.log"
 
 # Dataset Config
