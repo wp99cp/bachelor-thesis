@@ -4,7 +4,6 @@ import cv2
 import matplotlib
 import numpy as np
 import torch
-from fontTools.merge import cmap
 from matplotlib import pyplot as plt
 from matplotlib.patches import Patch
 from pytorch_model_summary import summary
@@ -74,7 +73,8 @@ def colorize_mask(mask_):
         [0, 0, 255],  # snow is blue
         [0, 255, 0],  # clouds are green
         [255, 0, 0],  # water is red
-        [0, 100, 0]  # semi-transparent clouds are dark green
+        [0, 100, 0],  # semi-transparent clouds are dark green
+        [0, 0, 0]  # unknown is black
     ])
 
     # convert to scalar type
