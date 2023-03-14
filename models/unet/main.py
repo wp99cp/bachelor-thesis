@@ -45,10 +45,11 @@ def load_data():
                                  transforms=transforms, apply_augmentations=False)
 
     # create the training and test data loaders
+    num_workers = np.min(os.cpu_count(), 16)
     trainLoader = DataLoader(trainDS, shuffle=True, batch_size=BATCH_SIZE,
-                             pin_memory=PIN_MEMORY, num_workers=os.cpu_count())
+                             pin_memory=PIN_MEMORY, num_workers=num_workers)
     testLoader = DataLoader(testDS, shuffle=False, batch_size=BATCH_SIZE,
-                            pin_memory=PIN_MEMORY, num_workers=os.cpu_count())
+                            pin_memory=PIN_MEMORY, num_workers=num_workers)
 
     print(f"[INFO] loaded {len(trainDS)} examples in the train set.")
     print(f"[INFO] loaded {len(testDS)} examples in the test set.")
