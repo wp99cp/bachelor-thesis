@@ -143,3 +143,11 @@ cluster. The login node is `euler.ethz.ch`, you can log in via SSH:
 ```bash
 ssh <username>@euler.ethz.ch
 ```
+
+## Mount Scratch folder
+
+To mount the scratch folder, you can use the following command:
+
+```bash
+sudo sshfs -o allow_other,default_permissions pucyril@euler.ethz.ch:/cluster/scratch/pucyril /mnt/euler
+```

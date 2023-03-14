@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #SBATCH -n 8
-#SBATCH --time=00:15:00
+#SBATCH --time=03:59:00
 #SBATCH --mem-per-cpu=4096
 #SBATCH --open-mode=truncate
 #SBATCH --output=/cluster/scratch/pucyril/%j/log/slurm-output.out
