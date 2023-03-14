@@ -17,7 +17,7 @@ echo "Copied the training data to $TMPDIR"
 
 # Unzip the training data
 mkdir -p "$TMPDIR/data"
-unzip "$TMPDIR/dataset.zip" -d "$TMPDIR/data"
+unzip -q "$TMPDIR/dataset.zip" -d "$TMPDIR/data"
 echo "Unzipped the training data"
 
 # Update the environment variable DATA_DIR to point to the local scratch space

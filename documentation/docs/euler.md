@@ -103,7 +103,7 @@ scp -r dataset.zip pucyril@euler.ethz.ch:/cluster/scratch/pucyril
 Monitor your running tasks with the following command (inside `/cluster/scratch/pucyril/<jobId>/log`)
 
 ```bash
-watch "squeue && echo '' && tail -10 output.out"
+watch "squeue && echo '' && tail -25 slurm-output.out"
 ```
 
 ## Access

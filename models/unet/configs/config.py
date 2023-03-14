@@ -3,8 +3,8 @@ import os
 import torch
 
 # base path of the dataset
-BASE_DIR = '/projects/bachelor-thesis/tmp'
-DATASET_PATH = os.path.join(BASE_DIR, "dataset")
+BASE_DIR = os.environ['TMPDIR'] if 'TMPDIR' in os.environ else '/projects/bachelor-thesis/tmp'
+DATASET_PATH = os.environ['DATA_DIR'] if 'DATA_DIR' in os.environ else os.path.join(BASE_DIR, "dataset")
 
 # define the path to the images and masks dataset
 IMAGE_DATASET_PATH = os.path.join(DATASET_PATH, "images")
