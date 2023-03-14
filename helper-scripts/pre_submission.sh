@@ -4,5 +4,3 @@
 
 # Load the modules
 echo "Loading modules required for build"
-
-module list
