@@ -13,7 +13,7 @@
 # load modules
 module load gcc/8.2.0
 module load python_gpu/3.10.4
-module list 2>&1 | tee "$LOG_DIR/module-list.log"
+module list 2>&1 | tee "$TMPDIR/log/module-list.log"
 
 # Dataset Config
 export DATASET="/cluster/scratch/pucyril/dataset.zip"
