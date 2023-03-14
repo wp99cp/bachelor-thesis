@@ -4,6 +4,25 @@ The existing data sets are not sufficient to train (especially to verify) our mo
 need to create a new data set with hand annotations. This process is tedious and time consuming, but it is
 necessary to create a reliable model.
 
+## Current State of the Annotations
+
+### The following scenes are completely annotated:
+
+The annotations are stored in the `/data/masks` folder. Completely annotated scenes are backed up to
+[Polybox](https://polybox.ethz.ch/index.php/apps/files/?dir=/Annotated%20Clouds&fileid=3205377022).
+
+- `20211008T101829` --> annotated and verified
+
+### The following scenes are partially annotated / currently being annotated:
+
+- `20210819T101559` --> currently on annotator Server
+
+### The following scenes are not annotated but interesting:
+
+- `20211217T102329` (a winter scene with clear sky)
+- `20210710T101559` (a summer scene some small clouds over the mountains, some thin clouds over the Ticino)
+- `20211227T102339` (a winter scene with 1/2 clouds)
+
 ## Annotating Process
 
 I've created a web application helps to annotate the images. The workflow is as follows:
