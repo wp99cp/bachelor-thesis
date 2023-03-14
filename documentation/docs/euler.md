@@ -149,5 +149,15 @@ ssh <username>@euler.ethz.ch
 To mount the scratch folder, you can use the following command:
 
 ```bash
-sudo sshfs -o allow_other,default_permissions pucyril@euler.ethz.ch:/cluster/scratch/pucyril /mnt/euler
+sshfs  pucyril@euler.ethz.ch:/cluster/scratch/pucyril /mnt/euler
 ```
+
+::: warning
+
+make sure that the folder `/mnt/euler` exists. And has the correct permissions.
+
+```bash
+sudo chmod 777 -R /mnt/euler
+```
+
+:::

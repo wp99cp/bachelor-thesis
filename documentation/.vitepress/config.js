@@ -26,6 +26,7 @@ export default {
                     items: [
                         {text: 'Python and Conda', link: 'docs/python_and_conda'},
                         {text: 'Working with Euler', link: 'docs/euler'},
+                        {text: 'Working with Remote Desktop', link: 'docs/remote_desktop'},
                         {text: 'Sentinel2 Bands', link: 'docs/sentinel2_bands'},
                     ]
                 },
@@ -33,8 +34,9 @@ export default {
                 {
                     text: 'Models',
                     items: [
-                        {text: 'Overview', link: 'docs/algorithms'},
-                        {text: 's2cloudless', link: 'docs/s2cloudless'},
+                        {text: 'Overview', link: 'docs/models/algorithms'},
+                        {text: 's2cloudless', link: 'docs/models/s2cloudless'},
+                        {text: 'Unet', link: 'docs/models/unet'},
                     ]
                 }
 

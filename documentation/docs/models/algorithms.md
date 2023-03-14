@@ -1,8 +1,8 @@
 # Existing Algorithms
 
-![existing_alogorithms.png](./images/existing_alogorithms.png)
+![existing_alogorithms.png](../images/existing_alogorithms.png)
 
-![algorithms_weakness_and_strengths.png](./images/algorithms_weakness_and_strengths.png)
+![algorithms_weakness_and_strengths.png](../images/algorithms_weakness_and_strengths.png)
 
 ## Available Algorithms
 
