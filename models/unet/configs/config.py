@@ -18,23 +18,26 @@ TEST_SPLIT = 0.15
 # define the number of channels in the input, number of classes,
 # and number of levels in the U-Net model
 IMAGE_SIZE = 128  # defines the input image dimensions
-NUM_CHANNELS = 5  # sentinel bands: B02, B03, B04, B08
-NUM_CLASSES = 3  # we have snow, clouds and water (the background is not included)
+NUM_CHANNELS = 13  # all satellite images have 13 channels
+NUM_CLASSES = 4
+CLASS_NAMES = ["snow", "clouds", "water", "thin_clouds"]
 
 # initialize learning rate, number of epochs to train for, and the
 # batch size
 INIT_LR = 0.0001
-NUM_EPOCHS = 25
+MOMENTUM = 0.99
+WEIGHT_DECAY = 0.0005
+NUM_EPOCHS = 10
 BATCH_SIZE = 64
 
 # define threshold to filter weak predictions
-THRESHOLD = 0.1
+THRESHOLD = 0.6
 
 # Number of channels used to encode the grayscale image
 NUM_ENCODED_CHANNELS = 5
 
 # class weights for snow, clouds, water
-CLASS_WEIGHTS = [0.12658, 0.24463, 0.00816]
+CLASS_WEIGHTS = [0.25052, 0.00214, 0.01381, 0.02479]
 
 # ====================================
 # ====================================

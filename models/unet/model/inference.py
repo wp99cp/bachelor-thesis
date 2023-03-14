@@ -42,10 +42,10 @@ def make_predictions(model, imagePath):
         image = np.expand_dims(image, 0)
         image = torch.from_numpy(image).to(DEVICE)
 
-        # make the prediction, pass the results through the sigmoid
+        # make the prediction, pass the results through the softmax
         # function, and convert the result to a NumPy array
         predMask = model(image).squeeze()
-        predMask = torch.sigmoid(predMask)
+        predMask = torch.softmax(predMask, dim=1)
         predMask = predMask.cpu().numpy()
         predMask = predMask
 

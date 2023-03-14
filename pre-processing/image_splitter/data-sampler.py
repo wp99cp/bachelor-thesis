@@ -1,5 +1,7 @@
 # This is a plain python version of the random_sampler Jupyter Notebook
 # it is used to generate the training and testing datasets
+import cv2
+import matplotlib
 
 # ====================================
 # ====================================
@@ -11,12 +13,11 @@ TMP_DIR = '/projects/bachelor-thesis/tmp'
 MAKS_PATH = '/data/masks'
 TMP_PATCH_DIR = f"{TMP_DIR}/dataset"
 
-SAMPLES_PER_DATE = 1024
+SAMPLES_PER_DATE = 10_240
 
 IMG_SIZE = 128
 NUM_ENCODED_CHANNELS = 5
-NUM_BANDS = 5
-SELECTED_BANDS = ["B02", "B03", "B04", "B08", "B08"]
+SELECTED_BANDS = ["B01", "B02", "B03", "B04", "B05", "B06", "B07", "B08", "B8A", "B09", "B10", "B11", "B12"]
 
 import os
 import shutil
@@ -72,8 +73,9 @@ def colorize_mask(mask_):
     cmap_ = np.array([
         [255, 255, 255],  # background
         [0, 0, 255],  # snow is blue
-        [0, 255, 0],  # clouds are green
-        [255, 0, 0]  # water is red
+        [0, 255, 0],  # dense clouds are green
+        [255, 0, 0],  # water is red
+        [0, 160, 0]  # semi-dense clouds are dark green
     ])
 
     # convert to scalar type
@@ -126,7 +128,18 @@ def open_date(_date):
 
     # open all the bands
     open_bands = [rasterio.open(band) for band in band_files]
-    bands_data = np.array([band.read(1) for band in open_bands])
+    bands_data = [band.read(1) for band in open_bands]
+
+    # upscale all bands to 10m resolution using cv2.resize
+    b02_meta = rasterio.open(f"{BASE_PATH}/{B02}").meta
+    image_with = b02_meta['width']
+    image_height = b02_meta['height']
+    bands_data = np.array(
+        [cv2.resize(band, (image_with, image_height), interpolation=cv2.INTER_CUBIC) for band in bands_data]
+    )
+
+    print(f"Opened {len(bands_data)} bands for date {_date}.")
+    print(f"Shape of bands: {bands_data.shape}")
 
     # close all bands
     for band in open_bands:
@@ -135,6 +148,7 @@ def open_date(_date):
     # Open all the bands
     return bands_data
 
+
 def create_patches(_mask_coverage_data, _mask_data, _bands, _date_str):
     _centers = []
     pixel_count = [0] * NUM_ENCODED_CHANNELS
@@ -142,7 +156,6 @@ def create_patches(_mask_coverage_data, _mask_data, _bands, _date_str):
     # Create 10_000 patches and save them
     count = 0
     misses = 0
-
 
     while count < SAMPLES_PER_DATE and misses < 1_000_000:
         coords = sample_patch(_mask_coverage_data, recursive=False)
@@ -154,6 +167,9 @@ def create_patches(_mask_coverage_data, _mask_data, _bands, _date_str):
         else:
             count += 1
             misses = 0
+
+        if count % 1024 == 0:
+            print(f"Created {count} of {SAMPLES_PER_DATE} patches for date {_date_str}.")
 
         x, y = coords
         _centers.append((x, y))
@@ -181,7 +197,7 @@ def create_patches(_mask_coverage_data, _mask_data, _bands, _date_str):
 
     normalized_pixel_count = np.array(pixel_count) / np.sum(pixel_count)
     print(f"Class Distribution for {_date_str}: {np.round(normalized_pixel_count, 2)}")
-    print("  « Background, Snow, Clouds, Water")
+    print("  « Background, Snow, Clouds, Water, Semi-Transparent Clouds")
     return _centers, normalized_pixel_count
 
 
@@ -232,6 +248,7 @@ def main():
         print(f"Finished processing Date: {date_str}")
 
         # Show an overview of the centers
+        matplotlib.use('Agg')
         plt.clf()
         plt.imshow(mask_data, alpha=mask_coverage_data * 0.75)
         plt.title('Overview of T32TNS')
@@ -245,7 +262,7 @@ def main():
     # Show the distribution of the pixel count
     normalized_pixel_count = np.array(pixel_count) / np.sum(pixel_count)
     print(f"\n Total Class Distribution: {np.round(normalized_pixel_count, 5)}")
-    print("  « Background, Snow, Clouds, Water")
+    print("  « Background, Snow, Clouds, Water, Semi-Transparent Clouds")
 
 
 if __name__ == '__main__':

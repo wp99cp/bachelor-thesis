@@ -244,6 +244,9 @@ class Dataloader:
 
             # convert the coordinates to pixel coordinates
             coords = self.geo_to_pixel_coords(*uncovered_pos)
+            coords = [coords[1], coords[0]]
+            coords = [coords[0] - 256, coords[1] - 256]
+
             print("Pixel coords:", coords)
             return [*coords, 512, 512]
 

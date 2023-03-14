@@ -12,7 +12,7 @@ from torchvision import transforms as tsfm
 
 from DataLoader.SegmentationDataset import SegmentationDataset
 from configs.config import report_config, IMAGE_DATASET_PATH, MASK_DATASET_PATH, TEST_SPLIT, BATCH_SIZE, PIN_MEMORY, \
-    DEVICE, BASE_OUTPUT
+    DEVICE, BASE_OUTPUT, NUM_CLASSES, CLASS_NAMES
 from model.Model import UNet
 from model.inference import make_predictions
 from model.training import training
@@ -81,6 +81,7 @@ def print_data_sample(trainLoader):
 
 
 def main():
+    assert NUM_CLASSES == len(CLASS_NAMES), "Number of classes must match number of class names."
     report_config()
 
     # check if the flag "--retrain" is set
