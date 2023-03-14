@@ -9,14 +9,18 @@ echo -e "\n\n"
 
 # If available, print GPU information
 nvidia-smi
+echo -e "\n"
+nvidia-smi --query-gpu=name --format=csv,noheader
 echo -e "\n\n"
 
 # Copy the training data to the local scratch space
+echo "Copy the training data to $TMPDIR..."
 cp "$DATASET" "$TMPDIR"
 echo "Copied the training data to $TMPDIR"
 
 # Unzip the training data
 mkdir -p "$TMPDIR/data"
+echo "Unzip the training data..."
 unzip -q "$TMPDIR/dataset.zip" -d "$TMPDIR/data"
 echo "Unzipped the training data"
 

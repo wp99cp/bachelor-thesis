@@ -106,6 +106,12 @@ Monitor your running tasks with the following command (inside `/cluster/scratch/
 watch "squeue && echo '' && tail -25 slurm-output.out"
 ```
 
+Once the task is finished, you can view some stats using the following command:
+
+```bash
+myjobs -j  <jobId>
+```
+
 ## Access
 
 To access the cluster, you need to be a member of the ETH domain. You can then use your ETH credentials to log in to the
