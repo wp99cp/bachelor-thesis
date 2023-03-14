@@ -94,8 +94,8 @@ def print_results(origImage, origMask, predMask, imagePath: str):
 
     # plot the original image, its mask, and the predicted mask
     rgb = origImage[:, :, 1:4]
-    rgb = (rgb - rgb.min()) / (rgb.max() - rgb.min())
-
+    origMask = origMask.astype(int)
+    origMask = (origMask * NUM_ENCODED_CHANNELS) / 255
     cmap, rgb_mask = colorize_mask(origMask)
 
     ax[0].imshow(rgb)
@@ -122,10 +122,11 @@ def print_results(origImage, origMask, predMask, imagePath: str):
         Patch(facecolor=cmap[0] / 255.0, label='Background'),
         Patch(facecolor=cmap[1] / 255.0, label='Snow'),
         Patch(facecolor=cmap[2] / 255.0, label='Clouds'),
-        Patch(facecolor=cmap[3] / 255.0, label='Water')
+        Patch(facecolor=cmap[3] / 255.0, label='Water'),
+        Patch(facecolor=cmap[4] / 255.0, label='Semi-Transparent Cloud')
     ]
 
-    ax[0].legend(handles=legend_elements, loc='upper right')
+    ax[1].legend(handles=legend_elements, loc='upper right')
 
     # set the layout of the figure and display it
     figure.tight_layout()
