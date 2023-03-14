@@ -21,8 +21,14 @@ def training(trainLoader, testLoader, trainDS, testDS):
     # print the model summary
     print(summary(unet, torch.zeros((1, NUM_CHANNELS, IMAGE_SIZE, IMAGE_SIZE)).to(DEVICE),
                   show_input=True,
+                  max_depth=1))
+    print(summary(unet, torch.zeros((1, NUM_CHANNELS, IMAGE_SIZE, IMAGE_SIZE)).to(DEVICE),
+                  show_input=True,
+                  max_depth=2))
+    print(summary(unet, torch.zeros((1, NUM_CHANNELS, IMAGE_SIZE, IMAGE_SIZE)).to(DEVICE),
+                  show_input=True,
                   max_depth=3,
-                  ))
+                  show_hierarchical=True))
 
     # the classes are unbalanced, so we need to artificially increase the
     # weight of the positive classes
