@@ -11,9 +11,9 @@
 #SBATCH --mail-type=END
 
 # load modules
-module load python/3.7.4
-module load cuda/11.7.0
-module list >> "$LOG_DIR/used_modules.log"
+module load gcc/8.2.0
+module load python_gpu/3.10.4
+module list 2>&1 | tee "$LOG_DIR/module-list.log"
 
 # Dataset Config
 export DATASET="/cluster/scratch/pucyril/dataset.zip"
