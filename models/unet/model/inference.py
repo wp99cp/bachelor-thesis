@@ -6,7 +6,7 @@ import numpy as np
 import torch
 from matplotlib import pyplot as plt
 
-from configs.config import IMAGE_SIZE, MASK_DATASET_PATH, DEVICE, THRESHOLD, BASE_OUTPUT
+from configs.config import IMAGE_SIZE, MASK_DATASET_PATH, DEVICE, BASE_OUTPUT
 
 
 def make_predictions(model, imagePath):
@@ -44,35 +44,35 @@ def make_predictions(model, imagePath):
 
         # make the prediction, pass the results through the softmax
         # function, and convert the result to a NumPy array
-        predMask = model(image).squeeze()
-        predMask = torch.softmax(predMask, dim=1)
-        predMask = predMask.cpu().numpy()
-        predMask = predMask
+        predMask = model(image).squeeze()  # squeeze removes the batch dimension
+        predMask = predMask.cpu().numpy()  # move to CPU and convert to numpy array
 
         # set pixels with a value greater than 0.5 to 1, and set
         # pixels with a value less than or equal to 0.5 to 0
-        predMask[predMask > THRESHOLD] = 1
-        predMask[predMask <= THRESHOLD] = 0
+        # predMask[predMask > THRESHOLD] = 1
+        # predMask[predMask <= THRESHOLD] = 0
+
+        # get filename from path
+        filename = imagePath.split(os.path.sep)[-1]
+        filename = filename.replace(".npz", "")
 
         # prepare a plot for visualization
-        print_results(orig, gtMask, predMask)
+        print_results(orig, gtMask, predMask, filename)
 
 
-def print_results(origImage, origMask, predMask):
+def print_results(origImage, origMask, predMask, imagePath: str):
     # initialize our figure
     matplotlib.use('Agg')
-    figure, ax = plt.subplots(nrows=1, ncols=5, figsize=(20, 5))
+    figure, ax = plt.subplots(nrows=1, ncols=6, figsize=(25, 5))
 
     # create a legend for the mask
 
     # plot the original image, its mask, and the predicted mask
-    ax[0].imshow(origImage[:, :, 0:3])
-    ax[1].imshow(origMask)
+    rgb = origImage[:, :, 1:4]
+    rgb = (rgb - rgb.min()) / (rgb.max() - rgb.min())
 
-    # ax[2].imshow(predMask[0, :, :])
-    ax[2].imshow(predMask[0, :, :])
-    ax[3].imshow(predMask[1, :, :])
-    ax[4].imshow(predMask[2, :, :])
+    ax[0].imshow(rgb)
+    ax[1].imshow(origMask)
 
     # set the titles of the subplots
     ax[0].set_title("Image")
@@ -82,9 +82,16 @@ def print_results(origImage, origMask, predMask):
     ax[2].set_title("Predicted Snow")
     ax[3].set_title("Predicted Cloud")
     ax[4].set_title("Predicted Water")
+    ax[5].set_title("Predicted Semi-Transparent Cloud")
+
+    # add colorbar to figures 2 - 5
+    figure.colorbar(ax[2].imshow(predMask[0, :, :], vmin=0, vmax=1), ax=ax[2])
+    figure.colorbar(ax[3].imshow(predMask[1, :, :], vmin=0, vmax=1), ax=ax[3])
+    figure.colorbar(ax[4].imshow(predMask[2, :, :], vmin=0, vmax=1), ax=ax[4])
+    figure.colorbar(ax[5].imshow(predMask[3, :, :], vmin=0, vmax=1), ax=ax[5])
 
     # set the layout of the figure and display it
     figure.tight_layout()
 
-    inference_path = os.path.join(BASE_OUTPUT, "inference.png")
+    inference_path = os.path.join(BASE_OUTPUT, f"inference_{imagePath}.png")
     figure.savefig(inference_path)

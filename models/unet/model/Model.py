@@ -193,4 +193,4 @@ class UNet(Module):
             map = functional.interpolate(map, self.outSize)
 
         # return the segmentation map
-        return map
+        return torch.softmax(map, dim=1)

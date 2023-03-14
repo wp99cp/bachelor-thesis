@@ -110,12 +110,14 @@ def main():
     # lost filenames inside IMAGE_DATASET_PATH
     file_names = [f for f in os.listdir(IMAGE_DATASET_PATH) if os.path.isfile(os.path.join(IMAGE_DATASET_PATH, f))]
     print(f"Found {len(file_names)} files in {IMAGE_DATASET_PATH}.")
-    # choose a random file
-    file = np.random.choice(file_names)
-    print(f"Using {file} for prediction.")
 
-    # make predictions and visualize the results
-    make_predictions(unet, os.path.join(IMAGE_DATASET_PATH, file))
+    for i in range(10):
+        # choose a random file
+        file = np.random.choice(file_names)
+        print(f"Using {file} for prediction.")
+
+        # make predictions and visualize the results
+        make_predictions(unet, os.path.join(IMAGE_DATASET_PATH, file))
 
 
 if __name__ == "__main__":

@@ -91,9 +91,6 @@ def training(trainLoader, testLoader, trainDS, testDS):
                 pred = unet(x)
                 totalTestLoss += lossFunc(pred, y)
 
-                # apply softmax to the predictions
-                pred = torch.softmax(pred, dim=1)
-
                 # calculate the metrics
                 metrics_results += torch.tensor([m(pred, y) for m in metrics])
 
@@ -138,6 +135,7 @@ def training(trainLoader, testLoader, trainDS, testDS):
     plt.title("Training Loss on Dataset")
     plt.xlabel("Epoch #")
     plt.ylabel("Loss")
+    plt.yscale("log")
     plt.legend(loc="lower left")
 
     loss_plot_path = os.path.join(BASE_OUTPUT, "loss.png")

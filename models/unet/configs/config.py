@@ -24,14 +24,14 @@ CLASS_NAMES = ["snow", "clouds", "water", "thin_clouds"]
 
 # initialize learning rate, number of epochs to train for, and the
 # batch size
-INIT_LR = 0.0001
-MOMENTUM = 0.99
-WEIGHT_DECAY = 0.0005
-NUM_EPOCHS = 10
+INIT_LR = 0.01
+MOMENTUM = 0.65
+WEIGHT_DECAY = 0.005
+NUM_EPOCHS = 25
 BATCH_SIZE = 64
 
 # define threshold to filter weak predictions
-THRESHOLD = 0.6
+THRESHOLD = 0.75
 
 # Number of channels used to encode the grayscale image
 NUM_ENCODED_CHANNELS = 5
