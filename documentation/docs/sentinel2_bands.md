@@ -23,21 +23,21 @@ pixel size.
 
 :::
 
-| Sentinel-2 Bands | Description                                           | Central Wavelength (µm) | Resolution (m) |
-|------------------|-------------------------------------------------------|-------------------------|----------------|
-| Band 1           | Ultra Blue (Coastal and Aerosol), Coastal aerosol     | 0.443                   | 60             |
-| Band 2           | Blue                                                  | 0.490                   | 10             |
-| Band 3           | Green                                                 | 0.560                   | 10             |
-| Band 4           | Red                                                   | 0.665                   | 10             |
-| Band 5           | Visible and Near Infrared (VNIR), Vegetation Red Edge | 0.705                   | 20             |
-| Band 6           | Visible and Near Infrared (VNIR), Vegetation Red Edge | 0.740                   | 20             |
-| Band 7           | Visible and Near Infrared (VNIR), Vegetation Red Edge | 0.783                   | 20             |
-| Band 8           | Visible and Near Infrared (VNIR)                      | 0.842                   | 10             |
-| Band 8A          | Visible and Near Infrared (VNIR), Vegetation Red Edge | 0.865                   | 20             |
-| Band 9           | Short Wave Infrared (SWIR), Water vapour              | 0.945                   | 60             |
-| Band 10          | Short Wave Infrared (SWIR) - Cirrus                   | 1.375                   | 60             |
-| Band 11          | Short Wave Infrared (SWIR)                            | 1.610                   | 20             |
-| Band 12          | Short Wave Infrared (SWIR)                            | 2.190                   | 20             |
+| Sentinel-2 Bands | Description                                                | Central Wavelength (µm) | Resolution (m) |
+|------------------|------------------------------------------------------------|-------------------------|----------------|
+| Band 1           | Ultra Blue (Coastal and Aerosol), Aerosol detection        | 0.443                   | 60             |
+| Band 2           | Blue                                                       | 0.490                   | 10             |
+| Band 3           | Green                                                      | 0.560                   | 10             |
+| Band 4           | Red                                                        | 0.665                   | 10             |
+| Band 5           | Visible and Near Infrared (VNIR), Vegetation Red Edge      | 0.705                   | 20             |
+| Band 6           | Visible and Near Infrared (VNIR), Vegetation Red Edge      | 0.740                   | 20             |
+| Band 7           | Visible and Near Infrared (VNIR), Vegetation Red Edge      | 0.783                   | 20             |
+| Band 8           | Visible and Near Infrared (VNIR)                           | 0.842                   | 10             |
+| Band 8A          | Visible and Near Infrared (VNIR), Vegetation Red Edge      | 0.865                   | 20             |
+| Band 9           | Short Wave Infrared (SWIR) - Detecting Water vapour        | 0.945                   | 60             |
+| Band 10          | Short Wave Infrared (SWIR) - Cirrus Cloud detection        | 1.375                   | 60             |
+| Band 11          | Short Wave Infrared (SWIR) - Snow/Ice/Cloud discrimination | 1.610                   | 20             |
+| Band 12          | Short Wave Infrared (SWIR) - Snow/Ice/Cloud discrimination | 2.190                   | 20             |
 
 ## Combinations
 
