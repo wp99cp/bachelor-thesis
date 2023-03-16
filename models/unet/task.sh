@@ -1,13 +1,19 @@
 echo "All further logs are saved in $LOG_DIR/python.log"
 
-# run the actual task
-python main.py --retrain >>"$LOG_DIR/python.log" &
-pid_py=$!
+# Define a signal handler function to forward USR1 signals to the Python process
+handle_signal() {
+    if [ $1 = "USR1" ]; then
+        echo "Forwarding USR1 signal to Python process"
+        kill -USR1 "$PYTHON_PID"
+    fi
+}
 
-# trap om USR1, SIGTERM, SIGKILL, and SIGINT and echo the signal id
-# this is used to save the model before the slurm job is killed
-trap 'echo "Received USR1 signal, forwarding to python process (PID=$pid_py)" && kill -SIGUSR1 $pid_py' USR1
+# Set the signal handler function for USR1 signals
+trap 'handle_signal USR1' USR1
 
-# wait for the python process to finish
-wait $pid_py
-echo "Python process finished, cleaning up"
+# Start the Python process in the background and save its PID
+python main.py retrain &> "$LOG_DIR/python.log" &
+PYTHON_PID=$!
+
+# Wait for the Python process to finish
+wait $PYTHON_PID

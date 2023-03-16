@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #SBATCH -n 8
-#SBATCH --time=00:04:00
+#SBATCH --time=00:10:00
 #SBATCH --mem-per-cpu=4096
 #SBATCH --open-mode=truncate
 #SBATCH --output=/cluster/scratch/pucyril/%j/log/slurm-output.out
@@ -9,8 +9,8 @@
 #SBATCH --tmp=3000
 #SBATCH --account=es_schin
 #SBATCH --signal=B:USR1@120
-#SBATCH --verbose
 #SBATCH --gpus=1
+#SBATCH --gres=gpumem:10g
 #SBATCH --mail-type=END
 
 # load modules
