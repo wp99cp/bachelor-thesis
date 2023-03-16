@@ -30,7 +30,8 @@ def load_data():
     mask_paths = sorted(list(paths.list_images(MASK_DATASET_PATH)))
 
     print(f"[INFO] found a total of {len(image_paths)} images in '{IMAGE_DATASET_PATH}'.")
-    print(f"[INFO] found a total of {len(mask_paths)} images in '{MASK_DATASET_PATH}'.")
+    print(f"[INFO] found a total of {len(mask_paths)} masks in '{MASK_DATASET_PATH}'.")
+    assert len(image_paths) == len(mask_paths), "Number of images and masks must match."
 
     # partition the data into training and testing splits using 85% of
     # the data for training and the remaining 15% for testing
