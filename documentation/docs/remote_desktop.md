@@ -9,7 +9,7 @@ ssh pucyril@pf-pc20.ethz.ch
 All my files are stored at `/scratch2/pucyril/`. I can mount this folder on my local machine via SSHFS.
 
 ```bash
-sshfs -o default_permissions pucyril@pf-pc20.ethz.ch:/scratch2/pucyril /mnt/pf-pc20
+sshfs pucyril@pf-pc20.ethz.ch:/scratch2/pucyril /mnt/pf-pc20
 ```
 
 ## Run Experiments
