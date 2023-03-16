@@ -8,7 +8,8 @@
 #SBATCH --error=/cluster/scratch/pucyril/%j/log/slurm-error.out
 #SBATCH --tmp=3000
 #SBATCH --account=es_schin
-#SBATCH --signal=R:USR1@120
+#SBATCH --signal=B:USR1@120
+#SBATCH --verbose
 #SBATCH --gpus=1
 #SBATCH --mail-type=END
 
