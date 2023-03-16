@@ -94,6 +94,10 @@ def print_results(orig_image, orig_mask, predMask, imagePath: str):
     orig_mask = (orig_mask * NUM_ENCODED_CHANNELS) / 255
     cmap, rgb_mask = colorize_mask(orig_mask)
 
+    # normalize image to [0, 1]
+    rgb = rgb.astype(np.float32)
+    rgb = (rgb - np.min(rgb)) / (np.max(rgb) - np.min(rgb))
+
     ax[0].imshow(rgb)
     ax[1].imshow(rgb_mask)
 
@@ -112,6 +116,12 @@ def print_results(orig_image, orig_mask, predMask, imagePath: str):
     figure.colorbar(ax[3].imshow(predMask[1, :, :], vmin=0, vmax=1), ax=ax[3])
     figure.colorbar(ax[4].imshow(predMask[2, :, :], vmin=0, vmax=1), ax=ax[4])
     figure.colorbar(ax[5].imshow(predMask[3, :, :], vmin=0, vmax=1), ax=ax[5])
+
+    # print min, max and mean of each channel below the images 2, 3, 4, 5
+    ax[2].text(12.5, 145, f"Min: {np.min(predMask[0, :, :]):.2f}, Max: {np.max(predMask[0, :, :]):.2f}, Mean: {np.mean(predMask[0, :, :]):.2f}")
+    ax[3].text(12.5, 145, f"Min: {np.min(predMask[1, :, :]):.2f}, Max: {np.max(predMask[1, :, :]):.2f}, Mean: {np.mean(predMask[1, :, :]):.2f}")
+    ax[4].text(12.5, 145, f"Min: {np.min(predMask[2, :, :]):.2f}, Max: {np.max(predMask[2, :, :]):.2f}, Mean: {np.mean(predMask[2, :, :]):.2f}")
+    ax[5].text(12.5, 145, f"Min: {np.min(predMask[3, :, :]):.2f}, Max: {np.max(predMask[3, :, :]):.2f}, Mean: {np.mean(predMask[3, :, :]):.2f}")
 
     # add legend to figure 1
     legend_elements = [

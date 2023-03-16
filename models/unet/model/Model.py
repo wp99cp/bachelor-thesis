@@ -113,4 +113,6 @@ class UNet(nn.Module):
         x = self.up4(x, x1)
 
         logits = self.outc(x)
-        return logits, torch.softmax(logits, dim=1)
+        mask = torch.softmax(logits, dim=1)
+
+        return logits, mask
