@@ -14,9 +14,7 @@ export default {
                     text: 'Data Sources and Pre-Processing',
                     items: [
                         {text: 'Getting Started', link: 'docs/getting-started'},
-                        {text: 'Data Source', link: 'docs/data_sources'},
                         {text: 'ExoLabs', link: 'docs/ExoLabs_Classifications'},
-                        {text: 'Hand Annotations', link: 'docs/hand_annotations'},
 
                     ]
                 },
@@ -28,6 +26,16 @@ export default {
                         {text: 'Working with Euler', link: 'docs/euler'},
                         {text: 'Working with Remote Desktop', link: 'docs/remote_desktop'},
                         {text: 'Sentinel2 Bands', link: 'docs/sentinel2_bands'},
+                    ]
+                },
+
+                {
+                    text: 'Data Preparation',
+                    items: [
+                        {text: 'Data Source', link: 'docs/data_sources'},
+                        {text: 'Augmentation and Sampling', link: 'docs/augmentation_and_sampling'},
+                        {text: 'Hand Annotations', link: 'docs/hand_annotations'},
+
                     ]
                 },
 
