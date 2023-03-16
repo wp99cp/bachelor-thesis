@@ -1,14 +1,14 @@
 #!/bin/bash
 
 #SBATCH -n 8
-#SBATCH --time=00:10:00
+#SBATCH --time=00:04:00
 #SBATCH --mem-per-cpu=4096
 #SBATCH --open-mode=truncate
 #SBATCH --output=/cluster/scratch/pucyril/%j/log/slurm-output.out
 #SBATCH --error=/cluster/scratch/pucyril/%j/log/slurm-error.out
 #SBATCH --tmp=3000
 #SBATCH --account=es_schin
-#SBATCH --signal=USR1@600
+#SBATCH --signal=R:USR1@120
 #SBATCH --gpus=1
 #SBATCH --mail-type=END
 
