@@ -169,6 +169,8 @@ class ModelTrainer:
         print("Signal handler called with signal ", signum)
         self.emergency_stop = True
 
+
+
     def initialize_history(self):
         history = {"train_loss": [], "test_loss": []}
         # add metrics to history
