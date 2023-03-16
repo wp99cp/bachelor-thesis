@@ -29,10 +29,10 @@ THRESHOLD = 0.5
 # initialize learning rate, number of epochs to train for, and the
 # batch size
 INIT_LR = 0.001
-MOMENTUM = 0.85
-WEIGHT_DECAY = 0.005
+MOMENTUM = 0.95
+WEIGHT_DECAY = 0.05
 NUM_EPOCHS = 25
-BATCH_SIZE = 64
+BATCH_SIZE = 100
 
 # ====================================
 # ====================================

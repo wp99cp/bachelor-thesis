@@ -3,14 +3,15 @@ import os
 import time
 
 import torch
+import tqdm
 from matplotlib import pyplot as plt
 from pytorch_model_summary import summary
 from torch.nn import BCEWithLogitsLoss
 from torch.optim import RMSprop, lr_scheduler
-from tqdm import tqdm
 
 from configs.config import DEVICE, INIT_LR, BATCH_SIZE, NUM_EPOCHS, BASE_OUTPUT, IMAGE_SIZE, CLASS_WEIGHTS, MOMENTUM, \
     WEIGHT_DECAY, NUM_CHANNELS
+from model.EarlyStopping import EarlyStopping
 from model.Model import UNet
 from model.metrices import SegmentationMetrics
 
@@ -26,12 +27,12 @@ def training(train_loader, test_loader, train_ds, test_ds):
     # weight of the positive classes
     class_weights = get_class_weights()
 
-    print(f"[INFO] class weights: {class_weights}")
-
     # initialize loss function and optimizer
     loss_func = BCEWithLogitsLoss(pos_weight=class_weights.to(DEVICE), reduction='sum')
     opt = RMSprop(unet.parameters(), lr=INIT_LR, momentum=MOMENTUM, weight_decay=WEIGHT_DECAY)
     scheduler = lr_scheduler.ReduceLROnPlateau(opt, 'max', patience=5)
+
+    es = EarlyStopping(patience=5, min_delta=0, restore_best_weights=True)
 
     metrics = SegmentationMetrics()
 
@@ -45,18 +46,25 @@ def training(train_loader, test_loader, train_ds, test_ds):
     # loop over epochs
     print("[INFO] training the network...")
     start_time = time.time()
-    for e in tqdm(range(NUM_EPOCHS)):
-        print(f"[INFO] EPOCH: {e + 1}/{NUM_EPOCHS}")
 
-        train_loss = train_model(model=unet, loss_func=loss_func, optimizer=opt, loader=train_loader,
-                                 num_batches=train_steps, history=history)
-        test_loss = eval_model(model=unet, loss_func=loss_func, metrics=metrics, loader=test_loader,
-                               num_batches=test_steps, history=history)
+    done = False
+    epoch = 0
 
-        print("Train loss: {:.6f}, Test loss: {:.4f}".format(train_loss, test_loss))
+    while epoch < NUM_EPOCHS and not done:
+        epoch += 1
+
+        pbar, loss = train_model(model=unet, loss_func=loss_func, optimizer=opt, loader=train_loader,
+                                 num_batches=train_steps, history=history, epoch=epoch)
+
+        val_loss = eval_model(model=unet, loss_func=loss_func, metrics=metrics, loader=test_loader,
+                              num_batches=test_steps, history=history)
+
+        # check if early stopping criteria are met
+        done = es(unet, val_loss)
+        pbar.set_description(f"Epoch: {epoch}, loss: {loss:>4f}, val_loss: {val_loss:>4f}, EStop:[{es.status}]")
 
         # update the learning rate
-        scheduler.step(test_loss)
+        scheduler.step(val_loss)
 
         print("[INFO] saving the model...")
         model_path = os.path.join(BASE_OUTPUT, "unet_intermediate.pth")
@@ -85,8 +93,8 @@ def training(train_loader, test_loader, train_ds, test_ds):
     # plot the training loss and accuracy
     plt.style.use("ggplot")
     plt.figure(figsize=(10, 10))
-    plt.plot(history["train_loss"], label="train_loss")
-    plt.plot(history["test_loss"], label="test_loss")
+    plt.plot(history["loss"], label="loss")
+    plt.plot(history["val_loss"], label="val_loss")
     plt.title("Training Loss on Dataset")
     plt.xlabel("Epoch #")
     plt.ylabel("Loss")
@@ -167,21 +175,26 @@ def eval_model(model, loss_func, metrics, loader, num_batches, history):
     return avg_test_loss
 
 
-def train_model(model, loss_func, optimizer, loader, num_batches, history):
+def train_model(model, loss_func, optimizer, loader, num_batches, history, epoch):
     # set the model in training mode
     model.train()
 
     # initialize the total training and validation loss
     total_train_loss = 0
 
+    steps = list(enumerate(loader))
+    pbar = tqdm.tqdm(steps)
+
     # loop over the training set
-    for (i, (x, y)) in enumerate(loader):
+    for i, (x, y) in pbar:
         # send the input to the device
         (x, y) = (x.to(DEVICE), y.to(DEVICE))
 
         # perform a forward pass and calculate the training loss
         logits, _ = model(x)
         loss = loss_func(logits, y)
+
+        pbar.set_description(f"Epoch: {epoch}, train_loss {loss:}")
 
         # first, zero out any previously accumulated gradients, then
         # perform backpropagation, and then update model parameters
@@ -196,4 +209,4 @@ def train_model(model, loss_func, optimizer, loader, num_batches, history):
     avg_train_loss = total_train_loss / num_batches
     history["train_loss"].append(avg_train_loss.cpu().detach().numpy())
 
-    return avg_train_loss
+    return pbar, avg_train_loss
