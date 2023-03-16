@@ -69,8 +69,8 @@ def training(trainLoader, testLoader, trainDS, testDS):
             (x, y) = (x.to(DEVICE), y.to(DEVICE))
 
             # perform a forward pass and calculate the training loss
-            pred = unet(x)
-            loss = lossFunc(pred, y)
+            logits, _ = unet(x)
+            loss = lossFunc(logits, y)
 
             # first, zero out any previously accumulated gradients, then
             # perform backpropagation, and then update model parameters
@@ -94,11 +94,11 @@ def training(trainLoader, testLoader, trainDS, testDS):
                 (x, y) = (x.to(DEVICE), y.to(DEVICE))
 
                 # make the predictions and calculate the validation loss
-                pred = unet(x)
-                totalTestLoss += lossFunc(pred, y)
+                logits, masks = unet(x)
+                totalTestLoss += lossFunc(logits, y)
 
                 # calculate the metrics
-                metrics_results += torch.tensor([m(pred, y) for m in metrics])
+                metrics_results += torch.tensor([m(masks, y) for m in metrics])
 
         # calculate the average training and validation loss
         avgTrainLoss = totalTrainLoss / trainSteps

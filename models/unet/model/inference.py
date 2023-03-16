@@ -50,7 +50,8 @@ def make_predictions(model, imagePath):
 
         # make the prediction, pass the results through the softmax
         # function, and convert the result to a NumPy array
-        predMask = model(image).squeeze()  # squeeze removes the batch dimension
+        _, predMask = model(image)
+        predMask = predMask.squeeze()  # squeeze removes the batch dimension
         predMask = predMask.cpu().numpy()  # move to CPU and convert to numpy array
 
         # set pixels with a value greater than 0.5 to 1, and set
