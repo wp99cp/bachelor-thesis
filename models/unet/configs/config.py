@@ -2,15 +2,6 @@ import os
 
 import torch
 
-# base path of the dataset
-BASE_DIR = os.environ['TMPDIR'] if 'TMPDIR' in os.environ else '/projects/bachelor-thesis/tmp'
-DATASET_PATH = os.environ['DATA_DIR'] if 'DATA_DIR' in os.environ else os.path.join(BASE_DIR, "dataset")
-
-# define the path to the images and masks dataset
-IMAGE_DATASET_PATH = os.path.join(DATASET_PATH, "images")
-MASK_DATASET_PATH = os.path.join(DATASET_PATH, "masks")
-BASE_OUTPUT = os.environ['RESULTS_DIR'] if 'RESULTS_DIR' in os.environ else 'res'
-
 # define the test split:
 # the fraction of the dataset we will keep aside for the test set
 TEST_SPLIT = 0.15
@@ -19,8 +10,21 @@ TEST_SPLIT = 0.15
 # and number of levels in the U-Net model
 IMAGE_SIZE = 128  # defines the input image dimensions
 NUM_CHANNELS = 13  # all satellite images have 13 channels
+
+# Maks Settings
 NUM_CLASSES = 4
 CLASS_NAMES = ["snow", "clouds", "water", "thin_clouds"]
+NUM_ENCODED_CHANNELS = 5  # Number of channels used to encode the grayscale image
+CLASS_WEIGHTS = [0.25052, 0.00214, 0.01381, 0.02479]  # class weights for snow, clouds, water
+
+# define threshold to filter weak predictions
+THRESHOLD = 0.75
+
+# ====================================
+# ====================================
+# Training Hyperparameters
+# ====================================
+# ====================================
 
 # initialize learning rate, number of epochs to train for, and the
 # batch size
@@ -30,20 +34,37 @@ WEIGHT_DECAY = 0.005
 NUM_EPOCHS = 25
 BATCH_SIZE = 64
 
-# define threshold to filter weak predictions
-THRESHOLD = 0.75
+# ====================================
+# ====================================
+# Data Augmentation Settings
+# ====================================
+# ====================================
 
-# Number of channels used to encode the grayscale image
-NUM_ENCODED_CHANNELS = 5
+# Data Augmentation Settings
+ENABLE_DATA_AUGMENTATION = True
 
-# class weights for snow, clouds, water
-CLASS_WEIGHTS = [0.25052, 0.00214, 0.01381, 0.02479]
+# the best value according to the paper is 0.3
+# "MixChannel: Advanced Augmentation for Multispectral Satellite Images" (https://www.mdpi.com/2072-4292/13/11/2181)
+# Every channel gets dropped with a probability of 0.3
+CHANNEL_DROPOUT_PROB = 0.3
+
+# probability of flipping the image horizontally and/or vertically (this happens independently)
+IMAGE_FLIP_PROB = 0.5
 
 # ====================================
 # ====================================
 # Automatically determined parameters
 # ====================================
 # ====================================
+
+# base path of the dataset
+BASE_DIR = os.environ['TMPDIR'] if 'TMPDIR' in os.environ else '/projects/bachelor-thesis/tmp'
+DATASET_PATH = os.environ['DATA_DIR'] if 'DATA_DIR' in os.environ else os.path.join(BASE_DIR, "dataset")
+
+# define the path to the images and masks dataset
+IMAGE_DATASET_PATH = os.path.join(DATASET_PATH, "images")
+MASK_DATASET_PATH = os.path.join(DATASET_PATH, "masks")
+BASE_OUTPUT = os.environ['RESULTS_DIR'] if 'RESULTS_DIR' in os.environ else 'res'
 
 # determine the device to be used for training and evaluation
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
@@ -76,4 +97,3 @@ def report_config():
     print(f"- Using {MASK_DATASET_PATH} mask dataset path")
     print(f"- Using {PIN_MEMORY} pin memory")
     print("\n")
-

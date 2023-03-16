@@ -12,7 +12,7 @@ from torchvision import transforms as tsfm
 
 from DataLoader.SegmentationDataset import SegmentationDataset
 from configs.config import report_config, IMAGE_DATASET_PATH, MASK_DATASET_PATH, TEST_SPLIT, BATCH_SIZE, PIN_MEMORY, \
-    DEVICE, BASE_OUTPUT, NUM_CLASSES, CLASS_NAMES
+    DEVICE, BASE_OUTPUT, NUM_CLASSES, CLASS_NAMES, ENABLE_DATA_AUGMENTATION
 from model.Model import UNet
 from model.inference import make_predictions
 from model.training import training
@@ -40,7 +40,8 @@ def load_data():
     ])
 
     # create the train and test datasets
-    trainDS = SegmentationDataset(imagePaths=trainImages, maskPaths=trainMasks, transforms=transforms)
+    trainDS = SegmentationDataset(imagePaths=trainImages, maskPaths=trainMasks, transforms=transforms,
+                                  apply_augmentations=ENABLE_DATA_AUGMENTATION)
     testDS = SegmentationDataset(imagePaths=testImages, maskPaths=testMasks,
                                  transforms=transforms, apply_augmentations=False)
 

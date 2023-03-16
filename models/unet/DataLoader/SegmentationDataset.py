@@ -4,7 +4,7 @@ import numpy as np
 import torch
 from torch.utils.data import Dataset
 
-from configs.config import NUM_ENCODED_CHANNELS, NUM_CLASSES
+from configs.config import NUM_ENCODED_CHANNELS, NUM_CLASSES, CHANNEL_DROPOUT_PROB, IMAGE_FLIP_PROB
 
 
 class SegmentationDataset(Dataset):
@@ -59,14 +59,21 @@ class SegmentationDataset(Dataset):
 
             # apply the augmentation transforms
             flip_prob = np.random.rand()
-            if flip_prob > 0.5:
+            if flip_prob < IMAGE_FLIP_PROB:
                 image = torch.flip(image, dims=[1])
                 masks = torch.flip(masks, dims=[1])
 
             flip_prob = np.random.rand()
-            if flip_prob > 0.5:
+            if flip_prob < IMAGE_FLIP_PROB:
                 image = torch.flip(image, dims=[2])
                 masks = torch.flip(masks, dims=[2])
+
+            # Channel Dropout selects a random channel and sets it to zero
+            # This happens with a probability of 0.3
+            for channel_idx in range(image.shape[0]):
+                channel_dropout_prob = np.random.rand()
+                if channel_dropout_prob < CHANNEL_DROPOUT_PROB:
+                    image[channel_idx, :, :] = 0
 
         # return a tuple of the image and its mask
         return image, masks
