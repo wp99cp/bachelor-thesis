@@ -11,8 +11,14 @@ from torch.utils.data import DataLoader
 from torchvision import transforms as tsfm
 
 from DataLoader.SegmentationDataset import SegmentationDataset
+from augmentation.Augmentation import Augmentation
+from augmentation.ChannelDropout import ChannelDropout
+from augmentation.HorizontalFlip import HorizontalFlip
+from augmentation.RandomErasing import RandomErasing
+from augmentation.VerticalFlip import VerticalFlip
 from configs.config import report_config, IMAGE_DATASET_PATH, MASK_DATASET_PATH, TEST_SPLIT, BATCH_SIZE, PIN_MEMORY, \
-    DEVICE, BASE_OUTPUT, NUM_CLASSES, CLASS_NAMES, ENABLE_DATA_AUGMENTATION
+    DEVICE, BASE_OUTPUT, ENABLE_DATA_AUGMENTATION, IMAGE_FLIP_PROB, CHANNEL_DROPOUT_PROB, \
+    COVERED_PATCH_SIZE_MIN, COVERED_PATCH_SIZE_MAX
 from model.Model import UNet
 from model.inference import make_predictions
 from model.training import training
@@ -20,47 +26,51 @@ from model.training import training
 
 def load_data():
     # load the image and mask filepaths in a sorted manner
-    imagePaths = sorted(list(paths.list_files(IMAGE_DATASET_PATH, validExts=("npz",))))
-    maskPaths = sorted(list(paths.list_images(MASK_DATASET_PATH)))
+    image_paths = sorted(list(paths.list_files(IMAGE_DATASET_PATH, validExts=("npz",))))
+    mask_paths = sorted(list(paths.list_images(MASK_DATASET_PATH)))
 
-    print(f"[INFO] found a total of {len(imagePaths)} images in '{IMAGE_DATASET_PATH}'.")
-    print(f"[INFO] found a total of {len(maskPaths)} images in '{MASK_DATASET_PATH}'.")
+    print(f"[INFO] found a total of {len(image_paths)} images in '{IMAGE_DATASET_PATH}'.")
+    print(f"[INFO] found a total of {len(mask_paths)} images in '{MASK_DATASET_PATH}'.")
 
     # partition the data into training and testing splits using 85% of
     # the data for training and the remaining 15% for testing
-    split = train_test_split(imagePaths, maskPaths, test_size=TEST_SPLIT, random_state=42)
+    split = train_test_split(image_paths, mask_paths, test_size=TEST_SPLIT, random_state=42)
 
     # unpack the data split
     (trainImages, testImages) = split[:2]
     (trainMasks, testMasks) = split[2:]
 
     # define transformations
-    transforms = tsfm.Compose([
-        tsfm.ToTensor()
-    ])
+    transforms = tsfm.Compose([tsfm.ToTensor()])
+    augmentations: list[Augmentation] = [
+        HorizontalFlip(prob=IMAGE_FLIP_PROB),
+        VerticalFlip(prob=IMAGE_FLIP_PROB),
+        ChannelDropout(prob=CHANNEL_DROPOUT_PROB),
+        RandomErasing(prob=CHANNEL_DROPOUT_PROB, min_size=COVERED_PATCH_SIZE_MIN, max_size=COVERED_PATCH_SIZE_MAX)
+    ]
 
     # create the train and test datasets
-    trainDS = SegmentationDataset(imagePaths=trainImages, maskPaths=trainMasks, transforms=transforms,
-                                  apply_augmentations=ENABLE_DATA_AUGMENTATION)
-    testDS = SegmentationDataset(imagePaths=testImages, maskPaths=testMasks,
-                                 transforms=transforms, apply_augmentations=False)
+    train_ds = SegmentationDataset(image_paths=trainImages, mask_paths=trainMasks, transforms=transforms,
+                                   apply_augmentations=ENABLE_DATA_AUGMENTATION, augmentations=augmentations)
+    test_ds = SegmentationDataset(image_paths=testImages, mask_paths=testMasks,
+                                  transforms=transforms, apply_augmentations=False)
 
     # create the training and test data loaders
     num_workers = min(os.cpu_count(), 16)
-    trainLoader = DataLoader(trainDS, shuffle=True, batch_size=BATCH_SIZE,
+    train_loader = DataLoader(train_ds, shuffle=True, batch_size=BATCH_SIZE,
+                              pin_memory=PIN_MEMORY, num_workers=num_workers)
+    test_loader = DataLoader(test_ds, shuffle=False, batch_size=BATCH_SIZE,
                              pin_memory=PIN_MEMORY, num_workers=num_workers)
-    testLoader = DataLoader(testDS, shuffle=False, batch_size=BATCH_SIZE,
-                            pin_memory=PIN_MEMORY, num_workers=num_workers)
 
-    print(f"[INFO] loaded {len(trainDS)} examples in the train set.")
-    print(f"[INFO] loaded {len(testDS)} examples in the test set.")
+    print(f"[INFO] loaded {len(train_ds)} examples in the train set.")
+    print(f"[INFO] loaded {len(test_ds)} examples in the test set.")
 
-    return trainLoader, testLoader, trainDS, testDS, trainImages, testImages
+    return train_loader, test_loader, train_ds, test_ds, trainImages, testImages
 
 
-def print_data_sample(trainLoader):
+def print_data_sample(train_loader):
     # show a sample image and mask
-    sample = next(iter(trainLoader))
+    sample = next(iter(train_loader))
 
     img = sample[0][0].permute(1, 2, 0)
     masks = sample[1][0].permute(1, 2, 0)
@@ -83,22 +93,20 @@ def print_data_sample(trainLoader):
 
 
 def main():
-    assert NUM_CLASSES == len(CLASS_NAMES), "Number of classes must match number of class names."
     report_config()
 
     # check if the flag "--retrain" is set
     # if so, train the model
     if "--retrain" in sys.argv:
-        trainLoader, testLoader, trainDS, testDS, _, testImages = load_data()
-        print_data_sample(trainLoader)
+        train_loader, test_loader, train_ds, test_ds, _, test_images = load_data()
+        print_data_sample(train_loader)
 
         print("[INFO] retraining model...")
-        training(trainLoader, testLoader, trainDS, testDS)
+        training(train_loader, test_loader, train_ds, test_ds)
 
         # load the image paths in our testing file and randomly select 10
         # image paths
         print("[INFO] loading up test image paths...")
-        imagePaths = np.random.choice(testImages, size=1)
 
     # load our model from disk and flash it to the current device
     print("[INFO] load up model...")

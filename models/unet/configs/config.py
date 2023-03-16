@@ -29,7 +29,7 @@ THRESHOLD = 0.75
 # initialize learning rate, number of epochs to train for, and the
 # batch size
 INIT_LR = 0.001
-MOMENTUM = 0.75
+MOMENTUM = 0.85
 WEIGHT_DECAY = 0.005
 NUM_EPOCHS = 25
 BATCH_SIZE = 64
@@ -46,15 +46,15 @@ ENABLE_DATA_AUGMENTATION = True
 # the best value according to the paper is 0.3
 # "MixChannel: Advanced Augmentation for Multi spectral Satellite Images" (https://www.mdpi.com/2072-4292/13/11/2181)
 # Every channel gets dropped with a probability of 0.3
-CHANNEL_DROPOUT_PROB = 0.3
+CHANNEL_DROPOUT_PROB = 0.1
 
 # probability of flipping the image horizontally and/or vertically (this happens independently)
-IMAGE_FLIP_PROB = 0.5
+IMAGE_FLIP_PROB = 0.3
 
 # cover a random patch of the image (i.g. setting all channels and the mask to zero)
-PATCH_COVERING_PROB = 0.3
-COVERED_PATCH_SIZE_MIN = 20  # in pixels
-COVERED_PATCH_SIZE_MAX = 48  # in pixels
+PATCH_COVERING_PROB = 0.1
+COVERED_PATCH_SIZE_MIN = 16  # in pixels
+COVERED_PATCH_SIZE_MAX = 32  # in pixels
 
 # ====================================
 # ====================================
@@ -77,6 +77,14 @@ DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 # determine if we will be pinning memory during data loading
 PIN_MEMORY = True if DEVICE == "cuda" else False
 
+# ====================================
+# ====================================
+# Assertions to ensure correct configuration
+# ====================================
+# ====================================
+
+assert NUM_CLASSES == len(CLASS_NAMES), "Number of classes must match number of class names."
+
 
 # ====================================
 # ====================================
@@ -86,19 +94,12 @@ PIN_MEMORY = True if DEVICE == "cuda" else False
 
 def report_config():
     """Report the configuration of the model."""
-    print("\nConfiguration:")
-    print(f"- Using device: {DEVICE}")
-    print(f"- Using {NUM_CHANNELS} channels")
-    print(f"- Using {NUM_CLASSES} classes")
-    print(f"- Using {NUM_EPOCHS} epochs")
-    print(f"- Using {BATCH_SIZE} batch size")
-    print(f"- Using {IMAGE_SIZE} image size")
-    print(f"- Using {THRESHOLD} threshold")
-    print(f"- Using {NUM_ENCODED_CHANNELS} encoded channels")
-    print(f"- Using {INIT_LR} initial learning rate")
-    print(f"- Using {TEST_SPLIT} test split")
-    print(f"- Using {DATASET_PATH} dataset path")
-    print(f"- Using {IMAGE_DATASET_PATH} image dataset path")
-    print(f"- Using {MASK_DATASET_PATH} mask dataset path")
-    print(f"- Using {PIN_MEMORY} pin memory")
-    print("\n")
+
+    print(f"\nConfiguration:")
+    for var in globals():
+
+        # check if it is a variable and not a function
+        if not var.startswith('__') and not callable(var) and var == var.upper():
+            print(f" - {var} = {eval(var)}")
+
+    print(f"\n\n")

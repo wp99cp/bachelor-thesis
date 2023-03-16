@@ -1,29 +1,38 @@
 # all PyTorch datasets must inherit from this base dataset class.
 import cv2
 import numpy as np
-import torch
 from torch.utils.data import Dataset
+from torchvision.transforms import Compose
 
-from configs.config import NUM_ENCODED_CHANNELS, NUM_CLASSES, CHANNEL_DROPOUT_PROB, IMAGE_FLIP_PROB, \
-    PATCH_COVERING_PROB, COVERED_PATCH_SIZE_MIN, COVERED_PATCH_SIZE_MAX
+from augmentation.Augmentation import Augmentation
+from configs.config import NUM_ENCODED_CHANNELS, NUM_CLASSES
 
 
 class SegmentationDataset(Dataset):
 
-    def __init__(self, imagePaths, maskPaths, transforms, apply_augmentations=True):
-        # store the image and mask filepaths, and augmentation transforms
-        self.imagePaths = imagePaths
-        self.maskPaths = maskPaths
+    def __init__(self,
+                 image_paths: list[str],
+                 mask_paths: list[str],
+                 transforms: Compose,
+                 apply_augmentations: bool = True,
+                 augmentations: list[Augmentation] = None):
+
+        if augmentations is None:
+            augmentations = []
+
+        self.imagePaths = image_paths
+        self.maskPaths = mask_paths
 
         # this is a set of transformations that will be applied to the image and mask
         self.transforms = transforms
         self.apply_augmentations = apply_augmentations
+        self.augmentations = augmentations
 
-    def __len__(self):
+    def __len__(self) -> int:
         # return the number of total samples contained in the dataset
         return len(self.maskPaths)
 
-    def __getitem__(self, idx):
+    def __getitem__(self, idx: int) -> tuple[np.ndarray, np.ndarray]:
         """
 
         :param idx: index of the image to be loaded
@@ -58,36 +67,8 @@ class SegmentationDataset(Dataset):
 
         if self.apply_augmentations:
 
-            # apply the augmentation transforms
-            flip_prob = np.random.rand()
-            if flip_prob < IMAGE_FLIP_PROB:
-                image = torch.flip(image, dims=[1])
-                masks = torch.flip(masks, dims=[1])
-
-            flip_prob = np.random.rand()
-            if flip_prob < IMAGE_FLIP_PROB:
-                image = torch.flip(image, dims=[2])
-                masks = torch.flip(masks, dims=[2])
-
-            # Channel Dropout selects a random channel and sets it to zero
-            # This happens with a probability of 0.3
-            for channel_idx in range(image.shape[0]):
-                channel_dropout_prob = np.random.rand()
-                if channel_dropout_prob < CHANNEL_DROPOUT_PROB:
-                    image[channel_idx, :, :] = 0
-
-            # cover a random patch of the image (i.g. setting all channels and the mask to zero)
-            channel_cover_prob = np.random.rand()
-            if channel_cover_prob < PATCH_COVERING_PROB:
-                patch_size = np.random.randint(COVERED_PATCH_SIZE_MIN, COVERED_PATCH_SIZE_MAX)
-
-                # select a random patch
-                x = np.random.randint(0, image.shape[1] - patch_size)
-                y = np.random.randint(0, image.shape[2] - patch_size)
-
-                # set the patch to zero
-                image[:, x:x + patch_size, y:y + patch_size] = 0
-                masks[:, x:x + patch_size, y:y + patch_size] = 0
+            for aug in self.augmentations:
+                image, masks = aug.apply(image, masks)
 
         # return a tuple of the image and its mask
         return image, masks

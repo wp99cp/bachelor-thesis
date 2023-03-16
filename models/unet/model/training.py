@@ -14,7 +14,7 @@ from model.Model import UNet
 from model.metrices import SegmentationMetrics
 
 
-def training(trainLoader, testLoader, trainDS, testDS):
+def training(train_loader, test_loader, train_ds, test_ds):
     # initialize our UNet model
     unet = UNet().to(DEVICE)
 
@@ -39,38 +39,38 @@ def training(trainLoader, testLoader, trainDS, testDS):
     class_weights = class_weights.permute(2, 0, 1)
 
     # initialize loss function and optimizer
-    lossFunc = BCEWithLogitsLoss(pos_weight=class_weights.to(DEVICE))
+    loss_func = BCEWithLogitsLoss(pos_weight=class_weights.to(DEVICE))
     opt = RMSprop(unet.parameters(), lr=INIT_LR, momentum=MOMENTUM, weight_decay=WEIGHT_DECAY)
     scheduler = lr_scheduler.ReduceLROnPlateau(opt, 'max', patience=5)
 
     metrics = SegmentationMetrics()
 
     # calculate steps per epoch for training and test set
-    trainSteps = len(trainDS) // BATCH_SIZE
-    testSteps = len(testDS) // BATCH_SIZE
+    train_steps = len(train_ds) // BATCH_SIZE
+    test_steps = len(test_ds) // BATCH_SIZE
 
     # initialize a dictionary to store training history
     H = {"train_loss": [], "test_loss": []}
 
     # loop over epochs
     print("[INFO] training the network...")
-    startTime = time.time()
+    start_time = time.time()
     for e in tqdm(range(NUM_EPOCHS)):
         # set the model in training mode
         unet.train()
 
         # initialize the total training and validation loss
-        totalTrainLoss = 0
-        totalTestLoss = 0
+        total_train_loss = 0
+        total_test_loss = 0
 
         # loop over the training set
-        for (i, (x, y)) in enumerate(trainLoader):
+        for (i, (x, y)) in enumerate(train_loader):
             # send the input to the device
             (x, y) = (x.to(DEVICE), y.to(DEVICE))
 
             # perform a forward pass and calculate the training loss
             logits, _ = unet(x)
-            loss = lossFunc(logits, y)
+            loss = loss_func(logits, y)
 
             # first, zero out any previously accumulated gradients, then
             # perform backpropagation, and then update model parameters
@@ -79,7 +79,7 @@ def training(trainLoader, testLoader, trainDS, testDS):
             opt.step()
 
             # add the loss to the total training loss so far
-            totalTrainLoss += loss
+            total_train_loss += loss
 
         metrics_results = torch.tensor([0.0 for _ in metrics])
 
@@ -89,33 +89,33 @@ def training(trainLoader, testLoader, trainDS, testDS):
             unet.eval()
 
             # loop over the validation set
-            for (x, y) in testLoader:
+            for (x, y) in test_loader:
                 # send the input to the device
                 (x, y) = (x.to(DEVICE), y.to(DEVICE))
 
                 # make the predictions and calculate the validation loss
                 logits, masks = unet(x)
-                totalTestLoss += lossFunc(logits, y)
+                total_test_loss += loss_func(logits, y)
 
                 # calculate the metrics
                 metrics_results += torch.tensor([m(masks, y) for m in metrics])
 
         # calculate the average training and validation loss
-        avgTrainLoss = totalTrainLoss / trainSteps
-        avgTestLoss = totalTestLoss / testSteps
+        avg_train_loss = total_train_loss / train_steps
+        avg_test_loss = total_test_loss / test_steps
 
         # update the learning rate
-        scheduler.step(avgTestLoss)
+        scheduler.step(avg_test_loss)
 
         # update our training history
-        H["train_loss"].append(avgTrainLoss.cpu().detach().numpy())
-        H["test_loss"].append(avgTestLoss.cpu().detach().numpy())
+        H["train_loss"].append(avg_train_loss.cpu().detach().numpy())
+        H["test_loss"].append(avg_test_loss.cpu().detach().numpy())
 
         # print the model training and validation information
         print(f"[INFO] EPOCH: {e + 1}/{NUM_EPOCHS}")
-        print("Train loss: {:.6f}, Test loss: {:.4f}".format(avgTrainLoss, avgTestLoss))
+        print("Train loss: {:.6f}, Test loss: {:.4f}".format(avg_train_loss, avg_test_loss))
         print("Metrics:")
-        metrics_results = metrics_results / testSteps
+        metrics_results = metrics_results / test_steps
         for i, res in enumerate(metrics):
             print(f"  {res.__name__}: {(metrics_results[i]):.4f}")
 
@@ -124,9 +124,9 @@ def training(trainLoader, testLoader, trainDS, testDS):
         torch.save(unet.state_dict(), model_path)
 
     # display the total time needed to perform the training
-    endTime = time.time()
+    end_time = time.time()
     print("[INFO] total time taken to train the model: {:.2f}s".format(
-        endTime - startTime))
+        end_time - start_time))
 
     # save the model
     print("[INFO] saving the model...")
