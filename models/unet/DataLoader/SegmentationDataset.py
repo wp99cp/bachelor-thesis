@@ -4,7 +4,8 @@ import numpy as np
 import torch
 from torch.utils.data import Dataset
 
-from configs.config import NUM_ENCODED_CHANNELS, NUM_CLASSES, CHANNEL_DROPOUT_PROB, IMAGE_FLIP_PROB
+from configs.config import NUM_ENCODED_CHANNELS, NUM_CLASSES, CHANNEL_DROPOUT_PROB, IMAGE_FLIP_PROB, \
+    PATCH_COVERING_PROB, COVERED_PATCH_SIZE_MIN, COVERED_PATCH_SIZE_MAX
 
 
 class SegmentationDataset(Dataset):
@@ -74,6 +75,19 @@ class SegmentationDataset(Dataset):
                 channel_dropout_prob = np.random.rand()
                 if channel_dropout_prob < CHANNEL_DROPOUT_PROB:
                     image[channel_idx, :, :] = 0
+
+            # cover a random patch of the image (i.g. setting all channels and the mask to zero)
+            channel_cover_prob = np.random.rand()
+            if channel_cover_prob < PATCH_COVERING_PROB:
+                patch_size = np.random.randint(COVERED_PATCH_SIZE_MIN, COVERED_PATCH_SIZE_MAX)
+
+                # select a random patch
+                x = np.random.randint(0, image.shape[1] - patch_size)
+                y = np.random.randint(0, image.shape[2] - patch_size)
+
+                # set the patch to zero
+                image[:, x:x + patch_size, y:y + patch_size] = 0
+                masks[:, x:x + patch_size, y:y + patch_size] = 0
 
         # return a tuple of the image and its mask
         return image, masks
