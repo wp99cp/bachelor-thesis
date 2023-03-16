@@ -5,6 +5,6 @@ python main.py --retrain >>"$LOG_DIR/python.log" &
 
 # trap om USR1 and forward the signal to the python process
 # this is used to save the model before the slurm job is killed
-trap 'kill -USR1 $!' USR1
+trap 'echo "Received USR1 signal, forwarding to python process (PID=$!)" && kill -USR1 $!' USR1
 
 wait
