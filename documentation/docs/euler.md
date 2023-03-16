@@ -49,7 +49,8 @@ pip install imutils
 pip install pytorch-model-summary
 ```
 
-**Note:** You must run this command while loaded the correct python environment (e.g. `module load python_gpu/3.10.4`).
+**Note:** You must run this command while loaded the correct python environment (
+e.g. `module load gcc/8.2.0 python_gpu/3.10.4`).
 
 :::
 
