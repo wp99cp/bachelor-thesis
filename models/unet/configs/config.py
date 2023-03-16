@@ -31,8 +31,8 @@ THRESHOLD = 0.5
 INIT_LR = 0.001
 MOMENTUM = 0.95
 WEIGHT_DECAY = 0.05
-NUM_EPOCHS = 25
-BATCH_SIZE = 100
+NUM_EPOCHS = 100
+BATCH_SIZE = 64
 
 # ====================================
 # ====================================
