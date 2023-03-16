@@ -118,6 +118,7 @@ def main():
     # load the model from disk
     if emergency_stop:
         print("[INFO] emergency stop: skipping model inference.")
+        return
 
     unet = UNet().to(DEVICE)
     model_path = os.path.join(BASE_OUTPUT, "unet.pth")
