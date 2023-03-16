@@ -19,6 +19,4 @@ PYTHON_PID=$!
 # Wait for the Python process to finish
 echo "Waiting for Python process (PID=$PYTHON_PID) to finish"
 wait $PYTHON_PID
-
-# Wait for all background processes to complete
-wait
+wait # for some reason, the wait command does not wait for the Python process to finish, so we need to call it twice

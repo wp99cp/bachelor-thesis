@@ -47,7 +47,10 @@
 # Step 4: Construct the job.sh file by wrapping the task.sh file with the Euler Job Script
 #         Those scripts are located in the helper-scripts directory
 - name: Construct the job.sh file by wrapping the task.sh file with the Euler Job Script
-  shell: cat {{ prepare }} {{ task_script }} {{ cleanup }} > {{ job_script_with_task }}
+  shell: |
+    cat {{ prepare }}
+    {{ task_script }}
+    {{ cleanup }} > {{ job_script_with_task }}
   vars:
     prepare: "{{ home_dir }}/bachelor-thesis/helper-scripts/prepare.sh"
     task_script: "{{ home_dir }}/bachelor-thesis/{{ task }}/task.sh"
