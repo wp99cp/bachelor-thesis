@@ -7,6 +7,7 @@
 #SBATCH --output=/cluster/scratch/pucyril/%j/log/slurm-output.out
 #SBATCH --error=/cluster/scratch/pucyril/%j/log/slurm-error.out
 #SBATCH --tmp=3000
+#SBATCH --account=es_schin
 #SBATCH --gpus=1
 #SBATCH --mail-type=END
 
