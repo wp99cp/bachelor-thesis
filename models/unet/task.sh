@@ -12,8 +12,9 @@ handle_signal() {
 trap 'handle_signal USR1' USR1
 
 # Start the Python process in the background and save its PID
-python main.py retrain &> "$LOG_DIR/python.log" &
+python main.py retrain 3>&1 1>>$LOG_DIR/python.log 2>&1 &
 PYTHON_PID=$!
 
 # Wait for the Python process to finish
+echo "Waiting for Python process (PID=$PYTHON_PID) to finish"
 wait $PYTHON_PID
