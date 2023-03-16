@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import torch
 from imutils import paths
+from pytorch_model_summary import summary
 from sklearn.model_selection import train_test_split
 from torch.utils.data import DataLoader
 from torchvision import transforms as tsfm
@@ -18,7 +19,7 @@ from augmentation.RandomErasing import RandomErasing
 from augmentation.VerticalFlip import VerticalFlip
 from configs.config import report_config, IMAGE_DATASET_PATH, MASK_DATASET_PATH, TEST_SPLIT, BATCH_SIZE, PIN_MEMORY, \
     DEVICE, BASE_OUTPUT, ENABLE_DATA_AUGMENTATION, IMAGE_FLIP_PROB, CHANNEL_DROPOUT_PROB, \
-    COVERED_PATCH_SIZE_MIN, COVERED_PATCH_SIZE_MAX
+    COVERED_PATCH_SIZE_MIN, COVERED_PATCH_SIZE_MAX, NUM_CHANNELS, IMAGE_SIZE
 from model.Model import UNet
 from model.inference import make_predictions
 from model.training import training
@@ -65,6 +66,7 @@ def load_data():
 
     print(f"[INFO] loaded {len(train_ds)} examples in the train set.")
     print(f"[INFO] loaded {len(test_ds)} examples in the test set.")
+    print(f"\n")
 
     return train_loader, test_loader, train_ds, test_ds, trainImages, testImages
 
@@ -116,6 +118,10 @@ def main():
     unet = UNet().to(DEVICE)
     model_path = os.path.join(BASE_OUTPUT, "unet.pth")
     unet.load_state_dict(torch.load(model_path))
+
+    print(summary(unet, torch.zeros((1, NUM_CHANNELS, IMAGE_SIZE, IMAGE_SIZE)).to(DEVICE),
+                  show_input=True,
+                  max_depth=2))
 
     # lost filenames inside IMAGE_DATASET_PATH
     file_names = [f for f in os.listdir(IMAGE_DATASET_PATH) if os.path.isfile(os.path.join(IMAGE_DATASET_PATH, f))]

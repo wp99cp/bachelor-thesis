@@ -6,24 +6,19 @@ import numpy as np
 import torch
 from matplotlib import pyplot as plt
 from matplotlib.patches import Patch
-from pytorch_model_summary import summary
 
-from configs.config import IMAGE_SIZE, MASK_DATASET_PATH, DEVICE, BASE_OUTPUT, NUM_CHANNELS, NUM_ENCODED_CHANNELS
+from configs.config import IMAGE_SIZE, MASK_DATASET_PATH, DEVICE, BASE_OUTPUT, NUM_ENCODED_CHANNELS
 
 
-def make_predictions(model, imagePath):
+def make_predictions(model, image_path):
     # set model to evaluation mode
     model.eval()
-
-    print(summary(model, torch.zeros((1, NUM_CHANNELS, IMAGE_SIZE, IMAGE_SIZE)).to(DEVICE),
-                  show_input=True,
-                  max_depth=2))
 
     # turn off gradient tracking
     with torch.no_grad():
         # load the image from disk, swap its color channels, cast it
         # to float data type, and scale its pixel values
-        image = np.load(imagePath)
+        image = np.load(image_path)
         image = image['arr_0']
         image = image.astype(np.float32)
         image = image / 255.0
@@ -32,15 +27,15 @@ def make_predictions(model, imagePath):
 
         # find the filename and generate the path to ground truth
         # mask
-        filename = imagePath.split(os.path.sep)[-1]
+        filename = image_path.split(os.path.sep)[-1]
         # replace the extension of the image with .png
         filename = filename.replace(".npz", ".png")
-        groundTruthPath = os.path.join(MASK_DATASET_PATH, filename)
+        ground_truth_path = os.path.join(MASK_DATASET_PATH, filename)
 
         # load the ground-truth segmentation mask in grayscale mode
         # and resize it
-        gtMask = cv2.imread(groundTruthPath, cv2.IMREAD_UNCHANGED)
-        gtMask = cv2.resize(gtMask, (IMAGE_SIZE, IMAGE_SIZE))
+        gt_mask = cv2.imread(ground_truth_path, cv2.IMREAD_UNCHANGED)
+        gt_mask = cv2.resize(gt_mask, (IMAGE_SIZE, IMAGE_SIZE))
 
         # make the channel axis to be the leading one, add a batch
         # dimension, create a PyTorch tensor, and flash it to the
@@ -50,21 +45,21 @@ def make_predictions(model, imagePath):
 
         # make the prediction, pass the results through the softmax
         # function, and convert the result to a NumPy array
-        _, predMask = model(image)
-        predMask = predMask.squeeze()  # squeeze removes the batch dimension
-        predMask = predMask.cpu().numpy()  # move to CPU and convert to numpy array
+        _, pred_mask = model(image)
+        pred_mask = pred_mask.squeeze()  # squeeze removes the batch dimension
+        pred_mask = pred_mask.cpu().numpy()  # move to CPU and convert to numpy array
 
         # set pixels with a value greater than 0.5 to 1, and set
         # pixels with a value less than or equal to 0.5 to 0
-        # predMask[predMask > THRESHOLD] = 1
-        # predMask[predMask <= THRESHOLD] = 0
+        # pred_mask[pred_mask > THRESHOLD] = 1
+        # pred_mask[pred_mask <= THRESHOLD] = 0
 
         # get filename from path
-        filename = imagePath.split(os.path.sep)[-1]
+        filename = image_path.split(os.path.sep)[-1]
         filename = filename.replace(".npz", "")
 
         # prepare a plot for visualization
-        print_results(orig, gtMask, predMask, filename)
+        print_results(orig, gt_mask, pred_mask, filename)
 
 
 def colorize_mask(mask_):
@@ -86,7 +81,7 @@ def colorize_mask(mask_):
     return cmap_, mask_
 
 
-def print_results(origImage, origMask, predMask, imagePath: str):
+def print_results(orig_image, orig_mask, predMask, imagePath: str):
     # initialize our figure
     matplotlib.use('Agg')
     figure, ax = plt.subplots(nrows=1, ncols=6, figsize=(25, 5))
@@ -94,10 +89,10 @@ def print_results(origImage, origMask, predMask, imagePath: str):
     # create a legend for the mask
 
     # plot the original image, its mask, and the predicted mask
-    rgb = origImage[:, :, 1:4]
-    origMask = origMask.astype(int)
-    origMask = (origMask * NUM_ENCODED_CHANNELS) / 255
-    cmap, rgb_mask = colorize_mask(origMask)
+    rgb = orig_image[:, :, 1:4]
+    orig_mask = orig_mask.astype(int)
+    orig_mask = (orig_mask * NUM_ENCODED_CHANNELS) / 255
+    cmap, rgb_mask = colorize_mask(orig_mask)
 
     ax[0].imshow(rgb)
     ax[1].imshow(rgb_mask)

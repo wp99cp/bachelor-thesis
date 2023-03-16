@@ -1,3 +1,4 @@
+import json
 import os
 import time
 
@@ -50,7 +51,11 @@ def training(train_loader, test_loader, train_ds, test_ds):
     test_steps = len(test_ds) // BATCH_SIZE
 
     # initialize a dictionary to store training history
-    H = {"train_loss": [], "test_loss": []}
+    history = {"train_loss": [], "test_loss": []}
+
+    # add metrics to history
+    for metric in metrics:
+        history[metric.__name__] = []
 
     # loop over epochs
     print("[INFO] training the network...")
@@ -108,8 +113,8 @@ def training(train_loader, test_loader, train_ds, test_ds):
         scheduler.step(avg_test_loss)
 
         # update our training history
-        H["train_loss"].append(avg_train_loss.cpu().detach().numpy())
-        H["test_loss"].append(avg_test_loss.cpu().detach().numpy())
+        history["train_loss"].append(avg_train_loss.cpu().detach().numpy())
+        history["test_loss"].append(avg_test_loss.cpu().detach().numpy())
 
         # print the model training and validation information
         print(f"[INFO] EPOCH: {e + 1}/{NUM_EPOCHS}")
@@ -118,6 +123,7 @@ def training(train_loader, test_loader, train_ds, test_ds):
         metrics_results = metrics_results / test_steps
         for i, res in enumerate(metrics):
             print(f"  {res.__name__}: {(metrics_results[i]):.4f}")
+            history[res.__name__].append(metrics_results[i].cpu().detach().numpy())
 
         print("[INFO] saving the model...")
         model_path = os.path.join(BASE_OUTPUT, "unet_intermediate.pth")
@@ -128,6 +134,16 @@ def training(train_loader, test_loader, train_ds, test_ds):
     print("[INFO] total time taken to train the model: {:.2f}s".format(
         end_time - start_time))
 
+    # save history as JSON
+    print("[INFO] saving the training history...")
+
+    for key, value in history.items():
+        history[key] = [v.tolist() for v in value]
+
+    history_file = open(os.path.join(BASE_OUTPUT, "history.json"), "w")
+    history_file.write(json.dumps(history))
+    history_file.close()
+
     # save the model
     print("[INFO] saving the model...")
     model_path = os.path.join(BASE_OUTPUT, "unet.pth")
@@ -136,8 +152,8 @@ def training(train_loader, test_loader, train_ds, test_ds):
     # plot the training loss and accuracy
     plt.style.use("ggplot")
     plt.figure()
-    plt.plot(H["train_loss"], label="train_loss")
-    plt.plot(H["test_loss"], label="test_loss")
+    plt.plot(history["train_loss"], label="train_loss")
+    plt.plot(history["test_loss"], label="test_loss")
     plt.title("Training Loss on Dataset")
     plt.xlabel("Epoch #")
     plt.ylabel("Loss")
