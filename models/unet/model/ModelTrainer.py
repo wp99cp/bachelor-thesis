@@ -43,7 +43,6 @@ class ModelTrainer:
         # and save the model.
         self.emergency_stop = False
         signal(SIGUSR1, self.__interrupt_handler)
-        signal(SIGTERM, self.__interrupt_handler)  # used by slurm to kill jobs
 
     @accumulate_time
     def train(self, train_ds, test_ds, train_loader, test_loader, num_epochs=NUM_EPOCHS):
