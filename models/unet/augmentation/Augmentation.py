@@ -9,7 +9,7 @@ class Augmentation(ABC):
         self.prob = prob
 
     def _rand_choice(self):
-        return self.prob < np.random.rand()
+        return self.prob >= np.random.rand()
 
     @abstractmethod
     def apply(self, image, mask):

@@ -1,6 +1,7 @@
 import numpy as np
 
 from augmentation.Augmentation import Augmentation
+from configs.config import IMAGE_SIZE
 
 
 class RandomErasing(Augmentation):
@@ -16,8 +17,8 @@ class RandomErasing(Augmentation):
             patch_size = np.random.randint(self.min_size, self.max_size)
 
             # select a random patch
-            x = np.random.randint(0, image.shape[1] - patch_size)
-            y = np.random.randint(0, image.shape[2] - patch_size)
+            x = np.random.randint(0, IMAGE_SIZE - patch_size)
+            y = np.random.randint(0, IMAGE_SIZE - patch_size)
 
             # set the patch to zero
             image[:, x:x + patch_size, y:y + patch_size] = 0

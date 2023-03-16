@@ -18,7 +18,7 @@ NUM_ENCODED_CHANNELS = 5  # Number of channels used to encode the grayscale imag
 CLASS_WEIGHTS = [0.25052, 0.00214, 0.01381, 0.02479]  # class weights for snow, clouds, water
 
 # define threshold to filter weak predictions
-THRESHOLD = 0.75
+THRESHOLD = 0.5
 
 # ====================================
 # ====================================
@@ -52,7 +52,7 @@ CHANNEL_DROPOUT_PROB = 0.1
 IMAGE_FLIP_PROB = 0.3
 
 # cover a random patch of the image (i.g. setting all channels and the mask to zero)
-PATCH_COVERING_PROB = 0.1
+PATCH_COVERING_PROB = 0.3
 COVERED_PATCH_SIZE_MIN = 16  # in pixels
 COVERED_PATCH_SIZE_MAX = 32  # in pixels
 
