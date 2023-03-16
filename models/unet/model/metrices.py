@@ -1,4 +1,5 @@
 import torch
+from torch import Tensor
 
 from configs.config import THRESHOLD, NUM_CLASSES, CLASS_NAMES
 
@@ -70,7 +71,7 @@ def dice_coefficient(y_head, y_true, class_index=0):
     return 2 * intersection / union
 
 
-def SegmentationMetrics():
+def get_segmentation_metrics():
     """
 
     Initialize additional metrics

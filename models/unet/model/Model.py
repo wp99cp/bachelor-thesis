@@ -2,8 +2,9 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as func
+from pytorch_model_summary import summary
 
-from configs.config import NUM_CLASSES, NUM_CHANNELS
+from configs.config import NUM_CLASSES, NUM_CHANNELS, IMAGE_SIZE, DEVICE
 
 
 class DoubleConv(nn.Module):
@@ -116,3 +117,15 @@ class UNet(nn.Module):
         mask = torch.softmax(logits, dim=1)
 
         return logits, mask
+
+    def print_summary(self, max_depth=2, step_up=False, show_hierarchical=False):
+
+        if step_up and max_depth > 1:
+            for i in range(0, max_depth - 1):
+                print(summary(self, torch.zeros((1, NUM_CHANNELS, IMAGE_SIZE, IMAGE_SIZE)).to(DEVICE),
+                              show_input=True, max_depth=i))
+                print("")
+
+        print(summary(self, torch.zeros((1, NUM_CHANNELS, IMAGE_SIZE, IMAGE_SIZE)).to(DEVICE),
+                      show_input=True, max_depth=max_depth, show_hierarchical=show_hierarchical))
+        print(f"\n")
