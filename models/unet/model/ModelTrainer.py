@@ -1,4 +1,5 @@
 import os
+from signal import signal, SIGUSR1
 
 import torch
 import tqdm
@@ -38,8 +39,15 @@ class ModelTrainer:
 
         self.cct = ClassTimer(objects=[self], names=["ModelTrainer"], enabled=True)
 
+        # We register a signal handler for SIGUSR1 to interrupt the training
+        # and save the model.
+        self.emergency_stop = False
+        signal(SIGUSR1, self.__interrupt_handler)
+
     @accumulate_time
     def train(self, train_ds, test_ds, train_loader, test_loader, num_epochs=NUM_EPOCHS):
+
+        print('start training: Emergency Stop with: "kill -SIGUSR1 {}"'.format(os.getpid()))
 
         self.epoch = 0
 
@@ -49,7 +57,7 @@ class ModelTrainer:
 
         done = False
 
-        while self.epoch < num_epochs and not done:
+        while self.epoch < num_epochs and not done and not self.emergency_stop:
             self.epoch += 1
 
             train_loss = self.__train_epoch(loader=train_loader, num_batches=train_steps)
@@ -141,6 +149,10 @@ class ModelTrainer:
             # add the loss to the total training loss so far
             total_train_loss += loss
 
+            if self.emergency_stop:
+                print("Emergency stop triggered, skip rest of epoch...")
+                break
+
         # calculate the average training and validation loss
         avg_train_loss = total_train_loss / num_batches
         pbar.set_description(f"Epoch: {self.epoch}, train_loss {avg_train_loss:}")
@@ -151,6 +163,11 @@ class ModelTrainer:
 
     def get_history(self):
         return self.history
+
+    def __interrupt_handler(self, signum, frame):
+
+        print("Signal handler called with signal ", signum)
+        self.emergency_stop = True
 
     def initialize_history(self):
         history = {"train_loss": [], "test_loss": []}

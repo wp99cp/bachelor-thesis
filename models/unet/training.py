@@ -46,12 +46,14 @@ def train_unet(train_loader, test_loader, train_ds, test_ds):
 
     # save the model
     print("[INFO] saving the model...")
-    model_path = os.path.join(BASE_OUTPUT, "unet.pth")
+    model_name = "unet.pth" if not trainer.emergency_stop else "unet_emergency.pth"
+    model_path = os.path.join(BASE_OUTPUT, model_name)
     torch.save(unet.state_dict(), model_path)
 
     plot_history(history)
 
     print("[INFO] Training completed!\n")
+    return trainer.emergency_stop
 
 
 def plot_history(history):

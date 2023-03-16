@@ -99,12 +99,14 @@ def main():
 
     # check if the flag "--retrain" is set
     # if so, train the model
+    emergency_stop = False
+
     if "--retrain" in sys.argv:
         train_loader, test_loader, train_ds, test_ds, _, test_images = load_data()
         print_data_sample(train_loader)
 
         print("[INFO] retraining model...")
-        train_unet(train_loader, test_loader, train_ds, test_ds)
+        emergency_stop = train_unet(train_loader, test_loader, train_ds, test_ds)
 
         # load the image paths in our testing file and randomly select 10
         # image paths
@@ -114,6 +116,9 @@ def main():
     print("[INFO] load up model...")
 
     # load the model from disk
+    if emergency_stop:
+        print("[INFO] emergency stop: skipping model inference.")
+
     unet = UNet().to(DEVICE)
     model_path = os.path.join(BASE_OUTPUT, "unet.pth")
     unet.load_state_dict(torch.load(model_path))
