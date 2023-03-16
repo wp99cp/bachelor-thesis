@@ -149,7 +149,7 @@ ssh <username>@euler.ethz.ch
 To mount the scratch folder, you can use the following command:
 
 ```bash
-sshfs  pucyril@euler.ethz.ch:/cluster/scratch/pucyril /mnt/euler
+sshfs pucyril@euler.ethz.ch:/cluster/scratch/pucyril /mnt/euler
 ```
 
 ::: warning
