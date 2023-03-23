@@ -1,6 +1,7 @@
 data_handling:
 
   # forces to download the raw data from the pf-server (1 or 0)
+  # on Euler this must be set to 0
   force_rsync: 0
 
   # use single quotes for the dates and the array syntax
@@ -9,8 +10,8 @@ data_handling:
 annotation:
 
   # use the auto annotator to create the ground truth (1 or 0)
-  auto_annotation: 0
+  auto_annotation: 1
 
 dataset:
 
-  recreate_dataset: 0
+  recreate_dataset: 1

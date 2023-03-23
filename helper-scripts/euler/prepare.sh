@@ -13,21 +13,15 @@ echo -e "\n"
 nvidia-smi --query-gpu=name --format=csv,noheader
 echo -e "\n\n"
 
-# Copy the training data to the local scratch space
-echo "Copy the training data to $TMPDIR..."
-cp "$DATASET" "$TMPDIR"
-echo "Copied the training data to $TMPDIR"
-
-# Unzip the training data
-mkdir -p "$TMPDIR/data"
-echo "Unzip the training data..."
-unzip -q "$TMPDIR/dataset.zip" -d "$TMPDIR/data"
-echo "Unzipped the training data"
-
 # Update the environment variable DATA_DIR to point to the local scratch space
 export DATA_DIR="$TMPDIR/data"
 echo "The training data is now located in $DATA_DIR"
 ls -l "$DATA_DIR"
+
+export DATA_RAW_DIR="$DATA_DIR/raw"
+export ANNOTATED_MASKS_DIR="$DATA_DIR/annotated_masks"
+export MASKS_DIR="$DATA_DIR/masks"
+export DATASET_DIR="$DATA_DIR/dataset"
 
 # create a RESULTS_DIR
 export RESULTS_DIR="$TMPDIR/results"
