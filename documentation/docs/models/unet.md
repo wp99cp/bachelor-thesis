@@ -5,6 +5,20 @@ Resources for Python Code
 - [milesial/Pytorch-UNet/](https://github.com/milesial/Pytorch-UNet/tree/master)
 - [U-Net: Training Image Segmentation Models in PyTorch](https://pyimagesearch.com/2021/11/08/u-net-training-image-segmentation-models-in-pytorch/)
 
+## Train the Model
+
+You can train the model using the following command:
+
+```bash
+python3 main.py --retrain
+```
+
+Once training is complete, you can infer with the model using
+
+```bash
+python3 main.py 
+```
+
 ## Results of Previous Iterations
 
 ::: details Git Commit ([913b2a3801](https://github.com/wp99cp/bachelor-thesis/tree/913b2a38017)) - 14.03.2023
