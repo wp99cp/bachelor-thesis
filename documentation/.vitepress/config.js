@@ -42,6 +42,7 @@ export default {
                         {text: 'Python and Conda', link: 'docs/python_and_conda'},
                         {text: 'Working with Euler', link: 'docs/euler'},
                         {text: 'Working with Remote Desktop', link: 'docs/remote_desktop'},
+                        {text: 'Improve VPN Stability', link: 'docs/improve-vpn'},
                     ],
                     collapsible: true,
                     collapsed: true,
