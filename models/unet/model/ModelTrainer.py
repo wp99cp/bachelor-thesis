@@ -1,5 +1,5 @@
 import os
-from signal import signal, SIGUSR1, SIGTERM
+from signal import signal, SIGUSR1
 
 import torch
 import tqdm
@@ -168,8 +168,6 @@ class ModelTrainer:
 
         print("Signal handler called with signal ", signum)
         self.emergency_stop = True
-
-
 
     def initialize_history(self):
         history = {"train_loss": [], "test_loss": []}

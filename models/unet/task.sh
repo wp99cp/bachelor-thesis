@@ -1,3 +1,25 @@
+################
+# Copy and extract data
+################
+
+# Dataset Config
+export DATASET="/cluster/scratch/pucyril/dataset.zip"
+
+# Copy the training data to the local scratch space
+echo "Copy the training data to $TMPDIR..."
+cp "$DATASET" "$TMPDIR"
+echo "Copied the training data to $TMPDIR"
+
+# Unzip the training data
+mkdir -p "$TMPDIR/data"
+echo "Unzip the training data..."
+unzip -q "$TMPDIR/dataset.zip" -d "$TMPDIR/data"
+echo "Unzipped the training data"
+
+################
+# Run the task
+################
+
 echo "All further logs are saved in $LOG_DIR/python.log"
 
 # Define a signal handler function to forward USR1 signals to the Python process

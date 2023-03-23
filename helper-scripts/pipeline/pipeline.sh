@@ -4,10 +4,12 @@ echo "End-To-End Pipeline"
 echo "==================="
 echo ""
 
+find "$RESULTS_DIR" -type f ! -name '.gitignore' -delete
+find "$RESULTS_DIR" -type d -empty -delete
+
 # =========================
 # Load the config file
 # =========================
-
 
 # See https://stackoverflow.com/a/21189044/13371311
 function parse_yaml {
@@ -135,12 +137,71 @@ echo ""
 # Create automated Masks
 # =========================
 
+if [[ "${config_annotation_auto_annotation}" -eq 0 ]]; then
+  echo "Skip automated mask creation."
+else
+
+  # check if conda is installed
+  if command -v conda &>/dev/null; then
+    conda activate bachelor_thesis
+  else
+    echo "conda could not be found, assume all dependencies are installed"
+  fi
+
+  echo "Create automated masks"
+  echo ""
+  find "$ANNOTATED_MASKS_DIR" -type f ! -name '.gitignore' -delete
+  find "$ANNOTATED_MASKS_DIR" -type d -empty -delete
+
+  python pre-processing/automatic_masks/automated_masks.py --config_file "$CONFIG_FILE_PATH"
+
+fi
+
+echo ""
+echo "==================="
+echo "Automated Mask Creation Finished!"
+echo "==================="
+echo ""
+
+# =========================
+# Create the training data
+# =========================
+
+if [[ "${config_dataset_recreate_dataset}" -eq 0 ]]; then
+  echo "Skip automated mask creation."
+else
+
+  # check if conda is installed
+  if command -v conda &>/dev/null; then
+    conda activate bachelor_thesis
+  else
+    echo "conda could not be found, assume all dependencies are installed"
+  fi
+
+  echo "Create the training data"
+  echo ""
+
+  find "$DATASET_DIR" -type f ! -name '.gitignore' -delete
+  find "$DATASET_DIR" -type d -empty -delete
+  python pre-processing/image_splitter/data-sampler.py "/data/annotated_masks"
+
+fi
+
+echo ""
+echo "==================="
+echo "Training Data Creation Finished!"
+echo "==================="
+echo ""
+
+# =========================
+# Train Model
+# =========================
+
 # check if conda is installed
-if command -v conda &> /dev/null; then
+if command -v conda &>/dev/null; then
   conda activate bachelor_thesis
 else
   echo "conda could not be found, assume all dependencies are installed"
 fi
 
-echo "Create automated masks"
-python pre-processing/automatic_masks/automated_masks.py --config_file "$CONFIG_FILE_PATH"
+python3 models/unet/main.py --retrain

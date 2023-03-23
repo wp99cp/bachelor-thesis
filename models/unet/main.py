@@ -18,7 +18,7 @@ from augmentation.RandomErasing import RandomErasing
 from augmentation.VerticalFlip import VerticalFlip
 from configs.config import report_config, IMAGE_DATASET_PATH, MASK_DATASET_PATH, TEST_SPLIT, BATCH_SIZE, PIN_MEMORY, \
     DEVICE, BASE_OUTPUT, ENABLE_DATA_AUGMENTATION, IMAGE_FLIP_PROB, CHANNEL_DROPOUT_PROB, \
-    COVERED_PATCH_SIZE_MIN, COVERED_PATCH_SIZE_MAX
+    COVERED_PATCH_SIZE_MIN, COVERED_PATCH_SIZE_MAX, LIMIT_DATASET_SIZE
 from model.Model import UNet
 from model.inference import make_predictions
 from training import train_unet
@@ -28,6 +28,10 @@ def load_data():
     # load the image and mask filepaths in a sorted manner
     image_paths = sorted(list(paths.list_files(IMAGE_DATASET_PATH, validExts=("npz",))))
     mask_paths = sorted(list(paths.list_images(MASK_DATASET_PATH)))
+
+    if LIMIT_DATASET_SIZE > 0:
+        image_paths = image_paths[:LIMIT_DATASET_SIZE]
+        mask_paths = mask_paths[:LIMIT_DATASET_SIZE]
 
     print(f"[INFO] found a total of {len(image_paths)} images in '{IMAGE_DATASET_PATH}'.")
     print(f"[INFO] found a total of {len(mask_paths)} masks in '{MASK_DATASET_PATH}'.")
@@ -57,7 +61,7 @@ def load_data():
                                   transforms=transforms, apply_augmentations=False)
 
     # create the training and test data loaders
-    num_workers = min(os.cpu_count(), 8)
+    num_workers = min(os.cpu_count(), 6)  # max 6 workers
     train_loader = DataLoader(train_ds, shuffle=True, batch_size=BATCH_SIZE,
                               pin_memory=PIN_MEMORY, num_workers=num_workers)
     test_loader = DataLoader(test_ds, shuffle=False, batch_size=BATCH_SIZE,
