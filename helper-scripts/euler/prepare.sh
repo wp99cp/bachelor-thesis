@@ -41,6 +41,7 @@ echo "The results directory is $RESULTS_DIR"
 
 # Export the task directory to the environment
 export TASK_DIR="$PWD"
+export BASE_DIR="$PWD"
 echo "The task directory is $TASK_DIR"
 
 # Export the path to the LOG_DIR to the environment

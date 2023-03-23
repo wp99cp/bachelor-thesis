@@ -29,8 +29,15 @@ function parse_yaml {
    }'
 }
 
+# check if the config file is given as an argument
+# else we assume the file is called pipeline-config.yml
+if [ -z "$1" ]; then
+  CONFIG_FILE_PATH="$BASE_DIR/$1"
+else
+  CONFIG_FILE_PATH="$BASE_DIR/pipeline-config.yml"
+fi
+
 # Load the config yml file
-CONFIG_FILE_PATH="$BASE_DIR/$1"
 echo "Load Config from '$CONFIG_FILE_PATH'"
 parse_yaml "$CONFIG_FILE_PATH" "config_"
 echo ""
@@ -183,7 +190,7 @@ else
 
   find "$DATASET_DIR" -type f ! -name '.gitignore' -delete
   find "$DATASET_DIR" -type d -empty -delete
-  python pre-processing/image_splitter/data-sampler.py "/data/annotated_masks"
+  python "$BASE_DIR/pre-processing/image_splitter/data-sampler.py" "/data/annotated_masks"
 
 fi
 
@@ -204,4 +211,4 @@ else
   echo "conda could not be found, assume all dependencies are installed"
 fi
 
-python3 models/unet/main.py --retrain
+python3 "$BASE_DIR/models/unet/main.py" --retrain
