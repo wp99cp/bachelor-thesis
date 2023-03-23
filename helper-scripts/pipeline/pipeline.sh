@@ -29,13 +29,7 @@ function parse_yaml {
    }'
 }
 
-# check if the config file is given as an argument
-# else we assume the file is called pipeline-config.yml
-if [ -z "$1" ]; then
-  CONFIG_FILE_PATH="$BASE_DIR/$1"
-else
-  CONFIG_FILE_PATH="$BASE_DIR/pipeline-config.yml"
-fi
+CONFIG_FILE_PATH="$BASE_DIR/pipeline-config.yml"
 
 # Load the config yml file
 echo "Load Config from '$CONFIG_FILE_PATH'"
