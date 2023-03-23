@@ -45,23 +45,23 @@
   shell: cd "{{ home_dir }}/bachelor-thesis/{{ task }}"
 
 # Step 4: Construct the job.sh file by wrapping the task.sh file with the Euler Job Script
-#         Those scripts are located in the helper-scripts directory
+#         Those scripts are located in the helper-scripts/euler directory
 - name: Construct the job.sh file by wrapping the task.sh file with the Euler Job Script
   shell: |
     cat {{ prepare }}
     {{ task_script }}
     {{ cleanup }} > {{ job_script_with_task }}
   vars:
-    prepare: "{{ home_dir }}/bachelor-thesis/helper-scripts/prepare.sh"
+    prepare: "{{ home_dir }}/bachelor-thesis/helper-scripts/euler/prepare.sh"
     task_script: "{{ home_dir }}/bachelor-thesis/{{ task }}/task.sh"
-    cleanup: "{{ home_dir }}/bachelor-thesis/helper-scripts/cleanup.sh"
+    cleanup: "{{ home_dir }}/bachelor-thesis/helper-scripts/euler/cleanup.sh"
     job_script_with_task: "{{ home_dir }}/bachelor-thesis/{{ task }}/job.sh"
 
 # Step 5a: Run pre_submission.sh
 - name: Run pre_submission.sh
   shell: "chmod u+x {{ pre_submission }}; {{ pre_submission }}"
   vars:
-    pre_submission: "{{ home_dir }}/bachelor-thesis/helper-scripts/pre_submission.sh"
+    pre_submission: "{{ home_dir }}/bachelor-thesis/helper-scripts/euler/pre_submission.sh"
   args:
     chdir: "{{ home_dir }}/bachelor-thesis/{{ task }}"
   register: pre_submission_output
@@ -73,7 +73,7 @@
   command: "/cluster/apps/slurm/bin/sbatch {{ launch_script }}"
   vars:
     launch_script: "{{ home_dir }}/bachelor-thesis/{{ task }}/launch.sh"
-    pre_submission: "{{ home_dir }}/bachelor-thesis/helper-scripts/pre_submission.sh"
+    pre_submission: "{{ home_dir }}/bachelor-thesis/helper-scripts/euler/pre_submission.sh"
   environment:
     # This is necessary to make the sbatch command work
     SLURM_CONF: "/cluster/adm/slurm-production/slurm/etc/slurm.conf"
