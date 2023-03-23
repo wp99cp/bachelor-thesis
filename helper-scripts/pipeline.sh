@@ -8,7 +8,6 @@ echo ""
 # Load the config file
 # =========================
 
-
 # See https://stackoverflow.com/a/21189044/13371311
 function parse_yaml {
   local prefix=$2
@@ -135,12 +134,29 @@ echo ""
 # Create automated Masks
 # =========================
 
-# check if conda is installed
-if command -v conda &> /dev/null; then
-  conda activate bachelor_thesis
+if [[ "${config_annotation_auto_annotation}" -eq 0 ]]; then
+  echo "Skip automated mask creation."
 else
-  echo "conda could not be found, assume all dependencies are installed"
+
+  # check if conda is installed
+  if command -v conda &>/dev/null; then
+    conda activate bachelor_thesis
+  else
+    echo "conda could not be found, assume all dependencies are installed"
+  fi
+
+  echo "Create automated masks"
+  echo ""
+  find $ANNOTATED_MASKS_DIR -type f ! -name '.gitignore' -delete
+  find $ANNOTATED_MASKS_DIR -type d -empty -delete
+
+  python pre-processing/automatic_masks/automated_masks.py --config_file "$CONFIG_FILE_PATH"
+
 fi
 
-echo "Create automated masks"
-python pre-processing/automatic_masks/automated_masks.py --config_file "$CONFIG_FILE_PATH"
+echo ""
+echo "==================="
+echo "Automated Mask Creation Finished!"
+echo "==================="
+echo ""
+

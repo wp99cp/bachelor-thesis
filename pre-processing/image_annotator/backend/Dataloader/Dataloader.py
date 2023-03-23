@@ -364,7 +364,7 @@ class Dataloader:
 
         # Search for a folder starting with "S2B_MSIL1C_$DATE"
         folders = os.listdir(TMP_DIR)
-        folders = [f for f in folders if f.startswith(f"S2B_MSIL1C_{self.current_date}")]
+        folders = [f for f in folders if f"_MSIL1C_{self.current_date}" in f]
         folder = folders[0]
 
         base_path = f"{TMP_DIR}/{folder}/GRANULE/"
