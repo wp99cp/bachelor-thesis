@@ -1,5 +1,7 @@
 # Getting Started
 
+This is the documentation for my bachelor thesis. It contains all the information needed to reproduce the results.
+
 ## Folder Structure / Data Organization
 
 The data organization is crucial for the project. As we are working on three different machines (desktop, cluster, and
@@ -31,6 +33,7 @@ export BASE_DIR=/scratch2/pucyril/bachelor-thesis
 
 # used to store the data (e.g. training sets, annotations, etc.)
 export DATA_DIR=$BASE_DIR/data
+export DATA_RAW_DIR=$DATA_DIR/raw
 export ANNOTATED_MASKS_DIR=$DATA_DIR/annotated_masks
 export MASKS_DIR=$DATA_DIR/masks
 export DATASET_DIR=$DATA_DIR/dataset
@@ -63,6 +66,7 @@ export BASE_DIR=/projects/bachelor-thesis
 
 # used to store the data (e.g. training sets, annotations, etc.)
 export DATA_DIR=$BASE_DIR/data
+export DATA_RAW_DIR=$DATA_DIR/raw
 export ANNOTATED_MASKS_DIR=$DATA_DIR/annotated_masks
 export MASKS_DIR=$DATA_DIR/masks
 export DATASET_DIR=$DATA_DIR/dataset
@@ -91,11 +95,13 @@ Here all data management is handled by the ansible scripts.
 The file server must be mounted via the desktop machine. This is done via SSHFS.
 
 Read-Only Access:
+
 ```bash
 sshfs -o default_permissions pucyril@pf-pc20.ethz.ch:/home/pf/pfstud/nimbus /mnt/nimbus
 ```
 
 Read-Write Access:
+
 ```bash
 sshfs pucyril@pf-pc20.ethz.ch:/home/pf/pfstud/nimbus /mnt/nimbus
 ```

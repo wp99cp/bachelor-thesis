@@ -7,16 +7,33 @@ export default {
 
     themeConfig: {
 
+        nav: [
+            {text: 'Start', link: '/index'},
+            {text: 'Getting Started', link: '/docs/getting-started'}
+        ],
+
         sidebar: {
             '/docs/': [
 
                 {
-                    text: 'Data Sources and Pre-Processing',
+                    text: 'Working Pipeline',
                     items: [
                         {text: 'Getting Started', link: 'docs/getting-started'},
-                        {text: 'ExoLabs', link: 'docs/ExoLabs_Classifications'},
+                        {text: 'Pipeline', link: 'docs/pipeline'},
+                    ],
+                    collapsible: true,
+                    collapsed: false,
+                },
 
-                    ]
+                {
+                    text: 'Data Sources',
+                    items: [
+                        {text: 'ExoLabs', link: 'docs/ExoLabs_Classifications'},
+                        {text: 'Sentinel2 (Bands)', link: 'docs/sentinel2_bands'},
+                        {text: 'Landsat8', link: 'docs/landsat8'},
+                    ],
+                    collapsible: true,
+                    collapsed: true,
                 },
 
                 {
@@ -25,8 +42,9 @@ export default {
                         {text: 'Python and Conda', link: 'docs/python_and_conda'},
                         {text: 'Working with Euler', link: 'docs/euler'},
                         {text: 'Working with Remote Desktop', link: 'docs/remote_desktop'},
-                        {text: 'Sentinel2 Bands', link: 'docs/sentinel2_bands'},
-                    ]
+                    ],
+                    collapsible: true,
+                    collapsed: true,
                 },
 
                 {
@@ -35,8 +53,9 @@ export default {
                         {text: 'Data Source', link: 'docs/data_sources'},
                         {text: 'Augmentation and Sampling', link: 'docs/augmentation_and_sampling'},
                         {text: 'Hand Annotations', link: 'docs/hand_annotations'},
-
-                    ]
+                    ],
+                    collapsible: true,
+                    collapsed: true,
                 },
 
                 {
@@ -45,16 +64,13 @@ export default {
                         {text: 'Overview', link: 'docs/models/algorithms'},
                         {text: 's2cloudless', link: 'docs/models/s2cloudless'},
                         {text: 'Unet', link: 'docs/models/unet'},
-                    ]
-                }
-
-
+                    ],
+                    collapsible: true,
+                    collapsed: true,
+                },
             ]
         },
 
-        nav: [
-            {text: 'Start', link: 'index'},
-            {text: 'Getting Started', link: 'docs/getting-started'}
-        ]
+
     }
 }
