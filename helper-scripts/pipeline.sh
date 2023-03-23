@@ -8,7 +8,6 @@ echo ""
 # Load the config file
 # =========================
 
-echo "Load Config from '$1'"
 
 # See https://stackoverflow.com/a/21189044/13371311
 function parse_yaml {
@@ -29,7 +28,8 @@ function parse_yaml {
 }
 
 # Load the config yml file
-CONFIG_FILE_PATH="$1"
+CONFIG_FILE_PATH="$BASE_DIR/$1"
+echo "Load Config from '$CONFIG_FILE_PATH'"
 parse_yaml "$CONFIG_FILE_PATH" "config_"
 echo ""
 eval "$(parse_yaml "$CONFIG_FILE_PATH" "config_")"
@@ -135,5 +135,12 @@ echo ""
 # Create automated Masks
 # =========================
 
+# check if conda is installed
+if command -v conda &> /dev/null; then
+  conda activate bachelor_thesis
+else
+  echo "conda could not be found, assume all dependencies are installed"
+fi
+
 echo "Create automated masks"
-python pre-prcessing/automated_masks.py --config_file "$CONFIG_FILE_PATH"
+python pre-processing/automatic_masks/automated_masks.py --config_file "$CONFIG_FILE_PATH"
