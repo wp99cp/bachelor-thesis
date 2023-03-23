@@ -11,6 +11,7 @@ echo -e "\n\n"
 nvidia-smi
 echo -e "\n"
 nvidia-smi --query-gpu=name --format=csv,noheader
+lscpu | sed -nr '/Model name/ s/.*:\s*(.*) @ .*/\1/p'
 echo -e "\n\n"
 
 # Update the environment variable DATA_DIR to point to the local scratch space
