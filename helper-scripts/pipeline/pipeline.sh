@@ -154,7 +154,7 @@ else
   find "$ANNOTATED_MASKS_DIR" -type f ! -name '.gitignore' -delete
   find "$ANNOTATED_MASKS_DIR" -type d -empty -delete
 
-  python pre-processing/automatic_masks/automated_masks.py --config_file "$CONFIG_FILE_PATH"
+  python "$BASE_DIR/pre-processing/automatic_masks/automated_masks.py" --config_file "$CONFIG_FILE_PATH"
 
 fi
 
@@ -184,6 +184,7 @@ else
 
   find "$DATASET_DIR" -type f ! -name '.gitignore' -delete
   find "$DATASET_DIR" -type d -empty -delete
+
   python "$BASE_DIR/pre-processing/image_splitter/data-sampler.py" "/data/annotated_masks"
 
 fi
