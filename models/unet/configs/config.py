@@ -8,17 +8,20 @@ TEST_SPLIT = 0.15
 
 # define the number of channels in the input, number of classes,
 # and number of levels in the U-Net model
-IMAGE_SIZE = 128  # defines the input image dimensions
+IMAGE_SIZE = 256  # defines the input image dimensions
 NUM_CHANNELS = 13  # all satellite images have 13 channels
 
 # Maks Settings
-NUM_CLASSES = 4
-CLASS_NAMES = ["snow", "clouds", "water", "thin_clouds"]
+NUM_CLASSES = 3
+CLASS_NAMES = ["snow", "clouds", "water"]  # "thin_clouds"
 NUM_ENCODED_CHANNELS = 5  # Number of channels used to encode the grayscale image
-CLASS_WEIGHTS = [0.25052, 0.00214, 0.01381, 0.02479]  # class weights for snow, clouds, water
+CLASS_WEIGHTS = [0.18857, 0.32832, 0.00717]  # class weights for snow, clouds, water
 
 # define threshold to filter weak predictions
 THRESHOLD = 0.5
+
+# 0 for unlimited
+LIMIT_DATASET_SIZE = 0
 
 # ====================================
 # ====================================
@@ -32,7 +35,7 @@ INIT_LR = 0.001
 MOMENTUM = 0.95
 WEIGHT_DECAY = 0.05
 NUM_EPOCHS = 100
-BATCH_SIZE = 64
+BATCH_SIZE = 16
 
 # ====================================
 # ====================================
@@ -64,7 +67,7 @@ COVERED_PATCH_SIZE_MAX = 32  # in pixels
 
 # base path of the dataset
 BASE_DIR = os.environ['TMPDIR'] if 'TMPDIR' in os.environ else '/projects/bachelor-thesis/tmp'
-DATASET_PATH = os.environ['DATA_DIR'] if 'DATA_DIR' in os.environ else os.path.join(BASE_DIR, "dataset")
+DATASET_PATH = os.environ['DATASET_DIR'] if 'DATASET_DIR' in os.environ else os.path.join(BASE_DIR, "dataset")
 
 # define the path to the images and masks dataset
 IMAGE_DATASET_PATH = os.path.join(DATASET_PATH, "images")

@@ -1,34 +1,25 @@
 # This is a plain python version of the random_sampler Jupyter Notebook
 # it is used to generate the training and testing datasets
+import multiprocessing
+import os
+
 import cv2
 import matplotlib
-
-# ====================================
-# ====================================
-# Configs
-# ====================================
-# ====================================
-BASE_DIR = '/projects/bachelor-thesis'
-TMP_DIR = '/projects/bachelor-thesis/tmp'
-MAKS_PATH = '/data/masks'
-TMP_PATCH_DIR = f"{TMP_DIR}/dataset"
-
-SAMPLES_PER_DATE = 10_240
-
-IMG_SIZE = 128
-NUM_ENCODED_CHANNELS = 5
-SELECTED_BANDS = ["B01", "B02", "B03", "B04", "B05", "B06", "B07", "B08", "B8A", "B09", "B10", "B11", "B12"]
-
-import os
-import shutil
-
 import matplotlib.pyplot as plt
 import numpy as np
 import rasterio
 from PIL import Image
+from joblib import Parallel, delayed
 from matplotlib import patches
+from tqdm import tqdm
+
+from config import IMG_SIZE, SAMPLES_PER_DATE, NUM_ENCODED_CHANNELS, SELECTED_BANDS, BASE_DIR, TMP_DIR, MAKS_PATH, \
+    DATASET_DIR, RESULTS
 
 dates = os.listdir(BASE_DIR + MAKS_PATH)
+
+# filter out ".gitignore"
+dates = [d for d in dates if d != ".gitignore"]
 dates.sort()
 print(f"Found {len(dates)} dates")
 
@@ -110,11 +101,13 @@ def open_date(_date):
     TCI = f"T32TNS_{_date}_TCI.jp2"
 
     # Search for a folder starting with "S2B_MSIL1C_$DATE"
-    folders = [folder for folder in os.listdir(TMP_DIR) if folder.startswith(f"S2B_MSIL1C_{_date}")]
+    folders = [folder for folder in os.listdir(TMP_DIR) if f"_MSIL1C_{_date}" in folder]
     folder = folders[0]
     BASE_PATH = f"{TMP_DIR}/{folder}/GRANULE"
     sub_folders = os.listdir(BASE_PATH)
     BASE_PATH += '/' + sub_folders[0] + '/IMG_DATA'
+
+    # print(f"Using {BASE_PATH} as base path")
 
     band_files = []
 
@@ -138,8 +131,8 @@ def open_date(_date):
         [cv2.resize(band, (image_with, image_height), interpolation=cv2.INTER_CUBIC) for band in bands_data]
     )
 
-    print(f"Opened {len(bands_data)} bands for date {_date}.")
-    print(f"Shape of bands: {bands_data.shape}")
+    print(f"  - Opened {len(bands_data)} bands for date {_date}.")
+    # print(f"Shape of bands: {bands_data.shape}")
 
     # close all bands
     for band in open_bands:
@@ -150,38 +143,25 @@ def open_date(_date):
 
 
 def create_patches(_mask_coverage_data, _mask_data, _bands, _date_str):
-    _centers = []
-    pixel_count = [0] * NUM_ENCODED_CHANNELS
+    # get number of processes
+    num_processes = multiprocessing.cpu_count()
 
-    # Create 10_000 patches and save them
-    count = 0
-    misses = 0
+    # print(f"Using {num_processes} processes.")
 
-    while count < SAMPLES_PER_DATE and misses < 1_000_000:
-        coords = sample_patch(_mask_coverage_data, recursive=False)
-
-        if coords is None:
-            misses += 1
-            continue
-
-        else:
-            count += 1
-            misses = 0
-
-        if count % 1024 == 0:
-            print(f"Created {count} of {SAMPLES_PER_DATE} patches for date {_date_str}.")
+    def save_patch(i):
+        coords = sample_patch(_mask_coverage_data)
 
         x, y = coords
-        _centers.append((x, y))
 
         mask_patch = _mask_data[x:x + IMG_SIZE, y:y + IMG_SIZE]
         mask_patch = mask_patch * (255 / NUM_ENCODED_CHANNELS)
 
         # Count the number of pixels in each class
+        _pixel_count = [0] * NUM_ENCODED_CHANNELS
         for j in range(NUM_ENCODED_CHANNELS):
-            pixel_count[j] += np.sum(mask_patch == j * (255 / NUM_ENCODED_CHANNELS))
+            _pixel_count[j] += np.sum(mask_patch == j * (255 / NUM_ENCODED_CHANNELS))
 
-        mask_patch_path = f"{TMP_PATCH_DIR}/masks/{_date_str}_{count}.png"
+        mask_patch_path = f"{DATASET_DIR}/masks/{_date_str}_{i}.png"
         img = Image.fromarray(mask_patch.astype(np.uint8))
         img.save(mask_patch_path)
 
@@ -189,15 +169,20 @@ def create_patches(_mask_coverage_data, _mask_data, _bands, _date_str):
         patch = _bands[:, x:x + IMG_SIZE, y:y + IMG_SIZE]
 
         # save the image as npy
-        np.savez_compressed(f"{TMP_PATCH_DIR}/images/{_date_str}_{count}.npz", patch)
+        np.savez_compressed(f"{DATASET_DIR}/images/{_date_str}_{i}.npz", patch)
 
-    # report if we could not find enough patches
-    if count < SAMPLES_PER_DATE:
-        print(f"Could not find enough patches for {_date_str}!")
+        return (x, y), _pixel_count
+
+    print(f"    Start creating patches...")
+    results = Parallel(n_jobs=num_processes)(delayed(save_patch)(i, ) for i in tqdm(range(SAMPLES_PER_DATE)))
+
+    # unzip results
+    _centers, pixel_counts = zip(*results)
+    pixel_count = np.sum(pixel_counts, axis=0)
 
     normalized_pixel_count = np.array(pixel_count) / np.sum(pixel_count)
-    print(f"Class Distribution for {_date_str}: {np.round(normalized_pixel_count, 2)}")
-    print("  « Background, Snow, Clouds, Water, Semi-Transparent Clouds")
+    print(f"    Class Distribution for {_date_str}: {np.round(normalized_pixel_count, 2)}")
+    print("     « Background, Snow, Clouds, Water, Semi-Transparent Clouds")
     return _centers, normalized_pixel_count
 
 
@@ -210,12 +195,8 @@ def create_patches(_mask_coverage_data, _mask_data, _bands, _date_str):
 def main():
     print("Deleting old files...")
 
-    # delete old files inside $TMP_PATCH_DIR/images and $TMP_PATCH_DIR/masks
-    shutil.rmtree(TMP_PATCH_DIR)
-    os.mkdir(TMP_PATCH_DIR)
-
-    os.mkdir(f"{TMP_PATCH_DIR}/images")
-    os.mkdir(f"{TMP_PATCH_DIR}/masks")
+    os.mkdir(f"{DATASET_DIR}/images")
+    os.mkdir(f"{DATASET_DIR}/masks")
 
     pixel_count = [0] * NUM_ENCODED_CHANNELS
 
@@ -227,10 +208,10 @@ def main():
 
         bands = open_date(date)
         bands = bands / 10_000 * 255
-        print(f"Bands loaded for {date_str}.")
-        print(f"Number of bands: {bands.shape}")
+        # print(f"Bands loaded for {date_str}.")
+        print(f"    Number of bands: {bands.shape}")
 
-        print("Loading mask and mask_coverage...")
+        print("    Loading mask and mask_coverage...")
 
         # Get the mask_coverage and the mask
         mask_coverage = load_mask_coverage(date)
@@ -239,13 +220,13 @@ def main():
         mask_data = mask.read(1)
         mask_coverage_data = mask_coverage.read(1)
 
-        print(f"Mask and mask_coverage loaded for {date_str}.")
+        print(f"    Mask and mask_coverage loaded for {date_str}.")
 
         # print_sample(mask_coverage_data, mask_data, bands, date_str)
         centers, normalized_pixel_count = create_patches(mask_coverage_data, mask_data, bands, date_str)
         pixel_count += normalized_pixel_count
 
-        print(f"Finished processing Date: {date_str}")
+        print(f"    Finished processing Date: {date_str}")
 
         # Show an overview of the centers
         matplotlib.use('Agg')
@@ -257,12 +238,17 @@ def main():
         for x, y in centers:
             plt.gca().add_patch(patches.Rectangle((y, x), IMG_SIZE, IMG_SIZE, facecolor='r'))
 
-        plt.savefig(f"{date_str}_centers.png")
+        # create folder for dataset centers
+        center_images_path = f"{RESULTS}/image_splitter"
+        if not os.path.exists(center_images_path):
+            os.makedirs(center_images_path)
+
+        plt.savefig(f"{center_images_path}/{date_str}_centers.png")
 
     # Show the distribution of the pixel count
     normalized_pixel_count = np.array(pixel_count) / np.sum(pixel_count)
     print(f"\n Total Class Distribution: {np.round(normalized_pixel_count, 5)}")
-    print("  « Background, Snow, Clouds, Water, Semi-Transparent Clouds")
+    print("« Background, Snow, Clouds, Water, Semi-Transparent Clouds")
 
 
 if __name__ == '__main__':
