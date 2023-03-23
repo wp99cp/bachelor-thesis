@@ -105,11 +105,3 @@ Read-Write Access:
 ```bash
 sshfs pucyril@pf-pc20.ethz.ch:/home/pf/pfstud/nimbus /mnt/nimbus
 ```
-
-## Improve SSH Performance
-
-See IT Ticket...
-
-```bash
-sudo apt-get remove network-manager-config-connectivity-ubuntu
-```
