@@ -16,6 +16,9 @@ echo "Unzip the raw data..."
 unzip -q "$TMPDIR/raw_data.zip" -d "$DATA_RAW_DIR"
 echo "Unzipped the raw data"
 
+# Delete the raw data zip
+rm "$TMPDIR/raw_data.zip"
+
 ################
 # Run the task
 ################
