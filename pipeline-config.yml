@@ -4,6 +4,9 @@ data_handling:
   # on Euler this must be set to 0
   force_rsync: 0
 
+  # this must be set to 1 on Euler
+  force_extraction: 1
+
   # use single quotes for the dates and the array syntax
   s2_dates: ['20211008T101829', '20210710T101559', '20210106T102411', '20210406T102021']
 
