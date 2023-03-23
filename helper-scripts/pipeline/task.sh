@@ -22,7 +22,7 @@ echo "Unzipped the raw data"
 
 echo "All further logs are saved in $LOG_DIR/python.log"
 
-source pipeline.sh
+source "$TASK_DIR/pipeline.sh"
 
 ################
 # Copy the produced Data
