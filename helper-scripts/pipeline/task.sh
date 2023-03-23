@@ -7,13 +7,13 @@ export RAW_DATASET="/cluster/scratch/pucyril/raw_data.zip"
 
 # Copy the training data to the local scratch space
 echo "Copy the raw data to $TMPDIR..."
-cp "RAW_DATASET" "$TMPDIR"
+cp "$RAW_DATASET" "$TMPDIR"
 echo "Copied the raw data to $TMPDIR"
 
 # Unzip the training data
-mkdir -p "$TMPDIR/data/raw"
+mkdir -p "$DATA_RAW_DIR"
 echo "Unzip the raw data..."
-unzip -q "$TMPDIR/raw_data.zip" -d "$TMPDIR/data/raw"
+unzip -q "$TMPDIR/raw_data.zip" -d "$DATA_RAW_DIR"
 echo "Unzipped the raw data"
 
 ################
