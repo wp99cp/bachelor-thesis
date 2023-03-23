@@ -3,3 +3,5 @@
 !.gitignore
 !raw/
 !annotated_masks/
+!dataset/
+!masks/
