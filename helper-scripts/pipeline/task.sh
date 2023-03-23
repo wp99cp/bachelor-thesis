@@ -13,8 +13,11 @@ echo "Copied the raw data to $TMPDIR"
 # Unzip the training data
 mkdir -p "$DATA_RAW_DIR"
 echo "Unzip the raw data..."
-unzip -q "$TMPDIR/raw_data.zip" -d "$DATA_RAW_DIR"
+unzip -q "$TMPDIR/raw_data.zip" -d "$DATA_RAW_DIR/"
 echo "Unzipped the raw data"
+
+echo "The raw data is now located in $DATA_RAW_DIR:"
+ls "$DATA_RAW_DIR"
 
 # Delete the raw data zip
 rm "$TMPDIR/raw_data.zip"
