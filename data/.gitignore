@@ -1,3 +1,5 @@
 # Exclude all other files and directories
 **/*
 !.gitignore
+!raw/
+!annotated_masks/

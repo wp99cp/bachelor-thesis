@@ -52,7 +52,3 @@ pip install pytorch-model-summary
     unzip /scratch2/pucyril/data/dataset.zip -d /scratch2/pucyril/data
     ```
 
-## Available GPU Node Types
-
-See: https://scicomp.ethz.ch/wiki/GPU_job_submission_with_SLURM
-

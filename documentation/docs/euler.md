@@ -162,3 +162,8 @@ sudo chmod 777 -R /mnt/euler
 ```
 
 :::
+
+## Available GPU Node Types
+
+See: https://scicomp.ethz.ch/wiki/GPU_job_submission_with_SLURM
+
