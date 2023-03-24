@@ -11,7 +11,7 @@ from joblib import Parallel, delayed
 from rasterio.windows import from_bounds
 from s2cloudless import S2PixelCloudDetector
 
-from config import BORDER_WIDTH
+from config import BORDER_WIDTH, report_config
 
 TMP_DIR = os.environ['TMPDIR']
 ANNOTATED_MASKS_DIR = os.environ['ANNOTATED_MASKS_DIR']
@@ -254,4 +254,5 @@ def main():
 
 
 if __name__ == "__main__":
+    report_config()
     main()
