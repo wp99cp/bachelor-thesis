@@ -75,8 +75,8 @@ module load gcc/8.2.0
 module load python_gpu/3.10.4
 
 # report the modules
-mkdir -p "$TMPDIR/log"
-module list 2>&1 | tee "$TMPDIR/log/module-list.log"
+mkdir -p "$TMP_DIR/log"
+module list 2>&1 | tee "$TMP_DIR/log/module-list.log"
 
 # Dataset Config
 export DATASET="/cluster/scratch/pucyril/dataset.zip"

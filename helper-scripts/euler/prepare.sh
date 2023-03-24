@@ -19,6 +19,10 @@ echo -e "\n\n"
 # or ignore, e.g. delete commands, on euler
 export RUNS_ON_EULER=1
 
+# create tmp dir inside the tmp dir
+export TMP_DIR="$TMPDIR/tmp"
+mkdir -p "$TMP_DIR"
+
 # Update the environment variable DATA_DIR to point to the local scratch space
 export DATA_DIR="$TMPDIR/data"
 mkdir -p "$DATA_DIR"
@@ -47,10 +51,6 @@ echo "The results directory is $RESULTS_DIR"
 
 # Export the task directory to the environment
 export TASK_DIR="$PWD"
-
-# create tmp dir inside the tmp dir
-export TMP_DIR="$TMPDIR/tmp"
-mkdir -p "$TMP_DIR"
 
 # Extract the BASE_DIR using a regular expression that matches
 # the pattern "/cluster/home/pucyril/bachelor-thesis-*"

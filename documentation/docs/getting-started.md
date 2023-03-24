@@ -47,8 +47,8 @@ export RESULTS_DIR=$BASE_DIR/results
 export TMPDIR=$BASE_DIR/tmp
 
 # cleanup
-find $TMPDIR -type f ! -name '.gitignore' -delete
-find $TMPDIR -type d -empty -delete
+find $TMP_DIR -type f ! -name '.gitignore' -delete
+find $TMP_DIR -type d -empty -delete
 ```
 
 :::
@@ -80,8 +80,8 @@ export RESULTS_DIR=$BASE_DIR/results
 export TMPDIR=$BASE_DIR/tmp
 
 # cleanup
-find $TMPDIR -type f ! -name '.gitignore' -delete
-find $TMPDIR -type d -empty -delete
+find $TMP_DIR -type f ! -name '.gitignore' -delete
+find $TMP_DIR -type d -empty -delete
 ```
 
 :::

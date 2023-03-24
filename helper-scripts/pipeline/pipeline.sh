@@ -117,18 +117,18 @@ else
   echo "Force rsync is set. Extract the zip files."
 
   if [[ -z "${RUNS_ON_EULER}" ]]; then
-    find "$TMPDIR" -type f ! -name '.gitignore' -delete
-    find "$TMPDIR" -type d -empty -delete
+    find "$TMP_DIR" -type f ! -name '.gitignore' -delete
+    find "$TMP_DIR" -type d -empty -delete
   fi
 
   ls "$DATA_RAW_DIR"
-  unzip -q "$DATA_RAW_DIR/32TNS_auxiliary_data.zip" -d "$TMPDIR"
-  unzip -q "$DATA_RAW_DIR/ExoLabs_classification_S2.zip" -d "$TMPDIR/ExoLabs_classification_S2"
+  unzip -q "$DATA_RAW_DIR/32TNS_auxiliary_data.zip" -d "$TMP_DIR"
+  unzip -q "$DATA_RAW_DIR/ExoLabs_classification_S2.zip" -d "$TMP_DIR/ExoLabs_classification_S2"
 
   # extract all zip files in the data/raw folder
   for f in "$DATA_RAW_DIR"/**/*.zip; do
     echo "Extracting $f ..."
-    unzip -q "$f" -d "$TMPDIR" &
+    unzip -q "$f" -d "$TMP_DIR" &
   done
 
   wait # wait for all unzip processes to finish
