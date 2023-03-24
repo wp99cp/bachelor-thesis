@@ -64,9 +64,6 @@ class MaskGenerator:
             date = self.sample_date
 
         folders = os.listdir(EXTRACTED_RAW_DATA)
-
-        print(folders)
-
         folders = [f for f in folders if f"_MSIL1C_{date}" in f]
         folder = folders[0]
 
