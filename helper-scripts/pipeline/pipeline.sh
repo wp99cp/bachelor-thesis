@@ -199,9 +199,9 @@ else
   find "$DATASET_DIR" -type d -empty -delete
 
   if [[ -z "${RUNS_ON_EULER}" ]]; then
-    python3 "$BASE_DIR/pre-processing/image_splitter/data-sampler.py" "/data/annotated_masks"
+    python3 "$BASE_DIR/pre-processing/image_splitter/data-sampler.py" "/annotated_masks"
   else
-    python3 -u "$BASE_DIR/pre-processing/image_splitter/data-sampler.py" "/data/annotated_masks" \
+    python3 -u "$BASE_DIR/pre-processing/image_splitter/data-sampler.py" "/annotated_masks" \
       >"$LOG_DIR/python_data_sampler.log" 2>&1
   fi
 

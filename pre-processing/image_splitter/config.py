@@ -12,9 +12,9 @@ SELECTED_BANDS = ["B01", "B02", "B03", "B04", "B05", "B06", "B07", "B08", "B8A",
 # Automatic Configs
 # ====================================
 # ====================================
-BASE_DIR = os.environ['BASE_DIR']
+DATA_DIR = os.environ['DATA_DIR']
 TMP_DIR = os.environ['TMP_DIR']
-MAKS_PATH = sys.argv[1] if len(sys.argv) > 1 and sys.argv[1] else '/data/masks'
+MAKS_PATH = sys.argv[1] if len(sys.argv) > 1 and sys.argv[1] else '/masks'
 DATASET_DIR = os.environ['DATASET_DIR']
 RESULTS = os.environ['RESULTS_DIR']
 

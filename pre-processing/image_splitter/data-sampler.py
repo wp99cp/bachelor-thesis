@@ -13,12 +13,12 @@ from joblib import Parallel, delayed
 from matplotlib import patches
 from tqdm import tqdm
 
-from config import IMG_SIZE, SAMPLES_PER_DATE, NUM_ENCODED_CHANNELS, SELECTED_BANDS, BASE_DIR, TMP_DIR, MAKS_PATH, \
+from config import IMG_SIZE, SAMPLES_PER_DATE, NUM_ENCODED_CHANNELS, SELECTED_BANDS, DATA_DIR, TMP_DIR, MAKS_PATH, \
     DATASET_DIR, RESULTS, report_config
 
 report_config()
 
-dates = os.listdir(BASE_DIR + MAKS_PATH)
+dates = os.listdir(DATA_DIR + MAKS_PATH)
 
 # filter out ".gitignore"
 dates = [d for d in dates if d != ".gitignore"]
