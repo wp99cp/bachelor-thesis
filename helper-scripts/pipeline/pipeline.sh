@@ -111,15 +111,13 @@ echo ""
 # Extract Zip files
 # =========================
 
-if [[ "${config_data_handling_force_extraction}" -eq 0 ]] && [[ -z "${RUNS_ON_EULER}" ]]; then
+if [[ "${config_data_handling_force_extraction}" -eq 0 ]] || [[ -n "${RUNS_ON_EULER}" ]]; then
   echo "Force rsync is not set. Skip Zip extraction."
 else
   echo "Force rsync is set. Extract the zip files."
 
-  if [[ -z "${RUNS_ON_EULER}" ]]; then
-    find "$TMP_DIR" -type f ! -name '.gitignore' -delete
-    find "$TMP_DIR" -type d -empty -delete
-  fi
+  find "$TMP_DIR" -type f ! -name '.gitignore' -delete
+  find "$TMP_DIR" -type d -empty -delete
 
   ls "$DATA_RAW_DIR"
   unzip -q "$DATA_RAW_DIR/32TNS_auxiliary_data.zip" -d "$TMP_DIR"
