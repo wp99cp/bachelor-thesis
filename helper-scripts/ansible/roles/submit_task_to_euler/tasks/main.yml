@@ -6,15 +6,26 @@
 - name: Use SSH instead of HTTPS proto
   shell: "git config --global url.'ssh://git@'.insteadOf https://"
 
-# Step 2a: Clone or update the repo
+# Step 2a: Generate UUID
+- name: Generate UUID
+  set_fact:
+    uuid: "{{ lookup('uuid') }}"
+
+# Step 3: Create destination directory with UUID
+- name: Create destination directory with UUID
+  file:
+    path: "{{ home_dir }}/bachelor-thesis-{{ uuid }}"
+    state: directory
+
+# Step 2b: Clone or update the repo
 - name: Clone the Repo if it is not already cloned
   git:
     repo: git@github.com:wp99cp/bachelor-thesis.git
-    dest: "{{ home_dir }}/bachelor-thesis"
+    dest: "{{ home_dir }}/bachelor-thesis-{{ uuid }}"
     version: main
     force: yes
 
-# Step 2b: Checkout the specified branch and commit if specified
+# Step 2c: Checkout the specified branch and commit if specified
 - name: Checkout the specified branch and commit if specified
   git:
     repo: git@github.com:wp99cp/bachelor-thesis.git
@@ -23,7 +34,7 @@
     force: yes
   when: branch is defined and commit is defined
 
-# Step 2c: Checkout the specified branch if specified
+# Step 2f: Checkout the specified branch if specified
 - name: Checkout the specified branch if specified
   git:
     repo: git@github.com:wp99cp/bachelor-thesis.git
@@ -31,8 +42,6 @@
     version: "{{ branch }}"
     force: yes
   when: branch is defined
-
-# TODO: sync data from local machine to euler
 
 # Check if task is defined, if not exit
 - name: Check if task is defined, if not exit
@@ -42,7 +51,7 @@
 
 # Step 3: Change into the directory of the task (task argument)
 - name: Change into the directory of the task (task argument)
-  shell: cd "{{ home_dir }}/bachelor-thesis/{{ task }}"
+  shell: cd "{{ home_dir }}/bachelor-thesis-{{ uuid }}/{{ task }}"
 
 # Step 4: Construct the job.sh file by wrapping the task.sh file with the Euler Job Script
 #         Those scripts are located in the helper-scripts/euler directory
@@ -55,9 +64,9 @@
     cat {{ cleanup }} >> {{ job_script_with_task }}
   vars:
     prepare: "{{ home_dir }}/bachelor-thesis/helper-scripts/euler/prepare.sh"
-    task_script: "{{ home_dir }}/bachelor-thesis/{{ task }}/task.sh"
+    task_script: "{{ home_dir }}/bachelor-thesis-{{ uuid }}/{{ task }}/task.sh"
     cleanup: "{{ home_dir }}/bachelor-thesis/helper-scripts/euler/cleanup.sh"
-    job_script_with_task: "{{ home_dir }}/bachelor-thesis/{{ task }}/job.sh"
+    job_script_with_task: "{{ home_dir }}/bachelor-thesis-{{ uuid }}/{{ task }}/job.sh"
 
 # Step 5a: Run pre_submission.sh
 - name: Run pre_submission.sh
@@ -65,7 +74,7 @@
   vars:
     pre_submission: "{{ home_dir }}/bachelor-thesis/helper-scripts/euler/pre_submission.sh"
   args:
-    chdir: "{{ home_dir }}/bachelor-thesis/{{ task }}"
+    chdir: "{{ home_dir }}/bachelor-thesis-{{ uuid }}/{{ task }}"
   register: pre_submission_output
 - debug:
     msg: "{{ pre_submission_output.stdout }}"
@@ -74,13 +83,13 @@
 - name: Submit the job to Euler
   command: "/cluster/apps/slurm/bin/sbatch {{ launch_script }}"
   vars:
-    launch_script: "{{ home_dir }}/bachelor-thesis/{{ task }}/launch.sh"
-    pre_submission: "{{ home_dir }}/bachelor-thesis/helper-scripts/euler/pre_submission.sh"
+    launch_script: "{{ home_dir }}/bachelor-thesis-{{ uuid }}/{{ task }}/launch.sh"
+    pre_submission: "{{ home_dir }}/bachelor-thesis-{{ uuid }}/helper-scripts/euler/pre_submission.sh"
   environment:
     # This is necessary to make the sbatch command work
     SLURM_CONF: "/cluster/adm/slurm-production/slurm/etc/slurm.conf"
   args:
-    chdir: "{{ home_dir }}/bachelor-thesis/{{ task }}"
+    chdir: "{{ home_dir }}/bachelor-thesis-{{ uuid }}/{{ task }}"
 
 # Step 6: Report back the job id and the job name
 - name: Report back the job id and the job name

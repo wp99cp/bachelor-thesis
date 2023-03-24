@@ -47,7 +47,19 @@ echo "The results directory is $RESULTS_DIR"
 
 # Export the task directory to the environment
 export TASK_DIR="$PWD"
-export BASE_DIR="/cluster/home/pucyril/bachelor-thesis"
+
+# Extract the BASE_DIR using a regular expression that matches
+# the pattern "/cluster/home/pucyril/bachelor-thesis-*"
+if [[ $TASK_DIR =~ /cluster/home/pucyril/bachelor-thesis-.* ]]; then
+    # Remove the uuid suffix from the BASE_DIR using bash string manipulation
+    BASE_DIR="${BASH_REMATCH[0]%-*}"
+    export BASE_DIR="$BASE_DIR"
+else
+    echo "Error: TASK_DIR is not a subdirectory of BASE_DIR"
+    exit 1
+fi
+
+echo "BASE_DIR: $BASE_DIR"
 echo "The task directory is $TASK_DIR"
 
 # Export the path to the LOG_DIR to the environment
