@@ -153,13 +153,15 @@ class MaskGenerator:
 
         # each worker needs 24G of memory
         NUM_PROCESSES = os.environ.get('NUM_PROCESSES')
-        num_processes = int(total_memory / 24)
-        num_processes = int(NUM_PROCESSES) if NUM_PROCESSES else min(multiprocessing.cpu_count(), num_processes)
-        num_processes = max(1, num_processes)
+        num_processes = int(NUM_PROCESSES) if NUM_PROCESSES else multiprocessing.cpu_count()
+
+        num_workers = int(total_memory / 24)
+        num_workers = min(num_processes, num_workers)
+        num_workers = max(1, num_workers)
 
         # parallelize this
-        print(f"Using {num_processes} processes.")
-        _ = Parallel(n_jobs=num_processes)(delayed(_create_mask)(date) for date in dates)
+        print(f"Using {num_workers} workers.")
+        _ = Parallel(n_jobs=num_workers)(delayed(_create_mask)(date) for date in dates)
 
     def s2_cloudless_prediction(self, date):
 
