@@ -61,7 +61,7 @@ def load_data():
                                   transforms=transforms, apply_augmentations=False)
 
     # create the training and test data loaders
-    num_workers = min(os.cpu_count(), 6)  # max 6 workers
+    num_workers = min(os.cpu_count(), 3)  # max 6 workers
     train_loader = DataLoader(train_ds, shuffle=True, batch_size=BATCH_SIZE,
                               pin_memory=PIN_MEMORY, num_workers=num_workers)
     test_loader = DataLoader(test_ds, shuffle=False, batch_size=BATCH_SIZE,
