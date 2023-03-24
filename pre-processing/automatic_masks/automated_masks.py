@@ -151,10 +151,11 @@ class MaskGenerator:
         total_memory = int(TOTAL_MEMORY) if TOTAL_MEMORY else psutil.virtual_memory().total
         print(f"Total memory: {total_memory} bytes.")
 
-        # each worker needs 14G of memory
+        # each worker needs 24G of memory
         NUM_PROCESSES = os.environ.get('NUM_PROCESSES')
-        num_processes = int(total_memory / (14 * 1024 * 1024 * 1024))
+        num_processes = int(total_memory / (24 * 1024 * 1024 * 1024))
         num_processes = int(NUM_PROCESSES) if NUM_PROCESSES else min(multiprocessing.cpu_count(), num_processes)
+        num_processes = max(1, num_processes)
 
         # parallelize this
         print(f"Using {num_processes} processes.")
