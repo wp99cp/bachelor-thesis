@@ -23,7 +23,7 @@ echo "Unzipped the raw data"
 
 mkdir -p "$ANNOTATED_MASKS_DIR"
 echo "Unzip the annotated masks..."
-unzip -q "$TMPDIR/annotated_masks.zip" -d "$ANNOTATED_MASKS_DIR/"
+unzip -q "$TMPDIR/annotated_masks.zip" -d "$DATA_DIR/"
 echo "Unzipped the annotated masks"
 
 echo "The raw data is now located in $DATA_RAW_DIR:"
