@@ -1,16 +1,23 @@
-# deletes the results folder before starting the pipeline (1 or 0), ignored on euler
+# [ignored on euler] deletes the results folder before starting the pipeline (1 or 0)
 clear_results: 0
 
+# this section describes the data handling, i.g. the preparation of the data:
+# download and extraction, most of those settings will be ignored on euler
 data_handling:
 
-  # forces to download the raw data from the pf-server (1 or 0), ignored on euler
+  # [ignored on euler] forces to download the raw data from the pf-server (1 or 0)
+  # this will delete all old data and freshly download the s2_dates listed below
+  # currently all data is manually downloaded to the pf-pc20
+  # this was done using "cp -r /home/pf/pfstud/nimbus/download_data/* /scratch2/pucyril/bachelor-thesis/data/raw"
   force_rsync: 0
 
-  # ignored on euler
-  force_extraction: 1
-
-  # use single quotes for the dates and the array syntax
+  # [ignored on euler] use single quotes for the dates and the array syntax
+  # only those dates will be downloaded, does not influence the extraction
   s2_dates: [ '20211008T101829', '20210710T101559', '20210106T102411', '20210406T102021' ]
+
+  # [ignored on euler] here the data handling is done separately (1 or 0)
+  # extracts all data from the raw data folder to the tmp folder
+  force_extraction: 1
 
 annotation:
 

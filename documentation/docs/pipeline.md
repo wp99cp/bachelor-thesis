@@ -21,32 +21,6 @@ bash helper-scripts/pipeline.sh pipeline-config.yml
 
 The pipeline is configured using the `config.yaml` file.
 
-```yml
-# deletes the results folder before starting the pipeline (1 or 0), ignored on euler
-clear_results: 0
-
-data_handling:
-
-  # forces to download the raw data from the pf-server (1 or 0), ignored on euler
-  force_rsync: 0
-
-  # ignored on euler
-  force_extraction: 0
-
-  # use single quotes for the dates and the array syntax
-  s2_dates: [ '20211008T101829', '20210710T101559', '20210106T102411', '20210406T102021' ]
-
-annotation:
-
-  # use the auto annotator to create the ground truth (1 or 0)
-  auto_annotation: 0
-
-dataset:
-
-  recreate_dataset: 1
-
-```
-
 ## Special Case Euler
 
 On Euler the pipeline is slightly different. Step (1) is never executed. Instead, the raw data must be already available
