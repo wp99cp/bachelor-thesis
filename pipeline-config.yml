@@ -18,7 +18,7 @@ data_handling:
   # [ignored on euler] here the data handling is done separately (1 or 0)
   # extracts all data from the raw data folder to the tmp folder
   # currently all data has been extracted
-  force_extraction: 1
+  force_extraction: 0
 
 annotation:
 
