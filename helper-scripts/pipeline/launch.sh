@@ -1,16 +1,16 @@
 #!/bin/bash
 
-#SBATCH -n 8
 #SBATCH --time=03:59:00
-#SBATCH --mem-per-cpu=4096
+#SBATCH -n 8
+#SBATCH --mem-per-cpu=8G
+#SBATCH --gpus=1
+#SBATCH --gres=gpumem:10g
+#SBATCH --tmp=100G
 #SBATCH --open-mode=truncate
 #SBATCH --output=/cluster/scratch/pucyril/%j/log/slurm-output.out
 #SBATCH --error=/cluster/scratch/pucyril/%j/log/slurm-error.out
-#SBATCH --tmp=100G
 #SBATCH --account=es_schin
 #SBATCH --signal=B:USR1@120
-#SBATCH --gpus=1
-#SBATCH --gres=gpumem:10g
 #SBATCH --mail-type=END
 
 # load modules
