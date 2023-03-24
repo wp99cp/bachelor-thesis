@@ -198,8 +198,9 @@ def create_patches(_mask_coverage_data, _mask_data, _bands, _date_str):
 def main():
     print("Deleting old files...")
 
-    os.mkdir(f"{DATASET_DIR}/images")
-    os.mkdir(f"{DATASET_DIR}/masks")
+    # create target directories
+    os.makedirs(f"{DATASET_DIR}/images", exist_ok=True)
+    os.makedirs(f"{DATASET_DIR}/masks", exist_ok=True)
 
     pixel_count = [0] * NUM_ENCODED_CHANNELS
 
