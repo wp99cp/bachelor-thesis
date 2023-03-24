@@ -7,8 +7,7 @@ import numpy as np
 import psutil
 import rasterio
 import yaml
-from dask import delayed
-from joblib import Parallel
+from joblib import Parallel, delayed
 from rasterio.windows import from_bounds
 from s2cloudless import S2PixelCloudDetector
 
@@ -150,8 +149,8 @@ class MaskGenerator:
         # get total system memory
         total_memory = int(os.environ.get('TOTAL_MEMORY'), psutil.virtual_memory().total)
 
-        # each worker needs 24G of memory
-        num_processes = int(total_memory / (24 * 1024 * 1024 * 1024))
+        # each worker needs 16G of memory
+        num_processes = int(total_memory / (16 * 1024 * 1024 * 1024))
         num_processes = int(os.environ.get('NUM_PROCESSES', min(multiprocessing.cpu_count(), num_processes)))
 
         # parallelize this
