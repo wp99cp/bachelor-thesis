@@ -196,7 +196,6 @@ def create_patches(_mask_coverage_data, _mask_data, _bands, _date_str):
 # ====================================
 
 def main():
-    print("Deleting old files...")
 
     # create target directories
     os.makedirs(f"{DATASET_DIR}/images", exist_ok=True)
