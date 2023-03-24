@@ -45,11 +45,11 @@ source "$TASK_DIR/pipeline.sh"
 
 # create a zip from the ANNOTATED_MASKS_DIR
 echo "Create a zip from the $ANNOTATED_MASKS_DIR"
-tar -czvf "$ANNOTATED_MASKS_DIR/annotated_masks.tar.gz" "$ANNOTATED_MASKS_DIR"
+tar -czf "$ANNOTATED_MASKS_DIR/annotated_masks.tar.gz" "$ANNOTATED_MASKS_DIR"
 
 # create a zip from the $DATASET_DIR
 echo "Create a zip from the $DATASET_DIR"
-tar -czvf "$DATASET_DIR/dataset.tar.gz" "$DATASET_DIR"
+tar -czf "$DATASET_DIR/dataset.tar.gz" "$DATASET_DIR"
 
 # Copy the results to the shared scratch space
 echo "Copying the results to the shared scratch space"
