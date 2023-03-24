@@ -4,8 +4,12 @@ echo "End-To-End Pipeline"
 echo "==================="
 echo ""
 
-find "$RESULTS_DIR" -type f ! -name '.gitignore' -delete
-find "$RESULTS_DIR" -type d -empty -delete
+# check if environment variable RUNS_ON_EULER is set and "${config_clear_results}" -eq 1
+if [[ -z "${RUNS_ON_EULER}" && "${config_clear_results}" -eq 1 ]]; then
+  echo "Clear the results directory"
+  find "$RESULTS_DIR" -type f ! -name '.gitignore' -delete
+  find "$RESULTS_DIR" -type d -empty -delete
+fi
 
 # =========================
 # Load the config file
@@ -112,9 +116,12 @@ if [[ "${config_data_handling_force_extraction}" -eq 0 ]]; then
 else
   echo "Force rsync is set. Extract the zip files."
 
-  find $TMPDIR -type f ! -name '.gitignore' -delete
-  find $TMPDIR -type d -empty -delete
+  if [[ -z "${RUNS_ON_EULER}" ]]; then
+    find "$TMPDIR" -type f ! -name '.gitignore' -delete
+    find "$TMPDIR" -type d -empty -delete
+  fi
 
+  ls "$DATA_RAW_DIR"
   unzip -q "$DATA_RAW_DIR/32TNS_auxiliary_data.zip" -d "$TMPDIR"
   unzip -q "$DATA_RAW_DIR/ExoLabs_classification_S2.zip" -d "$TMPDIR/ExoLabs_classification_S2"
 

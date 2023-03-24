@@ -14,6 +14,11 @@ nvidia-smi --query-gpu=name --format=csv,noheader
 lscpu | sed -nr '/Model name/ s/.*:\s*(.*) @ .*/\1/p'
 echo -e "\n\n"
 
+# Set the environment variable RUNS_ON_EULER to 1
+# this allow us to do euler specific things in the pipeline
+# or ignore, e.g. delete commands, on euler
+export RUNS_ON_EULER=1
+
 # Update the environment variable DATA_DIR to point to the local scratch space
 export DATA_DIR="$TMPDIR/data"
 mkdir -p "$DATA_DIR"
