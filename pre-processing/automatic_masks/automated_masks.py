@@ -1,10 +1,14 @@
+import multiprocessing
 import os
 import sys
 
 import cv2
 import numpy as np
+import psutil
 import rasterio
 import yaml
+from dask import delayed
+from joblib import Parallel
 from rasterio.windows import from_bounds
 from s2cloudless import S2PixelCloudDetector
 
@@ -104,19 +108,18 @@ class MaskGenerator:
                                            (COP_Lakes_10m_arr.shape[1], COP_Lakes_10m_arr.shape[0]),
                                            interpolation=cv2.INTER_NEAREST)
 
-        for date in dates:
+        def _create_mask(date):
             date_parsed = date.split('T')[0]
             date_parsed = date_parsed[:4] + '-' + date_parsed[4:6] + '-' + date_parsed[6:]
             print(f"Creating masks for date {date} = {date_parsed}.")
-
             self._create_empty_mask(date, f"{ANNOTATED_MASKS_DIR}/{date}/mask.jp2")
             self._create_empty_mask(date, f"{ANNOTATED_MASKS_DIR}/{date}/mask_coverage.jp2", value=1)
 
             # s2cloudless prediction
             cloud_mask = self.s2_cloudless_prediction(date)
-            print(f"    Cloud mask shape: {cloud_mask.shape}")
-            print(f"    Min/Max: {np.min(cloud_mask)}/{np.max(cloud_mask)}")
-            print(f"    Mean: {np.mean(cloud_mask)}")
+            # print(f"    Cloud mask shape: {cloud_mask.shape}")
+            # print(f"    Min/Max: {np.min(cloud_mask)}/{np.max(cloud_mask)}")
+            # print(f"    Mean: {np.mean(cloud_mask)}")
 
             # set water pixels
             mask = f"{ANNOTATED_MASKS_DIR}/{date}/mask.jp2"
@@ -132,8 +135,8 @@ class MaskGenerator:
             exo_lab_snow_class = rasterio.open(f"{path}/{file}")
             exo_lab_snow_class_arr = exo_lab_snow_class.read(
                 1, window=from_bounds(*self.bounds, transform=exo_lab_snow_class.transform))
-
             window = rasterio.windows.from_bounds(*self.bounds, transform=mask.transform)
+
             mask_arr = mask.read(1, window=window)
 
             mask_arr[COP_Lakes_10m_arr == 1] = 3
@@ -143,6 +146,17 @@ class MaskGenerator:
             mask_arr[cloud_mask == 1] = 2
 
             mask.write(mask_arr, 1, window=window)
+
+        # get total system memory
+        total_memory = int(os.environ.get('TOTAL_MEMORY'), psutil.virtual_memory().total)
+
+        # each worker needs 24G of memory
+        num_processes = int(total_memory / (24 * 1024 * 1024 * 1024))
+        num_processes = int(os.environ.get('NUM_PROCESSES', min(multiprocessing.cpu_count(), num_processes)))
+
+        # parallelize this
+        print(f"Using {num_processes} processes.")
+        _ = Parallel(n_jobs=num_processes)(delayed(_create_mask)(date) for date in dates)
 
     def s2_cloudless_prediction(self, date):
 
@@ -168,7 +182,7 @@ class MaskGenerator:
         bands_files = (f"{base_path}/{band}" for band in bands_files)
 
         # Read the bands as arrays
-        print("  - Loading the bands into memory...")
+        # print("  - Loading the bands into memory...")
         bands_arrs = []
         for band in bands_files:
             band = rasterio.open(band)
@@ -184,11 +198,11 @@ class MaskGenerator:
         bands_arrs = np.array(bands_arrs)
         bands_arrs = np.transpose(bands_arrs, (1, 2, 0))
 
-        print(f"    Finished loading the bands into memory. Starting the cloud detection...")
+        # print(f"    Finished loading the bands into memory. Starting the cloud detection...")
         cloud_detector = S2PixelCloudDetector(threshold=0.4, average_over=4, dilation_size=2, all_bands=True)
         scene_cloud_prob = cloud_detector.get_cloud_probability_maps(bands_arrs[np.newaxis, ...])
         cloud_mask = cloud_detector.get_mask_from_prob(scene_cloud_prob, threshold=0.4)
-        print(f"    Finished the cloud detection.")
+        # print(f"    Finished the cloud detection.")
 
         return cloud_mask[0]
 

@@ -21,6 +21,10 @@ module load python_gpu/3.10.4
 mkdir -p "$TMPDIR/log"
 module list 2>&1 | tee "$TMPDIR/log/module-list.log"
 
+# set the environment variables describing the system resources
+export NUM_PROCESSES=8
+export TOTAL_MEMORY=64
+
 ################
 # Prepare the task
 ################

@@ -144,7 +144,9 @@ def open_date(_date):
 
 def create_patches(_mask_coverage_data, _mask_data, _bands, _date_str):
     # get number of processes
-    num_processes = multiprocessing.cpu_count()
+    # check if environment NUM_PROCESSES is set
+    # if not, use all available cores
+    num_processes = int(os.environ.get('NUM_PROCESSES', multiprocessing.cpu_count()))
 
     # print(f"Using {num_processes} processes.")
 
