@@ -13,7 +13,7 @@ from s2cloudless import S2PixelCloudDetector
 
 from config import BORDER_WIDTH, report_config
 
-TMP_DIR = os.environ['TMPDIR']
+TMP_DIR = os.environ['TMP_DIR']
 ANNOTATED_MASKS_DIR = os.environ['ANNOTATED_MASKS_DIR']
 
 
