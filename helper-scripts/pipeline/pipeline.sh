@@ -51,7 +51,7 @@ echo ""
 # Download the data if force download is set to 1
 # =========================
 
-if [[ "${config_data_handling_force_rsync}" -eq 0 ]]; then
+if [[ "${config_data_handling_force_rsync}" -eq 0 ]] || [[ -n "${RUNS_ON_EULER}" ]]; then
   echo "Force rsync is not set. Skip rsync of the data."
 else
   echo "Force rsync is set. Sync the data."
