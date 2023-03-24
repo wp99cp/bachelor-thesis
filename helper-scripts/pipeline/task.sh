@@ -45,18 +45,18 @@ source "$TASK_DIR/pipeline.sh"
 
 # create a zip from the ANNOTATED_MASKS_DIR
 echo "Create a zip from the $ANNOTATED_MASKS_DIR"
-zip -r "$ANNOTATED_MASKS_DIR/annotated_masks.zip" "$ANNOTATED_MASKS_DIR"
+tar -czf "$ANNOTATED_MASKS_DIR/annotated_masks.tar.gz" -C "$ANNOTATED_MASKS_DIR"
 
 # create a zip from the $DATASET_DIR
 echo "Create a zip from the $DATASET_DIR"
-zip -r "$DATASET_DIR/dataset.zip" "$DATASET_DIR"
+tar -czf "$DATASET_DIR/dataset.tar.gz" -C "$DATASET_DIR"
 
 # Copy the results to the shared scratch space
 echo "Copying the results to the shared scratch space"
 echo "That is $SCRATCH/$SLURM_JOB_ID"
 
 mkdir -p "$SCRATCH/$SLURM_JOB_ID/dataset"
-cp -r "$DATASET_DIR/dataset.zip" "$SCRATCH/$SLURM_JOB_ID/dataset/"
+cp -r "$DATASET_DIR/dataset.tar.gz" "$SCRATCH/$SLURM_JOB_ID/dataset/"
 
 mkdir -p "$SCRATCH/$SLURM_JOB_ID/annotated_masks"
-cp -r "$ANNOTATED_MASKS_DIR/annotated_masks.zip" "$SCRATCH/$SLURM_JOB_ID/annotated_masks/"
+cp -r "$ANNOTATED_MASKS_DIR/annotated_masks.tar.gz" "$SCRATCH/$SLURM_JOB_ID/annotated_masks/"
