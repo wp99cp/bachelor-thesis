@@ -16,5 +16,5 @@ cp -r "$LOG_DIR" "$SCRATCH/$SLURM_JOB_ID"
 echo -e "\n"
 
 # Cleanup: delete the BASE_DIR
-echo "Deleting the BASE_DIR"
+echo "Deleting the BASE_DIR: $BASE_DIR"
 rm -rf "$BASE_DIR"
