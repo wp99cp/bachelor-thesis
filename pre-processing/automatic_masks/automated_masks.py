@@ -69,7 +69,7 @@ class MaskGenerator:
 
         base_path = f"{EXTRACTED_RAW_DATA}/{folder}/GRANULE/"
         sub_folder = os.listdir(base_path)
-        base_path += '/' + sub_folder[0] + '/IMG_DATA'
+        base_path += sub_folder[0] + '/IMG_DATA'
 
         return base_path
 
@@ -262,7 +262,6 @@ def main():
             print(file)
 
             date = file.split("_")[2]
-            date = date[0:8]
             dates.append(date)
 
         print("Found the following dates: ")
