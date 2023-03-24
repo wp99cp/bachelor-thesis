@@ -13,7 +13,7 @@ from s2cloudless import S2PixelCloudDetector
 
 from config import BORDER_WIDTH, report_config
 
-TMP_DIR = os.environ['TMP_DIR']
+EXTRACTED_RAW_DATA = os.environ['EXTRACTED_RAW_DATA']
 ANNOTATED_MASKS_DIR = os.environ['ANNOTATED_MASKS_DIR']
 
 
@@ -63,14 +63,14 @@ class MaskGenerator:
         if date is None:
             date = self.sample_date
 
-        folders = os.listdir(TMP_DIR)
+        folders = os.listdir(EXTRACTED_RAW_DATA)
 
         print(folders)
 
         folders = [f for f in folders if f"_MSIL1C_{date}" in f]
         folder = folders[0]
 
-        base_path = f"{TMP_DIR}/{folder}/GRANULE/"
+        base_path = f"{EXTRACTED_RAW_DATA}/{folder}/GRANULE/"
         sub_folder = os.listdir(base_path)
         base_path += '/' + sub_folder[0] + '/IMG_DATA'
 
@@ -80,12 +80,12 @@ class MaskGenerator:
         print(f"Creating masks for {len(dates)} dates.")
 
         # open general auxiliary data
-        COP_Lakes_10m = f"{TMP_DIR}/32TNS_auxiliary_data/32TNS_10m_COP_Lakes.tif"
+        COP_Lakes_10m = f"{EXTRACTED_RAW_DATA}/32TNS_auxiliary_data/32TNS_10m_COP_Lakes.tif"
         COP_Lakes_10m = rasterio.open(COP_Lakes_10m)
         COP_Lakes_10m_arr = COP_Lakes_10m.read(1, window=from_bounds(*self.bounds, transform=COP_Lakes_10m.transform))
         COP_Lakes_10m.close()
 
-        JRC_surfaceWater_30m = f"{TMP_DIR}/32TNS_auxiliary_data/32TNS_30m_JRC_surfaceWater.tif"
+        JRC_surfaceWater_30m = f"{EXTRACTED_RAW_DATA}/32TNS_auxiliary_data/32TNS_30m_JRC_surfaceWater.tif"
         JRC_surfaceWater_30m = rasterio.open(JRC_surfaceWater_30m)
         JRC_surfaceWater_30m_arr = JRC_surfaceWater_30m.read(1, window=from_bounds(*self.bounds,
                                                                                    transform=JRC_surfaceWater_30m.transform))
@@ -96,7 +96,7 @@ class MaskGenerator:
                                               (COP_Lakes_10m_arr.shape[1], COP_Lakes_10m_arr.shape[0]),
                                               interpolation=cv2.INTER_NEAREST)
 
-        Glacier_RGIv6_30m = f"{TMP_DIR}/32TNS_auxiliary_data/32TNS_30m_Glacier_RGIv6.tif"
+        Glacier_RGIv6_30m = f"{EXTRACTED_RAW_DATA}/32TNS_auxiliary_data/32TNS_30m_Glacier_RGIv6.tif"
         Glacier_RGIv6_30m = rasterio.open(Glacier_RGIv6_30m)
         Glacier_RGIv6_30m_arr = Glacier_RGIv6_30m.read(1, window=from_bounds(*self.bounds,
                                                                              transform=Glacier_RGIv6_30m.transform))
@@ -125,7 +125,7 @@ class MaskGenerator:
             mask = rasterio.open(mask, 'r+')
 
             # get ExoLab classification
-            path = f"{TMP_DIR}/ExoLabs_classification_S2/"
+            path = f"{EXTRACTED_RAW_DATA}/ExoLabs_classification_S2/"
             files = os.listdir(path)
             files = [f for f in files if f.startswith(f"S2_32TNS_{date_parsed}")]
             file = files[0]

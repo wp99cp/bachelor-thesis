@@ -13,7 +13,7 @@ from joblib import Parallel, delayed
 from matplotlib import patches
 from tqdm import tqdm
 
-from config import IMG_SIZE, SAMPLES_PER_DATE, NUM_ENCODED_CHANNELS, SELECTED_BANDS, DATA_DIR, TMP_DIR, MAKS_PATH, \
+from config import IMG_SIZE, SAMPLES_PER_DATE, NUM_ENCODED_CHANNELS, SELECTED_BANDS, DATA_DIR, EXTRACTED_RAW_DATA, MAKS_PATH, \
     DATASET_DIR, RESULTS, report_config
 
 report_config()
@@ -103,9 +103,9 @@ def open_date(_date):
     TCI = f"T32TNS_{_date}_TCI.jp2"
 
     # Search for a folder starting with "S2B_MSIL1C_$DATE"
-    folders = [folder for folder in os.listdir(TMP_DIR) if f"_MSIL1C_{_date}" in folder]
+    folders = [folder for folder in os.listdir(EXTRACTED_RAW_DATA) if f"_MSIL1C_{_date}" in folder]
     folder = folders[0]
-    BASE_PATH = f"{TMP_DIR}/{folder}/GRANULE"
+    BASE_PATH = f"{EXTRACTED_RAW_DATA}/{folder}/GRANULE"
     sub_folders = os.listdir(BASE_PATH)
     BASE_PATH += '/' + sub_folders[0] + '/IMG_DATA'
 
