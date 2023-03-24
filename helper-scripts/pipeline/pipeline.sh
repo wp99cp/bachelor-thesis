@@ -162,10 +162,10 @@ else
   find "$ANNOTATED_MASKS_DIR" -type d -empty -delete
 
   if [[ -z "${RUNS_ON_EULER}" ]]; then
-    python "$BASE_DIR/pre-processing/automatic_masks/automated_masks.py" --config_file "$CONFIG_FILE_PATH"
+    python3 "$BASE_DIR/pre-processing/automatic_masks/automated_masks.py" --config_file "$CONFIG_FILE_PATH"
   else
     echo "RUN python '$BASE_DIR/pre-processing/automatic_masks/automated_masks.py --config_file $CONFIG_FILE_PATH'"
-    python "$BASE_DIR/pre-processing/automatic_masks/automated_masks.py" --config_file "$CONFIG_FILE_PATH" \
+    python3 -u "$BASE_DIR/pre-processing/automatic_masks/automated_masks.py" --config_file "$CONFIG_FILE_PATH" \
       >"$LOG_DIR/python_automated_masks.log" 2>&1
   fi
 
@@ -199,9 +199,9 @@ else
   find "$DATASET_DIR" -type d -empty -delete
 
   if [[ -z "${RUNS_ON_EULER}" ]]; then
-    python "$BASE_DIR/pre-processing/image_splitter/data-sampler.py" "/data/annotated_masks"
+    python3 "$BASE_DIR/pre-processing/image_splitter/data-sampler.py" "/data/annotated_masks"
   else
-    python "$BASE_DIR/pre-processing/image_splitter/data-sampler.py" "/data/annotated_masks" \
+    python3 -u "$BASE_DIR/pre-processing/image_splitter/data-sampler.py" "/data/annotated_masks" \
       >"$LOG_DIR/python_data_sampler.log" 2>&1
   fi
 
@@ -224,4 +224,10 @@ else
   echo "conda could not be found, assume all dependencies are installed"
 fi
 
-python3 "$BASE_DIR/models/unet/main.py" --retrain
+if [[ -z "${RUNS_ON_EULER}" ]]; then
+  python3 "$BASE_DIR/models/unet/main.py" --retrain
+else
+  python3 -u "$BASE_DIR/models/unet/main.py" --retrain \
+    >"$LOG_DIR/python_model.log" 2>&1
+fi
+
