@@ -10,7 +10,7 @@
 #SBATCH --output=/cluster/scratch/pucyril/%j/log/slurm-output.out
 #SBATCH --error=/cluster/scratch/pucyril/%j/log/slurm-error.out
 #SBATCH --account=es_schin
-#SBATCH --signal=B:USR1@120
+#SBATCH --signal=B:USR1@600
 #SBATCH --mail-type=END
 
 # load modules
