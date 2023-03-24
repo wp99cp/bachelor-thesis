@@ -162,6 +162,9 @@ if [[ "${config_annotation_auto_annotation}" -eq 0 ]]; then
   echo "Skip automated mask creation."
 else
 
+  echo "Save masks to '$DATA_DIR/annotated_masks' instead of '$ANNOTATED_MASKS_DIR'"
+  export ANNOTATED_MASKS_DIR="$DATA_DIR/annotated_masks"
+
   # check if conda is installed
   if command -v conda &>/dev/null; then
     conda activate bachelor_thesis
