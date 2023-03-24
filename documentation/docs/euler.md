@@ -136,6 +136,14 @@ Once the task is finished, you can view some stats using the following command:
 myjobs -j  <jobId>
 ```
 
+## SSH into running Task
+
+To ssh into a running task, you can use the following command:
+
+```bash
+srun --interactive --jobid $JOPID --pty bash
+```
+
 ## Access
 
 To access the cluster, you need to be a member of the ETH domain. You can then use your ETH credentials to log in to the
