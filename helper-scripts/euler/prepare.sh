@@ -48,6 +48,10 @@ echo "The results directory is $RESULTS_DIR"
 # Export the task directory to the environment
 export TASK_DIR="$PWD"
 
+# create tmp dir inside the tmp dir
+export TMP_DIR="$TMPDIR/tmp"
+mkdir -p "$TMP_DIR"
+
 # Extract the BASE_DIR using a regular expression that matches
 # the pattern "/cluster/home/pucyril/bachelor-thesis-*"
 if [[ $TASK_DIR =~ /cluster/home/pucyril/bachelor-thesis-.* ]]; then
