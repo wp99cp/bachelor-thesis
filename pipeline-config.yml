@@ -23,8 +23,10 @@ data_handling:
 annotation:
 
   # use the auto annotator to create the ground truth (1 or 0)
+  # currently this computes the s2cloudless predictions which is very slow
+  # then combines them with the ExoLab predictions
   auto_annotation: 0
 
 dataset:
 
-  recreate_dataset: 1
+  recreate_dataset: 0

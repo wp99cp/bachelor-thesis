@@ -125,13 +125,28 @@ else
   unzip -q "$DATA_RAW_DIR/32TNS_auxiliary_data.zip" -d "$TMP_DIR"
   unzip -q "$DATA_RAW_DIR/ExoLabs_classification_S2.zip" -d "$TMP_DIR/ExoLabs_classification_S2"
 
-  # extract all zip files in the data/raw folder
+  # Allow for max 4 concurrent extracting jobs
+  MAX_JOBS=4
+  active_jobs=0
+
+  # Loop over all zip files in DATA_RAW_DIR and extract them in the background
   for f in "$DATA_RAW_DIR"/**/*.zip; do
+
+    # Wait until the number of active jobs is less than MAX_JOBS
+    while ((active_jobs >= MAX_JOBS)); do
+      sleep 1
+      active_jobs=$(jobs -p | wc -l)
+    done
+
+    # Extract zip file in the background and increment active_jobs counter
     echo "Extracting $f ..."
     unzip -q "$f" -d "$TMP_DIR" &
+    ((active_jobs++))
+
   done
 
-  wait # wait for all unzip processes to finish
+  # Wait for all background jobs to complete
+  wait
 
 fi
 
@@ -230,4 +245,3 @@ else
   python3 -u "$BASE_DIR/models/unet/main.py" --retrain \
     >"$LOG_DIR/python_model.log" 2>&1
 fi
-

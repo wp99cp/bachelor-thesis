@@ -174,7 +174,7 @@ def create_patches(_mask_coverage_data, _mask_data, _bands, _date_str):
         patch = _bands[:, x:x + IMG_SIZE, y:y + IMG_SIZE]
 
         # save the image as npy
-        np.savez_compressed(f"{DATASET_DIR}/images/{_date_str}_{i}.npz", patch)
+        np.save(f"{DATASET_DIR}/images/{_date_str}_{i}.npy", patch)
 
         return (x, y), _pixel_count
 
