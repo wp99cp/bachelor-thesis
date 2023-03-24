@@ -26,8 +26,6 @@ rm "$TMPDIR/raw_data.zip"
 # Run the task
 ################
 
-echo "All further logs are saved in $LOG_DIR/python.log"
-
 source "$TASK_DIR/pipeline.sh"
 
 ################
