@@ -26,7 +26,7 @@ from training import train_unet
 
 def load_data():
     # load the image and mask filepaths in a sorted manner
-    image_paths = sorted(list(paths.list_files(IMAGE_DATASET_PATH, validExts=("npz",))))
+    image_paths = sorted(list(paths.list_files(IMAGE_DATASET_PATH, validExts=("npy",))))
     mask_paths = sorted(list(paths.list_images(MASK_DATASET_PATH)))
 
     if LIMIT_DATASET_SIZE > 0:

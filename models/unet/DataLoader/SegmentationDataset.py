@@ -43,7 +43,8 @@ class SegmentationDataset(Dataset):
         image_path = self.imagePaths[idx]
 
         image = np.load(image_path)
-        image = image['arr_0'].astype(np.float32)
+        # image = image['arr_0'].astype(np.float32) # this is only needed for npx files saved with np.savez_compressed
+        image = image.astype(np.float32)
         image = image / 255.0
         image = np.moveaxis(image, 0, -1)
 
