@@ -213,6 +213,7 @@ class MaskGenerator:
 
 
 def main():
+    print("Loading the config file...")
     # get the pyth to the config file from the config_file arg
     config_file = sys.argv[2]
     print(config_file)
