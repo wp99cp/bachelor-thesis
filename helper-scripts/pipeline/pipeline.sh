@@ -111,7 +111,7 @@ echo ""
 # Extract Zip files
 # =========================
 
-if [[ "${config_data_handling_force_extraction}" -eq 0 ]]; then
+if [[ "${config_data_handling_force_extraction}" -eq 0 ]] && [[ -z "${RUNS_ON_EULER}" ]]; then
   echo "Force rsync is not set. Skip Zip extraction."
 else
   echo "Force rsync is set. Extract the zip files."
