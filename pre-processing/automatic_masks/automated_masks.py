@@ -246,8 +246,31 @@ def main():
         print("Could not load the config file.")
         return
 
+    dates = config['annotation']['s2_dates']
+
+    if len(dates) == 0:
+        print("No dates specified in the config file.")
+        print("Create masks for all dates found in the data directory.")
+
+        dates = []
+        for file in os.listdir(EXTRACTED_RAW_DATA):
+
+            # skip .gitignore and other files / directories
+            if "MSIL1C" not in file:
+                continue
+
+            print(file)
+
+            date = file.split("_")[2]
+            date = date[0:8]
+            dates.append(date)
+
+        print("Found the following dates: ")
+        print(dates)
+        print("")
+
     mask_generator = MaskGenerator(sample_date=config['data_handling']['s2_dates'][0])
-    mask_generator.generate_masks(dates=config['data_handling']['s2_dates'])
+    mask_generator.generate_masks(dates=dates)
 
 
 if __name__ == "__main__":
