@@ -161,7 +161,11 @@ else
   find "$ANNOTATED_MASKS_DIR" -type f ! -name '.gitignore' -delete
   find "$ANNOTATED_MASKS_DIR" -type d -empty -delete
 
-  python "$BASE_DIR/pre-processing/automatic_masks/automated_masks.py" --config_file "$CONFIG_FILE_PATH"
+  if [[ -z "${RUNS_ON_EULER}" ]]; then
+    python "$BASE_DIR/pre-processing/automatic_masks/automated_masks.py" --config_file "$CONFIG_FILE_PATH"
+  else
+    python "$BASE_DIR/pre-processing/automatic_masks/automated_masks.py" --config_file "$CONFIG_FILE_PATH" >"$LOG_DIR/python_automated_masks.log" 2>&1
+  fi
 
 fi
 
@@ -192,7 +196,11 @@ else
   find "$DATASET_DIR" -type f ! -name '.gitignore' -delete
   find "$DATASET_DIR" -type d -empty -delete
 
-  python "$BASE_DIR/pre-processing/image_splitter/data-sampler.py" "/data/annotated_masks"
+  if [[ -z "${RUNS_ON_EULER}" ]]; then
+    python "$BASE_DIR/pre-processing/image_splitter/data-sampler.py" "/data/annotated_masks"
+  else
+    python "$BASE_DIR/pre-processing/image_splitter/data-sampler.py" "/data/annotated_masks" >"$LOG_DIR/python_data_sampler.log" 2>&1
+  fi
 
 fi
 
