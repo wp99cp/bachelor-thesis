@@ -44,7 +44,7 @@ export RAW_DATA_REMOTE_DIR=/home/pf/pfstud/nimbus/download_data
 export RESULTS_DIR=$BASE_DIR/results
 
 # used to sore some temporary files (non-persistent)
-export TMPDIR=$BASE_DIR/tmp
+export TMP_DIR=$BASE_DIR/tmp
 
 # cleanup
 find $TMP_DIR -type f ! -name '.gitignore' -delete
@@ -77,7 +77,7 @@ export RAW_DATA_REMOTE_DIR=/mnt/nimbus/download_data
 export RESULTS_DIR=$BASE_DIR/results
 
 # used to sore some temporary files (non-persistent)
-export TMPDIR=$BASE_DIR/tmp
+export TMP_DIR=$BASE_DIR/tmp
 
 # cleanup
 find $TMP_DIR -type f ! -name '.gitignore' -delete
