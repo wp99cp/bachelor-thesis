@@ -147,11 +147,14 @@ class MaskGenerator:
             mask.write(mask_arr, 1, window=window)
 
         # get total system memory
-        total_memory = int(os.environ.get('TOTAL_MEMORY'), psutil.virtual_memory().total)
+        TOTAL_MEMORY = os.environ.get('TOTAL_MEMORY')
+        total_memory = int(TOTAL_MEMORY) if TOTAL_MEMORY else psutil.virtual_memory().total
+        print(f"Total memory: {total_memory} bytes.")
 
-        # each worker needs 16G of memory
-        num_processes = int(total_memory / (16 * 1024 * 1024 * 1024))
-        num_processes = int(os.environ.get('NUM_PROCESSES', min(multiprocessing.cpu_count(), num_processes)))
+        # each worker needs 14G of memory
+        NUM_PROCESSES = os.environ.get('NUM_PROCESSES')
+        num_processes = int(total_memory / (14 * 1024 * 1024 * 1024))
+        num_processes = int(NUM_PROCESSES) if NUM_PROCESSES else min(multiprocessing.cpu_count(), num_processes)
 
         # parallelize this
         print(f"Using {num_processes} processes.")

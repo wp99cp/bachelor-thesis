@@ -146,7 +146,8 @@ def create_patches(_mask_coverage_data, _mask_data, _bands, _date_str):
     # get number of processes
     # check if environment NUM_PROCESSES is set
     # if not, use all available cores
-    num_processes = int(os.environ.get('NUM_PROCESSES', multiprocessing.cpu_count()))
+    NUM_PROCESSES = os.environ.get('NUM_PROCESSES')
+    num_processes = int(NUM_PROCESSES) if NUM_PROCESSES else multiprocessing.cpu_count()
 
     # print(f"Using {num_processes} processes.")
 
