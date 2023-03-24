@@ -9,7 +9,7 @@
 # Step 2a: Generate UUID
 - name: Generate UUID
   set_fact:
-    uuid: "{{ lookup('uuid') }}"
+    uuid: "{{ ansible_date_time.iso8601 | to_uuid }}"
 
 # Step 3: Create destination directory with UUID
 - name: Create destination directory with UUID
@@ -29,7 +29,7 @@
 - name: Checkout the specified branch and commit if specified
   git:
     repo: git@github.com:wp99cp/bachelor-thesis.git
-    dest: "{{ home_dir }}/bachelor-thesis"
+    dest: "{{ home_dir }}/bachelor-thesis-{{ uuid }}"
     version: "{{ branch }}{{ commit }}"
     force: yes
   when: branch is defined and commit is defined
@@ -38,7 +38,7 @@
 - name: Checkout the specified branch if specified
   git:
     repo: git@github.com:wp99cp/bachelor-thesis.git
-    dest: "{{ home_dir }}/bachelor-thesis"
+    dest: "{{ home_dir }}/bachelor-thesis-{{ uuid }}"
     version: "{{ branch }}"
     force: yes
   when: branch is defined
@@ -63,16 +63,16 @@
     echo "" >> {{ job_script_with_task }}
     cat {{ cleanup }} >> {{ job_script_with_task }}
   vars:
-    prepare: "{{ home_dir }}/bachelor-thesis/helper-scripts/euler/prepare.sh"
+    prepare: "{{ home_dir }}/bachelor-thesis-{{ uuid }}/helper-scripts/euler/prepare.sh"
     task_script: "{{ home_dir }}/bachelor-thesis-{{ uuid }}/{{ task }}/task.sh"
-    cleanup: "{{ home_dir }}/bachelor-thesis/helper-scripts/euler/cleanup.sh"
+    cleanup: "{{ home_dir }}/bachelor-thesis-{{ uuid }}/helper-scripts/euler/cleanup.sh"
     job_script_with_task: "{{ home_dir }}/bachelor-thesis-{{ uuid }}/{{ task }}/job.sh"
 
 # Step 5a: Run pre_submission.sh
 - name: Run pre_submission.sh
   shell: "chmod u+x {{ pre_submission }}; {{ pre_submission }}"
   vars:
-    pre_submission: "{{ home_dir }}/bachelor-thesis/helper-scripts/euler/pre_submission.sh"
+    pre_submission: "{{ home_dir }}/bachelor-thesis-{{ uuid }}/helper-scripts/euler/pre_submission.sh"
   args:
     chdir: "{{ home_dir }}/bachelor-thesis-{{ uuid }}/{{ task }}"
   register: pre_submission_output
