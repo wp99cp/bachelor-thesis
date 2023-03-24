@@ -13,12 +13,12 @@ from joblib import Parallel, delayed
 from matplotlib import patches
 from tqdm import tqdm
 
-from config import IMG_SIZE, SAMPLES_PER_DATE, NUM_ENCODED_CHANNELS, SELECTED_BANDS, DATA_DIR, EXTRACTED_RAW_DATA, MAKS_PATH, \
+from config import IMG_SIZE, SAMPLES_PER_DATE, NUM_ENCODED_CHANNELS, SELECTED_BANDS, EXTRACTED_RAW_DATA, MAKS_PATH, \
     DATASET_DIR, RESULTS, report_config
 
 report_config()
 
-dates = os.listdir(DATA_DIR + MAKS_PATH)
+dates = os.listdir(MAKS_PATH)
 
 # filter out ".gitignore"
 dates = [d for d in dates if d != ".gitignore"]
@@ -34,13 +34,13 @@ print(f"Found {len(dates)} dates")
 
 # Load the mask_coverage and the mask
 def load_mask_coverage(_date):
-    mask_coverage_path = DATA_DIR + MAKS_PATH + '/' + _date + '/mask_coverage.jp2'
+    mask_coverage_path = MAKS_PATH + '/' + _date + '/mask_coverage.jp2'
     return rasterio.open(mask_coverage_path)
 
 
 # Load the mask
 def load_mask(_date):
-    mask_path = DATA_DIR + MAKS_PATH + '/' + _date + '/mask.jp2'
+    mask_path = MAKS_PATH + '/' + _date + '/mask.jp2'
     return rasterio.open(mask_path)
 
 

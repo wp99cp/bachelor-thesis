@@ -2,8 +2,8 @@
 # Mount data directories
 ################
 
-export ANNOTATED_MASKS_DIR="$SCRATCH/annotated_masks"
-export EXTRACTED_RAW_DATA="$SCRATCH/extracted_data"
+export ANNOTATED_MASKS_DIR="$SCRATCH/data_sources/masks"
+export EXTRACTED_RAW_DATA="$SCRATCH/data_sources/extracted_raw_data"
 
 ################
 # Run the task
