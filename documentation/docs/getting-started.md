@@ -45,6 +45,7 @@ export RESULTS_DIR=$BASE_DIR/results
 
 # used to sore some temporary files (non-persistent)
 export TMP_DIR=$BASE_DIR/tmp
+export EXTRACTED_RAW_DATA=$BASE_DIR/tmp
 
 # cleanup
 find $TMP_DIR -type f ! -name '.gitignore' -delete
@@ -78,6 +79,7 @@ export RESULTS_DIR=$BASE_DIR/results
 
 # used to sore some temporary files (non-persistent)
 export TMP_DIR=$BASE_DIR/tmp
+export EXTRACTED_RAW_DATA=$BASE_DIR/tmp
 
 # cleanup
 find $TMP_DIR -type f ! -name '.gitignore' -delete
