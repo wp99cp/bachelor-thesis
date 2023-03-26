@@ -61,7 +61,7 @@ class Dataloader:
 
         # Those days are selected in a way to have a good mix of snow and cloud coverage
         # Images are distributed over several months to have a good mix of seasons
-        selected_dates = ["20210710T101559"]  # currently online "20210819T101559", "20210819T101559"
+        selected_dates = ["20210819T101559"]  # currently online "20210819T101559", "20210819T101559" "20210710T101559"
         # ["20211227T102339", "20210720T101559", "20210908T101559", "20210819T101559", "20211018T101939"]
 
         # randomly set a date
