@@ -104,6 +104,10 @@ class MaskGenerator:
                                            (COP_Lakes_10m_arr.shape[1], COP_Lakes_10m_arr.shape[0]),
                                            interpolation=cv2.INTER_NEAREST)
 
+        # delete variable to free memory
+        del Glacier_RGIv6_30m_arr
+        del JRC_surfaceWater_30m_arr
+
         def _create_mask(date):
             date_parsed = date.split('T')[0]
             date_parsed = date_parsed[:4] + '-' + date_parsed[4:6] + '-' + date_parsed[6:]
