@@ -209,10 +209,10 @@ def main():
     pixel_count = [0] * NUM_ENCODED_CHANNELS
 
     # Iterate over all dates
-    for date in dates:
+    for i, date in enumerate(dates):
 
         date_str = date[0:4] + '-' + date[4:6] + '-' + date[6:8]
-        print(f"\nStart processing Date: {date_str}")
+        print(f"\nStart processing Date: {date_str}. That's {i + 1} of {len(dates)}.")
 
         bands = open_date(date)
         bands = bands / 10_000 * 255
