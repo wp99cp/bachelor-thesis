@@ -19,7 +19,13 @@ bash helper-scripts/pipeline/pipeline.sh pipeline-config.yml
 
 ## Configuration
 
-The pipeline is configured using the `config.yaml` file.
+The pipeline is configured using the `pipeline-config.yml` file.
+
+### What's the difference between `pipeline-config.yml` and the `config.py` file of each step?
+
+The `pipeline-config.yml` file is used to configure the pipeline and it's steps. The `config.py` file of each step
+is used to configure the step itself. The later goes much more into detail and is used for example to configure
+the model architecture and its hyperparameters.
 
 ## Special Case Euler
 
