@@ -60,6 +60,8 @@ class ModelTrainer:
         while self.epoch < num_epochs and not done and not self.emergency_stop:
             self.epoch += 1
 
+            print(f"\nStart training epoch {self.epoch}...")
+
             train_loss = self.__train_epoch(loader=train_loader, num_batches=train_steps)
             test_loss, metrics_results = self.__test_epoch(loader=test_loader, num_batches=test_steps)
 
