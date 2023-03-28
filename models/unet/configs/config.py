@@ -12,13 +12,13 @@ IMAGE_SIZE = 256  # defines the input image dimensions
 NUM_CHANNELS = 13  # all satellite images have 13 channels
 
 # Maks Settings
-NUM_CLASSES = 3
-CLASS_NAMES = ["snow", "clouds", "water"]  # "thin_clouds"
+NUM_CLASSES = 4
+CLASS_NAMES = ["background", "snow", "clouds", "water"]  # "thin_clouds"
 NUM_ENCODED_CHANNELS = 5  # Number of channels used to encode the grayscale image
-CLASS_WEIGHTS = [0.23914, 0.47962, 0.00567]  # class weights for snow, clouds, water
+CLASS_WEIGHTS = [0.27557, 0.23914, 0.47962, 0.00567]  # class weights for background, snow, clouds, water
 
 # define threshold to filter weak predictions
-THRESHOLD = 0.75
+THRESHOLD = 0.65
 
 # 0 for unlimited
 # artificially limit the number of samples in the dataset
@@ -34,10 +34,10 @@ LIMIT_DATASET_SIZE = 0
 # initialize learning rate, number of epochs to train for, and the
 # batch size
 INIT_LR = 0.001
-MOMENTUM = 0.95
+MOMENTUM = 0.975
 WEIGHT_DECAY = 0.05
 NUM_EPOCHS = 100
-BATCH_SIZE = 16
+BATCH_SIZE = 32
 
 # ====================================
 # ====================================
@@ -48,7 +48,7 @@ BATCH_SIZE = 16
 # 0 - uses max 3 workers, 1 - uses 1 worker, >1 - uses the specified number of workers
 # should be below 6
 NUM_DATA_LOADER_WORKERS = 4
-BATCH_PREFETCHING = 16
+BATCH_PREFETCHING = 12
 
 # Data Augmentation Settings
 ENABLE_DATA_AUGMENTATION = True
@@ -63,8 +63,8 @@ IMAGE_FLIP_PROB = 0.3
 
 # cover a random patch of the image (i.g. setting all channels and the mask to zero)
 PATCH_COVERING_PROB = 0.3
-COVERED_PATCH_SIZE_MIN = 16  # in pixels
-COVERED_PATCH_SIZE_MAX = 32  # in pixels
+COVERED_PATCH_SIZE_MIN = 8  # in pixels
+COVERED_PATCH_SIZE_MAX = 64  # in pixels
 
 # ====================================
 # ====================================

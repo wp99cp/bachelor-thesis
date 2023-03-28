@@ -84,7 +84,7 @@ def colorize_mask(mask_):
 def print_results(orig_image, orig_mask, predMask, imagePath: str):
     # initialize our figure
     matplotlib.use('Agg')
-    figure, ax = plt.subplots(nrows=2, ncols=5, figsize=(25, 10))
+    figure, ax = plt.subplots(nrows=2, ncols=6, figsize=(30, 10))
 
     # create a legend for the mask
 
@@ -133,27 +133,18 @@ def print_results(orig_image, orig_mask, predMask, imagePath: str):
     ax[0, 3].set_title("Short Wave Infrared")
     ax[0, 4].set_title("RGB Increased Gamma")
 
-    # ax[0, 2].set_title("Predicted Background")
-    ax[1, 2].set_title("Predicted Snow")
-    ax[1, 3].set_title("Predicted Cloud")
-    ax[1, 4].set_title("Predicted Water")
+    ax[1, 2].set_title("Predicted Background")
+    ax[1, 3].set_title("Predicted Snow")
+    ax[1, 4].set_title("Predicted Cloud")
+    ax[1, 5].set_title("Predicted Water")
     ax[1, 0].set_title("Predicted Mask")
     ax[1, 1].set_title("Diff Training - Prediction")
 
-    # add colorbar to figures 2 - 5
-    figure.colorbar(ax[1, 2].imshow(predMask[0, :, :], vmin=0, vmax=1), ax=ax[1, 2])
-    figure.colorbar(ax[1, 3].imshow(predMask[1, :, :], vmin=0, vmax=1), ax=ax[1, 3])
-    figure.colorbar(ax[1, 4].imshow(predMask[2, :, :], vmin=0, vmax=1), ax=ax[1, 4])
-    # figure.colorbar(ax[5].imshow(predMask[3, :, :], vmin=0, vmax=1), ax=ax[5])
-
-    # print min, max and mean of each channel below the images 2, 3, 4, 5
-    ax[1, 2].text(12.5, 300,
-                  f"Min: {np.min(predMask[0, :, :]):.2f}, Max: {np.max(predMask[0, :, :]):.2f}, Mean: {np.mean(predMask[0, :, :]):.2f}")
-    ax[1, 3].text(12.5, 300,
-                  f"Min: {np.min(predMask[1, :, :]):.2f}, Max: {np.max(predMask[1, :, :]):.2f}, Mean: {np.mean(predMask[1, :, :]):.2f}")
-    ax[1, 4].text(12.5, 300,
-                  f"Min: {np.min(predMask[2, :, :]):.2f}, Max: {np.max(predMask[2, :, :]):.2f}, Mean: {np.mean(predMask[2, :, :]):.2f}")
-    # ax[5].text(12.5, 145, f"Min: {np.min(predMask[3, :, :]):.2f}, Max: {np.max(predMask[3, :, :]):.2f}, Mean: {np.mean(predMask[3, :, :]):.2f}")
+    for i in [2, 3, 4, 5]:
+        figure.colorbar(ax[1, i].imshow(predMask[i - 2, :, :], vmin=0, vmax=1), ax=ax[1, i])
+        ax[1, i].text(12.5, 300, f"Min: {np.min(predMask[i - 2, :, :]):.2f}, "
+                                 f"Max: {np.max(predMask[i - 2, :, :]):.2f}, "
+                                 f"Mean: {np.mean(predMask[i - 2, :, :]):.2f}")
 
     # add legend to figure 1
     legend_elements = [
@@ -167,15 +158,15 @@ def print_results(orig_image, orig_mask, predMask, imagePath: str):
     ax[0, 1].legend(handles=legend_elements, loc='upper right')
 
     predMask = predMask.transpose(1, 2, 0)
-    predMask[:, :, 0] = (predMask[:, :, 0] > THRESHOLD).astype(int)
     predMask[:, :, 1] = (predMask[:, :, 1] > THRESHOLD).astype(int)
     predMask[:, :, 2] = (predMask[:, :, 2] > THRESHOLD).astype(int)
+    predMask[:, :, 3] = (predMask[:, :, 3] > THRESHOLD).astype(int)
 
     # map to (255, 255) by setting ones of the layers to 1, 2, 3
     pred_mask_encoded = np.zeros((predMask.shape[0], predMask.shape[1]), dtype=np.uint8)
-    pred_mask_encoded[predMask[:, :, 0] == 1] = 1
-    pred_mask_encoded[predMask[:, :, 1] == 1] = 2
-    pred_mask_encoded[predMask[:, :, 2] == 1] = 3
+    pred_mask_encoded[predMask[:, :, 1] == 1] = 1
+    pred_mask_encoded[predMask[:, :, 2] == 1] = 2
+    pred_mask_encoded[predMask[:, :, 3] == 1] = 3
 
     # compute difference between predicted mask and original mask
     diff_mask = pred_mask_encoded - orig_mask

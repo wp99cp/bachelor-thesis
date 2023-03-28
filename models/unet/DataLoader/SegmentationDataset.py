@@ -59,7 +59,7 @@ class SegmentationDataset(Dataset):
 
         masks = [None] * NUM_CLASSES
         for cid in range(NUM_CLASSES):
-            masks[cid] = cv2.inRange(mask, cid + 1, cid + 1)
+            masks[cid] = cv2.inRange(mask, cid, cid)  # add + 1 behind cid to exclude background
 
         masks = np.stack(masks, axis=-1)
 
