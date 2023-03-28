@@ -19,7 +19,7 @@ def make_predictions(model, image_path):
         # load the image from disk, swap its color channels, cast it
         # to float data type, and scale its pixel values
         image = np.load(image_path)
-        image = image['arr_0']
+        # image = image['arr_0'] # this is only needed for the npy files saved with np.savez_compressed
         image = image.astype(np.float32)
         image = image / 255.0
         orig = image.copy()
@@ -109,19 +109,19 @@ def print_results(orig_image, orig_mask, predMask, imagePath: str):
     ax[2].set_title("Predicted Snow")
     ax[3].set_title("Predicted Cloud")
     ax[4].set_title("Predicted Water")
-    ax[5].set_title("Predicted Semi-Transparent Cloud")
+    # ax[5].set_title("Predicted Semi-Transparent Cloud")
 
     # add colorbar to figures 2 - 5
     figure.colorbar(ax[2].imshow(predMask[0, :, :], vmin=0, vmax=1), ax=ax[2])
     figure.colorbar(ax[3].imshow(predMask[1, :, :], vmin=0, vmax=1), ax=ax[3])
     figure.colorbar(ax[4].imshow(predMask[2, :, :], vmin=0, vmax=1), ax=ax[4])
-    figure.colorbar(ax[5].imshow(predMask[3, :, :], vmin=0, vmax=1), ax=ax[5])
+    # figure.colorbar(ax[5].imshow(predMask[3, :, :], vmin=0, vmax=1), ax=ax[5])
 
     # print min, max and mean of each channel below the images 2, 3, 4, 5
-    ax[2].text(12.5, 145, f"Min: {np.min(predMask[0, :, :]):.2f}, Max: {np.max(predMask[0, :, :]):.2f}, Mean: {np.mean(predMask[0, :, :]):.2f}")
-    ax[3].text(12.5, 145, f"Min: {np.min(predMask[1, :, :]):.2f}, Max: {np.max(predMask[1, :, :]):.2f}, Mean: {np.mean(predMask[1, :, :]):.2f}")
-    ax[4].text(12.5, 145, f"Min: {np.min(predMask[2, :, :]):.2f}, Max: {np.max(predMask[2, :, :]):.2f}, Mean: {np.mean(predMask[2, :, :]):.2f}")
-    ax[5].text(12.5, 145, f"Min: {np.min(predMask[3, :, :]):.2f}, Max: {np.max(predMask[3, :, :]):.2f}, Mean: {np.mean(predMask[3, :, :]):.2f}")
+    ax[2].text(12.5, 300, f"Min: {np.min(predMask[0, :, :]):.2f}, Max: {np.max(predMask[0, :, :]):.2f}, Mean: {np.mean(predMask[0, :, :]):.2f}")
+    ax[3].text(12.5, 300, f"Min: {np.min(predMask[1, :, :]):.2f}, Max: {np.max(predMask[1, :, :]):.2f}, Mean: {np.mean(predMask[1, :, :]):.2f}")
+    ax[4].text(12.5, 300, f"Min: {np.min(predMask[2, :, :]):.2f}, Max: {np.max(predMask[2, :, :]):.2f}, Mean: {np.mean(predMask[2, :, :]):.2f}")
+    # ax[5].text(12.5, 145, f"Min: {np.min(predMask[3, :, :]):.2f}, Max: {np.max(predMask[3, :, :]):.2f}, Mean: {np.mean(predMask[3, :, :]):.2f}")
 
     # add legend to figure 1
     legend_elements = [
@@ -129,7 +129,7 @@ def print_results(orig_image, orig_mask, predMask, imagePath: str):
         Patch(facecolor=cmap[1] / 255.0, label='Snow'),
         Patch(facecolor=cmap[2] / 255.0, label='Clouds'),
         Patch(facecolor=cmap[3] / 255.0, label='Water'),
-        Patch(facecolor=cmap[4] / 255.0, label='Semi-Transparent Cloud')
+        # Patch(facecolor=cmap[4] / 255.0, label='Semi-Transparent Cloud')
     ]
 
     ax[1].legend(handles=legend_elements, loc='upper right')
