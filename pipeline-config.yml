@@ -35,3 +35,7 @@ annotation:
 dataset:
 
   recreate_dataset: 1
+
+  # limits the number of dates to be used for the dataset
+  # if you wish to use all dates, just set this to 0
+  limit_dates: 5

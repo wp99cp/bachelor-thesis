@@ -214,6 +214,8 @@ else
   find "$DATASET_DIR" -type f ! -name '.gitignore' -delete
   find "$DATASET_DIR" -type d -empty -delete
 
+  export LIMIT_DATES="$config_dataset_limit_dates"
+
   if [[ -z "${RUNS_ON_EULER}" ]]; then
     python3 "$BASE_DIR/pre-processing/image_splitter/data-sampler.py" "/annotated_masks"
   else

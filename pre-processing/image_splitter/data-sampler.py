@@ -14,7 +14,7 @@ from matplotlib import patches
 from tqdm import tqdm
 
 from config import IMG_SIZE, SAMPLES_PER_DATE, NUM_ENCODED_CHANNELS, SELECTED_BANDS, EXTRACTED_RAW_DATA, MAKS_PATH, \
-    DATASET_DIR, RESULTS, report_config
+    DATASET_DIR, RESULTS, LIMIT_DATES, report_config
 
 report_config()
 
@@ -25,6 +25,10 @@ dates = [d for d in dates if d != ".gitignore"]
 dates.sort()
 print(f"Found {len(dates)} dates")
 
+
+if LIMIT_DATES:
+    dates = dates[:LIMIT_DATES]
+    print(f"Limiting to {LIMIT_DATES} dates")
 
 # ====================================
 # ====================================
@@ -198,7 +202,6 @@ def create_patches(_mask_coverage_data, _mask_data, _bands, _date_str):
 # ====================================
 
 def main():
-
     # create target directories
     os.makedirs(f"{DATASET_DIR}/images", exist_ok=True)
     os.makedirs(f"{DATASET_DIR}/masks", exist_ok=True)

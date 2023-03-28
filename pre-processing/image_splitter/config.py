@@ -18,6 +18,8 @@ MAKS_PATH = os.environ['ANNOTATED_MASKS_DIR']
 DATASET_DIR = os.environ['DATASET_DIR']
 RESULTS = os.environ['RESULTS_DIR']
 
+LIMIT_DATES = os.environ['LIMIT_DATES']
+
 
 # ====================================
 # ====================================
