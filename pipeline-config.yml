@@ -43,7 +43,7 @@ dataset:
 
   # limits the number of dates to be used for the dataset
   # if you wish to use all dates, just set this to 0
-  limit_dates: 5
+  limit_dates: 20
 
   # loads the data directly without creating the dataset (1 or 0)
   # if this option is enabled the recreate_dataset option will be ignored
