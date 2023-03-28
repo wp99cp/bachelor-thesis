@@ -26,9 +26,9 @@ dates.sort()
 print(f"Found {len(dates)} dates")
 
 
-if LIMIT_DATES:
-    dates = dates[:LIMIT_DATES]
+if LIMIT_DATES > 0:
     print(f"Limiting to {LIMIT_DATES} dates")
+    dates = dates[:LIMIT_DATES]
 
 # ====================================
 # ====================================
