@@ -14,7 +14,7 @@ The pipeline consists of the following steps:
 The pipeline can be executed using the following command:
 
 ```bash
-bash helper-scripts/pipeline.sh pipeline-config.yml 
+bash helper-scripts/pipeline/pipeline.sh pipeline-config.yml 
 ```
 
 ## Configuration
