@@ -60,6 +60,8 @@ class ModelTrainer:
         while self.epoch < num_epochs and not done and not self.emergency_stop:
             self.epoch += 1
 
+            print(f"\nStart training epoch {self.epoch}...")
+
             train_loss = self.__train_epoch(loader=train_loader, num_batches=train_steps)
             test_loss, metrics_results = self.__test_epoch(loader=test_loader, num_batches=test_steps)
 
@@ -125,12 +127,10 @@ class ModelTrainer:
 
         # initialize the total training and validation loss
         total_train_loss = 0
-
-        steps = list(enumerate(loader))
-        pbar = tqdm.tqdm(steps)
+        pbar = tqdm.tqdm(loader)
 
         # loop over the training set
-        for i, (x, y) in pbar:
+        for i, (x, y) in enumerate(pbar):
             # send the input to the device
             (x, y) = (x.to(DEVICE), y.to(DEVICE))
 

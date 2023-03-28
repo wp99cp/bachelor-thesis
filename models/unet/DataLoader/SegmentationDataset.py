@@ -23,6 +23,9 @@ class SegmentationDataset(Dataset):
         self.imagePaths = image_paths
         self.maskPaths = mask_paths
 
+        assert len(self.imagePaths) == len(self.maskPaths), "Number of images and masks must match."
+        print(f"Dataloader initialized with {len(self.imagePaths)} patches.")
+
         # this is a set of transformations that will be applied to the image and mask
         self.transforms = transforms
         self.apply_augmentations = apply_augmentations
