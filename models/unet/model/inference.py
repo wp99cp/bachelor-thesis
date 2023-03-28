@@ -29,7 +29,7 @@ def make_predictions(model, image_path):
         # mask
         filename = image_path.split(os.path.sep)[-1]
         # replace the extension of the image with .png
-        filename = filename.replace(".npz", ".png")
+        filename = filename.replace(".npy", ".png")
         ground_truth_path = os.path.join(MASK_DATASET_PATH, filename)
 
         # load the ground-truth segmentation mask in grayscale mode
@@ -56,7 +56,7 @@ def make_predictions(model, image_path):
 
         # get filename from path
         filename = image_path.split(os.path.sep)[-1]
-        filename = filename.replace(".npz", "")
+        filename = filename.replace(".npy", "")
 
         # prepare a plot for visualization
         print_results(orig, gt_mask, pred_mask, filename)
