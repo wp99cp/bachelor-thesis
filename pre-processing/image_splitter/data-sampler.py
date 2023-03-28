@@ -25,10 +25,10 @@ dates = [d for d in dates if d != ".gitignore"]
 dates.sort()
 print(f"Found {len(dates)} dates")
 
-
 if LIMIT_DATES > 0:
     print(f"Limiting to {LIMIT_DATES} dates")
     dates = dates[:LIMIT_DATES]
+
 
 # ====================================
 # ====================================

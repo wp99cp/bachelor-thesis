@@ -127,12 +127,10 @@ class ModelTrainer:
 
         # initialize the total training and validation loss
         total_train_loss = 0
-
-        steps = list(enumerate(loader))
-        pbar = tqdm.tqdm(steps)
+        pbar = tqdm.tqdm(loader)
 
         # loop over the training set
-        for i, (x, y) in pbar:
+        for i, (x, y) in enumerate(pbar):
             # send the input to the device
             (x, y) = (x.to(DEVICE), y.to(DEVICE))
 

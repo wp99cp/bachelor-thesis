@@ -43,6 +43,11 @@ BATCH_SIZE = 16
 # ====================================
 # ====================================
 
+# 0 - uses max 3 workers, 1 - uses 1 worker, >1 - uses the specified number of workers
+# should be below 6
+NUM_DATA_LOADER_WORKERS = 4
+BATCH_PREFETCHING = 16
+
 # Data Augmentation Settings
 ENABLE_DATA_AUGMENTATION = True
 

@@ -18,7 +18,7 @@ from augmentation.RandomErasing import RandomErasing
 from augmentation.VerticalFlip import VerticalFlip
 from configs.config import report_config, IMAGE_DATASET_PATH, MASK_DATASET_PATH, TEST_SPLIT, BATCH_SIZE, PIN_MEMORY, \
     DEVICE, BASE_OUTPUT, ENABLE_DATA_AUGMENTATION, IMAGE_FLIP_PROB, CHANNEL_DROPOUT_PROB, \
-    COVERED_PATCH_SIZE_MIN, COVERED_PATCH_SIZE_MAX, LIMIT_DATASET_SIZE
+    COVERED_PATCH_SIZE_MIN, COVERED_PATCH_SIZE_MAX, LIMIT_DATASET_SIZE, NUM_DATA_LOADER_WORKERS, BATCH_PREFETCHING
 from model.Model import UNet
 from model.inference import make_predictions
 from training import train_unet
@@ -61,10 +61,12 @@ def load_data():
                                   transforms=transforms, apply_augmentations=False)
 
     # create the training and test data loaders
-    num_workers = min(os.cpu_count(), 3)  # max 6 workers
-    train_loader = DataLoader(train_ds, shuffle=True, batch_size=BATCH_SIZE,
+    num_workers = min(os.cpu_count(), 6)  # max 6 workers
+    num_workers = NUM_DATA_LOADER_WORKERS if NUM_DATA_LOADER_WORKERS > 0 else num_workers
+    print(f"\n[INFO] using {num_workers} workers to load the data.")
+    train_loader = DataLoader(train_ds, shuffle=True, batch_size=BATCH_SIZE, prefetch_factor=BATCH_PREFETCHING,
                               pin_memory=PIN_MEMORY, num_workers=num_workers)
-    test_loader = DataLoader(test_ds, shuffle=False, batch_size=BATCH_SIZE,
+    test_loader = DataLoader(test_ds, shuffle=False, batch_size=BATCH_SIZE, prefetch_factor=BATCH_PREFETCHING,
                              pin_memory=PIN_MEMORY, num_workers=num_workers)
 
     print(f"[INFO] loaded {len(train_ds)} examples in the train set.")
