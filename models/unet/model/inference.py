@@ -7,7 +7,7 @@ import torch
 from matplotlib import pyplot as plt
 from matplotlib.patches import Patch
 
-from configs.config import IMAGE_SIZE, MASK_DATASET_PATH, DEVICE, BASE_OUTPUT, NUM_ENCODED_CHANNELS
+from configs.config import IMAGE_SIZE, MASK_DATASET_PATH, DEVICE, BASE_OUTPUT, NUM_ENCODED_CHANNELS, THRESHOLD
 
 
 def make_predictions(model, image_path):
@@ -84,43 +84,75 @@ def colorize_mask(mask_):
 def print_results(orig_image, orig_mask, predMask, imagePath: str):
     # initialize our figure
     matplotlib.use('Agg')
-    figure, ax = plt.subplots(nrows=1, ncols=6, figsize=(25, 5))
+    figure, ax = plt.subplots(nrows=2, ncols=5, figsize=(25, 10))
 
     # create a legend for the mask
 
     # plot the original image, its mask, and the predicted mask
     rgb = orig_image[:, :, 1:4]
+    color_infrared = orig_image[:, :, [2, 3, 7]]
+    short_wave_infrared = orig_image[:, :, [12, 8, 3]]
+
     orig_mask = orig_mask.astype(int)
+
+    # Create a mask of the non-white pixels in the mask image
+    # the
+    mask_alpha = np.zeros(orig_mask.shape, dtype=np.uint8)
+    mask_alpha[orig_mask != 0] = 1
+
     orig_mask = (orig_mask * NUM_ENCODED_CHANNELS) / 255
     cmap, rgb_mask = colorize_mask(orig_mask)
 
     # normalize image to [0, 1]
     rgb = rgb.astype(np.float32)
     rgb = (rgb - np.min(rgb)) / (np.max(rgb) - np.min(rgb))
+    color_infrared = color_infrared.astype(np.float32)
+    color_infrared = (color_infrared - np.min(color_infrared)) / (np.max(color_infrared) - np.min(color_infrared))
+    short_wave_infrared = short_wave_infrared.astype(np.float32)
+    short_wave_infrared = (short_wave_infrared - np.min(short_wave_infrared)) / (
+            np.max(short_wave_infrared) - np.min(short_wave_infrared))
 
-    ax[0].imshow(rgb)
-    ax[1].imshow(rgb_mask)
+    rgb_increased_gamma = np.power(rgb, 1 / 2.2)
+
+    ax[0, 0].imshow(rgb)
+
+    # Combine rgb and rgb_mask into a single image using rgb as background and rgb_mask as foreground with alpha mask
+    mask_alpha = np.stack((mask_alpha,) * 3, axis=-1)
+    blended_image = rgb * (1 - mask_alpha) + rgb_mask * mask_alpha
+
+    ax[0, 1].imshow(blended_image)
+
+    ax[0, 2].imshow(color_infrared)
+    ax[0, 3].imshow(short_wave_infrared)
+    ax[0, 4].imshow(rgb_increased_gamma)
 
     # set the titles of the subplots
-    ax[0].set_title("Image")
-    ax[1].set_title("Original Mask")
+    ax[0, 0].set_title("Original Image")
+    ax[0, 1].set_title("Original Mask")
+    ax[0, 2].set_title("Color Infrared")
+    ax[0, 3].set_title("Short Wave Infrared")
+    ax[0, 4].set_title("RGB Increased Gamma")
 
-    # ax[2].set_title("Predicted Background")
-    ax[2].set_title("Predicted Snow")
-    ax[3].set_title("Predicted Cloud")
-    ax[4].set_title("Predicted Water")
-    # ax[5].set_title("Predicted Semi-Transparent Cloud")
+    # ax[0, 2].set_title("Predicted Background")
+    ax[1, 2].set_title("Predicted Snow")
+    ax[1, 3].set_title("Predicted Cloud")
+    ax[1, 4].set_title("Predicted Water")
+    ax[1, 0].set_title("Predicted Mask")
+    ax[1, 1].set_title("Diff Training - Prediction")
 
     # add colorbar to figures 2 - 5
-    figure.colorbar(ax[2].imshow(predMask[0, :, :], vmin=0, vmax=1), ax=ax[2])
-    figure.colorbar(ax[3].imshow(predMask[1, :, :], vmin=0, vmax=1), ax=ax[3])
-    figure.colorbar(ax[4].imshow(predMask[2, :, :], vmin=0, vmax=1), ax=ax[4])
+    figure.colorbar(ax[1, 2].imshow(predMask[0, :, :], vmin=0, vmax=1), ax=ax[1, 2])
+    figure.colorbar(ax[1, 3].imshow(predMask[1, :, :], vmin=0, vmax=1), ax=ax[1, 3])
+    figure.colorbar(ax[1, 4].imshow(predMask[2, :, :], vmin=0, vmax=1), ax=ax[1, 4])
     # figure.colorbar(ax[5].imshow(predMask[3, :, :], vmin=0, vmax=1), ax=ax[5])
 
     # print min, max and mean of each channel below the images 2, 3, 4, 5
-    ax[2].text(12.5, 300, f"Min: {np.min(predMask[0, :, :]):.2f}, Max: {np.max(predMask[0, :, :]):.2f}, Mean: {np.mean(predMask[0, :, :]):.2f}")
-    ax[3].text(12.5, 300, f"Min: {np.min(predMask[1, :, :]):.2f}, Max: {np.max(predMask[1, :, :]):.2f}, Mean: {np.mean(predMask[1, :, :]):.2f}")
-    ax[4].text(12.5, 300, f"Min: {np.min(predMask[2, :, :]):.2f}, Max: {np.max(predMask[2, :, :]):.2f}, Mean: {np.mean(predMask[2, :, :]):.2f}")
+    ax[1, 2].text(12.5, 300,
+                  f"Min: {np.min(predMask[0, :, :]):.2f}, Max: {np.max(predMask[0, :, :]):.2f}, Mean: {np.mean(predMask[0, :, :]):.2f}")
+    ax[1, 3].text(12.5, 300,
+                  f"Min: {np.min(predMask[1, :, :]):.2f}, Max: {np.max(predMask[1, :, :]):.2f}, Mean: {np.mean(predMask[1, :, :]):.2f}")
+    ax[1, 4].text(12.5, 300,
+                  f"Min: {np.min(predMask[2, :, :]):.2f}, Max: {np.max(predMask[2, :, :]):.2f}, Mean: {np.mean(predMask[2, :, :]):.2f}")
     # ax[5].text(12.5, 145, f"Min: {np.min(predMask[3, :, :]):.2f}, Max: {np.max(predMask[3, :, :]):.2f}, Mean: {np.mean(predMask[3, :, :]):.2f}")
 
     # add legend to figure 1
@@ -132,7 +164,29 @@ def print_results(orig_image, orig_mask, predMask, imagePath: str):
         # Patch(facecolor=cmap[4] / 255.0, label='Semi-Transparent Cloud')
     ]
 
-    ax[1].legend(handles=legend_elements, loc='upper right')
+    ax[0, 1].legend(handles=legend_elements, loc='upper right')
+
+    predMask = predMask.transpose(1, 2, 0)
+    predMask[:, :, 0] = (predMask[:, :, 0] > THRESHOLD).astype(int)
+    predMask[:, :, 1] = (predMask[:, :, 1] > THRESHOLD).astype(int)
+    predMask[:, :, 2] = (predMask[:, :, 2] > THRESHOLD).astype(int)
+
+    # map to (255, 255) by setting ones of the layers to 1, 2, 3
+    pred_mask_encoded = np.zeros((predMask.shape[0], predMask.shape[1]), dtype=np.uint8)
+    pred_mask_encoded[predMask[:, :, 0] == 1] = 1
+    pred_mask_encoded[predMask[:, :, 1] == 1] = 2
+    pred_mask_encoded[predMask[:, :, 2] == 1] = 3
+
+    # compute difference between predicted mask and original mask
+    diff_mask = pred_mask_encoded - orig_mask
+    diff_mask[diff_mask != 0] = 1
+
+    # plot the difference mask
+    figure.colorbar(ax[1, 1].imshow(diff_mask, cmap='bwr', vmin=0, vmax=1), ax=ax[1, 1])
+
+    cmap, rgb_pred_mask = colorize_mask(pred_mask_encoded)
+    ax[1, 0].imshow(rgb_pred_mask)
+    ax[1, 0].legend(handles=legend_elements, loc='upper right')
 
     # set the layout of the figure and display it
     figure.tight_layout()
