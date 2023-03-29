@@ -37,7 +37,7 @@ INIT_LR = 0.001
 MOMENTUM = 0.975
 WEIGHT_DECAY = 0.05
 NUM_EPOCHS = 100
-BATCH_SIZE = 32
+BATCH_SIZE = 16
 
 # ====================================
 # ====================================
@@ -48,7 +48,7 @@ BATCH_SIZE = 32
 # 0 - uses max 3 workers, 1 - uses 1 worker, >1 - uses the specified number of workers
 # should be below 6
 NUM_DATA_LOADER_WORKERS = 4
-BATCH_PREFETCHING = 12
+BATCH_PREFETCHING = 16
 
 # Data Augmentation Settings
 ENABLE_DATA_AUGMENTATION = True
