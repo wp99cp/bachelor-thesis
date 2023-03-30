@@ -34,6 +34,7 @@ function parse_yaml {
 }
 
 CONFIG_FILE_PATH="$BASE_DIR/pipeline-config.yml"
+export CONFIG_FILE_PATH="$CONFIG_FILE_PATH"
 
 # Load the config yml file
 echo "Load Config from '$CONFIG_FILE_PATH'"
@@ -178,10 +179,10 @@ else
   find "$ANNOTATED_MASKS_DIR" -type d -empty -delete
 
   if [[ -z "${RUNS_ON_EULER}" ]]; then
-    python3 "$BASE_DIR/pre-processing/automatic_masks/automated_masks.py" --config_file "$CONFIG_FILE_PATH"
+    python3 "$BASE_DIR/pre-processing/automatic_masks/automated_masks.py"
   else
-    echo "RUN python '$BASE_DIR/pre-processing/automatic_masks/automated_masks.py --config_file $CONFIG_FILE_PATH'"
-    python3 -u "$BASE_DIR/pre-processing/automatic_masks/automated_masks.py" --config_file "$CONFIG_FILE_PATH" \
+    echo "RUN python '$BASE_DIR/pre-processing/automatic_masks/automated_masks.py'"
+    python3 -u "$BASE_DIR/pre-processing/automatic_masks/automated_masks.py" \
       >"$LOG_DIR/python_automated_masks.log" 2>&1
   fi
 
@@ -197,8 +198,11 @@ echo ""
 # Create the training data
 # =========================
 
-if [[ "${config_dataset_recreate_dataset}" -eq 0 ]]; then
-  echo "Skip automated mask creation."
+export LIMIT_DATES="$config_dataset_limit_dates"
+
+# skipp if create_on_the_fly is set
+if [[ "${config_dataset_recreate_dataset}" -eq 0 ]] || [[ "${config_dataset_create_on_the_fly}" -eq 1 ]]; then
+  echo "Skip dataset creation"
 else
 
   # check if conda is installed
@@ -213,8 +217,6 @@ else
 
   find "$DATASET_DIR" -type f ! -name '.gitignore' -delete
   find "$DATASET_DIR" -type d -empty -delete
-
-  export LIMIT_DATES="$config_dataset_limit_dates"
 
   if [[ -z "${RUNS_ON_EULER}" ]]; then
     python3 "$BASE_DIR/pre-processing/image_splitter/data-sampler.py" "/annotated_masks"
@@ -242,6 +244,9 @@ else
   echo "conda could not be found, assume all dependencies are installed"
 fi
 
+# export environment variables
+export LIVE_DATASET="$config_dataset_create_on_the_fly"
+
 if [[ -z "${RUNS_ON_EULER}" ]]; then
 
   python3 "$BASE_DIR/models/unet/main.py" --retrain
@@ -262,9 +267,10 @@ else
 
   # Start the Python process in the background and save its PID
   python3 "$BASE_DIR/models/unet/main.py" --retrain \
-    1>"$LOG_DIR/python_train_model.log" \
-    2>"$LOG_DIR/python_train_model.error" \
-  PYTHON_PID=$!
+    \
+    \
+    PYTHON_PID=$! 1>"$LOG_DIR/python_train_model.log" \
+    2>"$LOG_DIR/python_train_model.error"
 
   # Wait for the Python process to finish
   echo "Waiting for Python process (PID=$PYTHON_PID) to finish"

@@ -1,78 +1,40 @@
-# all PyTorch datasets must inherit from this base dataset class.
-import cv2
+from abc import ABC
+
 import numpy as np
 from torch.utils.data import Dataset
 from torchvision.transforms import Compose
 
 from augmentation.Augmentation import Augmentation
-from configs.config import NUM_ENCODED_CHANNELS, NUM_CLASSES
 
 
-class SegmentationDataset(Dataset):
+class SegmentationDataset(Dataset, ABC):
 
     def __init__(self,
-                 image_paths: list[str],
-                 mask_paths: list[str],
                  transforms: Compose,
                  apply_augmentations: bool = True,
                  augmentations: list[Augmentation] = None):
-
         if augmentations is None:
             augmentations = []
-
-        self.imagePaths = image_paths
-        self.maskPaths = mask_paths
-
-        assert len(self.imagePaths) == len(self.maskPaths), "Number of images and masks must match."
-        print(f"Dataloader initialized with {len(self.imagePaths)} patches.")
 
         # this is a set of transformations that will be applied to the image and mask
         self.transforms = transforms
         self.apply_augmentations = apply_augmentations
         self.augmentations = augmentations
 
-    def __len__(self) -> int:
-        # return the number of total samples contained in the dataset
-        return len(self.maskPaths)
+    def _transform_and_augment(self, patch_img: np.ndarray, encoded_mask: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
 
-    def __getitem__(self, idx: int) -> tuple[np.ndarray, np.ndarray]:
-        """
-
-        :param idx: index of the image to be loaded
-        :return: the corresponding sample from the dataset
-        """
-
-        # grab the image path from the current index
-        image_path = self.imagePaths[idx]
-
-        image = np.load(image_path)
-        # image = image['arr_0'].astype(np.float32) # this is only needed for npx files saved with np.savez_compressed
-        image = image.astype(np.float32)
-        image = image / 255.0
-        image = np.moveaxis(image, 0, -1)
-
-        # load the corresponding ground-truth segmentation mask in grayscale mode
-        mask = cv2.imread(self.maskPaths[idx], cv2.IMREAD_UNCHANGED)
-
-        mask = mask.astype(int)
-        mask = mask * NUM_ENCODED_CHANNELS // 255
-
-        masks = [None] * NUM_CLASSES
-        for cid in range(NUM_CLASSES):
-            masks[cid] = cv2.inRange(mask, cid, cid)  # add + 1 behind cid to exclude background
-
-        masks = np.stack(masks, axis=-1)
+        encoded_mask = np.stack(encoded_mask, axis=-1)
 
         # check to see if we are applying any transformations
         if self.transforms is not None:
             # apply the transformations to both image and its mask
-            image = self.transforms(image)
-            masks = self.transforms(masks)
+            patch_img = self.transforms(patch_img)
+            encoded_mask = self.transforms(encoded_mask)
 
         if self.apply_augmentations:
 
             for aug in self.augmentations:
-                image, masks = aug.apply(image, masks)
+                patch_img, encoded_mask = aug.apply(patch_img, encoded_mask)
 
         # return a tuple of the image and its mask
-        return image, masks
+        return patch_img, encoded_mask

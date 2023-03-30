@@ -1,8 +1,8 @@
 import os
 
-SAMPLES_PER_DATE = 600
+SAMPLES_PER_DATE = 512
 
-IMG_SIZE = 256
+IMAGE_SIZE = 256
 NUM_ENCODED_CHANNELS = 5
 SELECTED_BANDS = ["B01", "B02", "B03", "B04", "B05", "B06", "B07", "B08", "B8A", "B09", "B10", "B11", "B12"]
 
@@ -16,9 +16,6 @@ EXTRACTED_RAW_DATA = os.environ['EXTRACTED_RAW_DATA']
 MAKS_PATH = os.environ['ANNOTATED_MASKS_DIR']
 DATASET_DIR = os.environ['DATASET_DIR']
 RESULTS = os.environ['RESULTS_DIR']
-
-LIMIT_DATES = int(os.environ['LIMIT_DATES'])
-
 
 # ====================================
 # ====================================

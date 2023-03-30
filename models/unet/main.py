@@ -10,7 +10,8 @@ from sklearn.model_selection import train_test_split
 from torch.utils.data import DataLoader
 from torchvision import transforms as tsfm
 
-from DataLoader.SegmentationDataset import SegmentationDataset
+from DataLoader.SegmentationDiskDataset import SegmentationDiskDataset
+from DataLoader.SegmentationLiveDataset import SegmentationLiveDataset
 from augmentation.Augmentation import Augmentation
 from augmentation.ChannelDropout import ChannelDropout
 from augmentation.HorizontalFlip import HorizontalFlip
@@ -22,6 +23,11 @@ from configs.config import report_config, IMAGE_DATASET_PATH, MASK_DATASET_PATH,
 from model.Model import UNet
 from model.inference import make_predictions
 from training import train_unet
+
+# import the necessary packages form the pre-processing/image_splitter
+sys.path.insert(0, os.environ['BASE_DIR'] + '/helper-scripts/python_helpers')
+# noinspection PyUnresolvedReferences
+from pipeline_config import load_pipeline_config, get_dates
 
 
 def load_data():
@@ -55,19 +61,34 @@ def load_data():
     ]
 
     # create the train and test datasets
-    train_ds = SegmentationDataset(image_paths=trainImages, mask_paths=trainMasks, transforms=transforms,
-                                   apply_augmentations=ENABLE_DATA_AUGMENTATION, augmentations=augmentations)
-    test_ds = SegmentationDataset(image_paths=testImages, mask_paths=testMasks,
-                                  transforms=transforms, apply_augmentations=False)
+    # the live dataset creation can be enabled using the create_on_the_fly
+    # setting in th pipeline_config.json
+    if int(os.environ.get("LIVE_DATASET", 0)) == 1:
+
+        print(f"[INFO] creating the dataset on the fly. (LIVE_DATASET=1)")
+
+        pipeline_config = load_pipeline_config()
+        dates = get_dates(pipeline_config, pipeline_step='dataset')
+
+        train_ds = SegmentationLiveDataset(dates=dates, transforms=transforms,
+                                           apply_augmentations=ENABLE_DATA_AUGMENTATION,
+                                           augmentations=augmentations)
+
+        test_ds = SegmentationLiveDataset(dates=dates, transforms=transforms,
+                                          apply_augmentations=False,
+                                          augmentations=[])
+    else:
+        train_ds = SegmentationDiskDataset(image_paths=trainImages, mask_paths=trainMasks, transforms=transforms,
+                                           apply_augmentations=ENABLE_DATA_AUGMENTATION, augmentations=augmentations)
+        test_ds = SegmentationDiskDataset(image_paths=testImages, mask_paths=testMasks,
+                                          transforms=transforms, apply_augmentations=False)
 
     # create the training and test data loaders
-    num_workers = min(os.cpu_count(), 6)  # max 6 workers
-    num_workers = NUM_DATA_LOADER_WORKERS if NUM_DATA_LOADER_WORKERS > 0 else num_workers
-    print(f"\n[INFO] using {num_workers} workers to load the data.")
+    # TODO: check if we can use more workers
     train_loader = DataLoader(train_ds, shuffle=True, batch_size=BATCH_SIZE, prefetch_factor=BATCH_PREFETCHING,
-                              pin_memory=PIN_MEMORY, num_workers=num_workers)
+                              pin_memory=PIN_MEMORY, num_workers=1)
     test_loader = DataLoader(test_ds, shuffle=False, batch_size=BATCH_SIZE, prefetch_factor=BATCH_PREFETCHING,
-                             pin_memory=PIN_MEMORY, num_workers=num_workers)
+                             pin_memory=PIN_MEMORY, num_workers=1)
 
     print(f"[INFO] loaded {len(train_ds)} examples in the train set.")
     print(f"[INFO] loaded {len(test_ds)} examples in the test set.")

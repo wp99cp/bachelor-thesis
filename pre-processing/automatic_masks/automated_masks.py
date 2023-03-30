@@ -6,12 +6,16 @@ import cv2
 import numpy as np
 import psutil
 import rasterio
-import yaml
 from joblib import Parallel, delayed
 from rasterio.windows import from_bounds
 from s2cloudless import S2PixelCloudDetector
 
 from config import BORDER_WIDTH, report_config
+
+# import the necessary packages form the pre-processing/image_splitter
+sys.path.insert(0, os.environ['BASE_DIR'] + '/helper-scripts/python_helpers')
+# noinspection PyUnresolvedReferences
+from pipeline_config import load_pipeline_config, get_dates
 
 EXTRACTED_RAW_DATA = os.environ['EXTRACTED_RAW_DATA']
 ANNOTATED_MASKS_DIR = os.environ['ANNOTATED_MASKS_DIR']
@@ -233,46 +237,10 @@ class MaskGenerator:
 
 
 def main():
-    print("Loading the config file...")
-    # get the pyth to the config file from the config_file arg
-    config_file = sys.argv[2]
-    print(config_file)
+    pipeline_config = load_pipeline_config()
+    dates = get_dates(pipeline_config)
 
-    config = None
-
-    with open(config_file, "r") as stream:
-        try:
-            config = yaml.safe_load(stream)
-        except yaml.YAMLError as exc:
-            print(exc)
-
-    if config is None:
-        print("Could not load the config file.")
-        return
-
-    dates = config['annotation']['s2_dates']
-
-    if len(dates) == 0:
-        print("No dates specified in the config file.")
-        print("Create masks for all dates found in the data directory.")
-
-        dates = []
-        for file in os.listdir(EXTRACTED_RAW_DATA):
-
-            # skip .gitignore and other files / directories
-            if "MSIL1C" not in file:
-                continue
-
-            print(file)
-
-            date = file.split("_")[2]
-            dates.append(date)
-
-        print("Found the following dates: ")
-        print(dates)
-        print("")
-
-    mask_generator = MaskGenerator(sample_date=config['data_handling']['s2_dates'][0])
+    mask_generator = MaskGenerator(sample_date=pipeline_config['data_handling']['s2_dates'][0])
     mask_generator.generate_masks(dates=dates)
 
 
