@@ -54,6 +54,7 @@ export default {
                         {text: 'Data Source', link: 'docs/data_sources'},
                         {text: 'Augmentation and Sampling', link: 'docs/augmentation_and_sampling'},
                         {text: 'Hand Annotations', link: 'docs/hand_annotations'},
+                        {text: 'Automated Annotations', link: 'docs/automated_annotations'},
                     ],
                     collapsible: true,
                     collapsed: true,
