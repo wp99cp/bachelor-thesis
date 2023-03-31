@@ -81,6 +81,9 @@ def load_data():
         test_loader = train_loader
 
     else:
+
+        print(f"[INFO] loading the dataset from disk. (LIVE_DATASET=0)")
+
         train_ds = SegmentationDiskDataset(image_paths=trainImages, mask_paths=trainMasks, transforms=transforms,
                                            apply_augmentations=ENABLE_DATA_AUGMENTATION, augmentations=augmentations)
         test_ds = SegmentationDiskDataset(image_paths=testImages, mask_paths=testMasks,

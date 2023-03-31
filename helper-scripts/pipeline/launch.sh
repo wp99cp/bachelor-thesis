@@ -1,11 +1,11 @@
 #!/bin/bash
 
 #SBATCH --time=03:59:00
-#SBATCH -n 8
-#SBATCH --mem-per-cpu=12G
+#SBATCH -n 32
+#SBATCH --mem-per-cpu=4G
 #SBATCH --gpus=1
 #SBATCH --gres=gpumem:10g
-#SBATCH --tmp=800G
+#SBATCH --tmp=100G
 #SBATCH --open-mode=truncate
 #SBATCH --output=/cluster/scratch/pucyril/%j/log/slurm-output.out
 #SBATCH --error=/cluster/scratch/pucyril/%j/log/slurm-error.out

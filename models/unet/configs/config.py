@@ -34,7 +34,7 @@ LIMIT_DATASET_SIZE = 0
 # initialize learning rate, number of epochs to train for, and the
 # batch size
 INIT_LR = 0.001
-MOMENTUM = 0.975
+MOMENTUM = 0.85
 WEIGHT_DECAY = 0.05
 NUM_EPOCHS = 100
 BATCH_SIZE = 24
