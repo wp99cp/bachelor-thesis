@@ -43,14 +43,6 @@ def load_data():
     print(f"[INFO] found a total of {len(mask_paths)} masks in '{MASK_DATASET_PATH}'.")
     assert len(image_paths) == len(mask_paths), "Number of images and masks must match."
 
-    # partition the data into training and testing splits using 85% of
-    # the data for training and the remaining 15% for testing
-    split = train_test_split(image_paths, mask_paths, test_size=TEST_SPLIT, random_state=42)
-
-    # unpack the data split
-    (trainImages, testImages) = split[:2]
-    (trainMasks, testMasks) = split[2:]
-
     # define transformations
     transforms = tsfm.Compose([tsfm.ToTensor()])
     augmentations: list[Augmentation] = [
@@ -59,6 +51,9 @@ def load_data():
         ChannelDropout(prob=CHANNEL_DROPOUT_PROB),
         RandomErasing(prob=CHANNEL_DROPOUT_PROB, min_size=COVERED_PATCH_SIZE_MIN, max_size=COVERED_PATCH_SIZE_MAX)
     ]
+
+    trainImages = []
+    testImages = []
 
     # create the train and test datasets
     # the live dataset creation can be enabled using the create_on_the_fly
@@ -81,6 +76,14 @@ def load_data():
         test_loader = train_loader
 
     else:
+
+        # partition the data into training and testing splits using 85% of
+        # the data for training and the remaining 15% for testing
+        split = train_test_split(image_paths, mask_paths, test_size=TEST_SPLIT, random_state=42)
+
+        # unpack the data split
+        (trainImages, testImages) = split[:2]
+        (trainMasks, testMasks) = split[2:]
 
         print(f"[INFO] loading the dataset from disk. (LIVE_DATASET=0)")
 
