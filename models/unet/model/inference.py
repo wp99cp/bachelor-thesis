@@ -117,7 +117,8 @@ def print_results(orig_image, orig_mask, predMask, imagePath: str):
 
     # Combine rgb and rgb_mask into a single image using rgb as background and rgb_mask as foreground with alpha mask
     mask_alpha = np.stack((mask_alpha,) * 3, axis=-1)
-    blended_image = rgb * (1 - mask_alpha) + rgb_mask * mask_alpha
+    blended_image = rgb_increased_gamma * (1 - mask_alpha) + rgb_mask * mask_alpha
+    blended_image = np.clip(blended_image, 0, 1)
 
     ax[0, 1].imshow(blended_image)
 
@@ -174,8 +175,14 @@ def print_results(orig_image, orig_mask, predMask, imagePath: str):
     # plot the difference mask
     figure.colorbar(ax[1, 1].imshow(diff_mask, cmap='bwr', vmin=0, vmax=1), ax=ax[1, 1])
 
+    mask_alpha = np.zeros(mask_alpha.shape, dtype=np.uint8)
+    mask_alpha[pred_mask_encoded != 0] = 1
     cmap, rgb_pred_mask = colorize_mask(pred_mask_encoded)
-    ax[1, 0].imshow(rgb_pred_mask)
+
+    blended_image_prediction = rgb_increased_gamma * (1 - mask_alpha) + rgb_pred_mask * mask_alpha
+    blended_image_prediction = np.clip(blended_image_prediction, 0, 1)
+
+    ax[1, 0].imshow(blended_image_prediction)
     ax[1, 0].legend(handles=legend_elements, loc='upper right')
 
     # set the layout of the figure and display it
