@@ -1,5 +1,7 @@
 import os
+import random
 import sys
+from queue import Queue
 
 import cv2
 import numpy as np
@@ -7,7 +9,7 @@ from torchvision.transforms import Compose
 
 from DataLoader.SegmentationDataset import SegmentationDataset
 from augmentation.Augmentation import Augmentation
-from configs.config import NUM_CLASSES
+from configs.config import NUM_CLASSES, BATCH_PREFETCHING, BATCH_MIXTURE, BATCH_SIZE
 
 # import the necessary packages form the pre-processing/image_splitter
 sys.path.insert(0, os.environ['BASE_DIR'] + '/pre-processing/image_splitter')
@@ -29,12 +31,16 @@ class SegmentationLiveDataset(SegmentationDataset):
                  dates: list[str],
                  transforms: Compose,
                  apply_augmentations: bool = True,
-                 augmentations: list[Augmentation] = None):
+                 augmentations: list[Augmentation] = None,
+                 mixture: int = BATCH_MIXTURE,
+                 mixture_queue_size: int = int(BATCH_SIZE / BATCH_MIXTURE) * BATCH_PREFETCHING
+                 ):
         """
         :param dates: The dates from which the patches should be created.
         :param transforms: transformations to be applied to the patches
         :param apply_augmentations: if True, the augmentations will be applied to the patches
         :param augmentations: augmentations to be applied to the patches
+        :param mixture: number of different dates used concurrently for fetching patches
         """
 
         super().__init__(
@@ -43,13 +49,23 @@ class SegmentationLiveDataset(SegmentationDataset):
             augmentations=augmentations
         )
 
+        self.__dates = dates
         self.patch_creator = RandomPatchCreator(dates=dates)
 
-        print(f"Dataloader initialized with the following dates: {dates}")
+        print(f"\nDataloader initialized with the following dates: {dates}")
+        print(f"- number mixture queues: {mixture}")
+        print(f"- mixture queue size: {mixture_queue_size}\n")
 
-        # TODO: Calculate free memory...
-        self.patch_creator.open_date(dates[0])
-        self.patch_creator.open_date(dates[1])
+        self.__mixture = min(mixture, len(dates))
+        self.__mixture_queue_size = mixture_queue_size
+
+        self.__queues = []
+        for i in range(self.__mixture):
+            self.__queues.append(Queue(maxsize=mixture_queue_size))
+
+        # prefill the queues
+        for i in range(self.__mixture):
+            self.__fill_queue(i, dates[i])
 
     def __len__(self) -> int:
         """
@@ -68,7 +84,15 @@ class SegmentationLiveDataset(SegmentationDataset):
         :return: the corresponding sample from the dataset
         """
 
-        patch_img, mask = self.patch_creator.next()
+        # select a random queue
+        queue_idx = np.random.randint(0, self.__mixture)
+
+        # pop the next patch from the queue
+        patch_img, mask = self.__queues[queue_idx].get()
+
+        # fill the queue if it is empty with a new random date
+        if self.__queues[queue_idx].empty():
+            self.__fill_queue(queue_idx, random.choice(self.__dates))
 
         # one hot encode the mask
         encoded_mask = [None] * NUM_CLASSES
@@ -76,3 +100,16 @@ class SegmentationLiveDataset(SegmentationDataset):
             encoded_mask[cid] = cv2.inRange(mask, cid, cid)  # add + 1 behind cid to exclude background
 
         return self._transform_and_augment(patch_img, encoded_mask)
+
+    def __fill_queue(self, queue_idx: int, date: str):
+
+        print(f"\nfilling queue {queue_idx} with patches from date {date}")
+        self.patch_creator.open_date(date)
+
+        for i in range(self.__mixture_queue_size):
+            patch = self.patch_creator.random_patch(date)
+
+            assert self.__queues[queue_idx].full() is False, f"Queue {queue_idx} is full"
+            self.__queues[queue_idx].put(patch)
+
+        print(f"Finished filling queue {queue_idx} with patches from date {date}\n")

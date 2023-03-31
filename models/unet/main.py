@@ -19,7 +19,7 @@ from augmentation.RandomErasing import RandomErasing
 from augmentation.VerticalFlip import VerticalFlip
 from configs.config import report_config, IMAGE_DATASET_PATH, MASK_DATASET_PATH, TEST_SPLIT, BATCH_SIZE, PIN_MEMORY, \
     DEVICE, BASE_OUTPUT, ENABLE_DATA_AUGMENTATION, IMAGE_FLIP_PROB, CHANNEL_DROPOUT_PROB, \
-    COVERED_PATCH_SIZE_MIN, COVERED_PATCH_SIZE_MAX, LIMIT_DATASET_SIZE, NUM_DATA_LOADER_WORKERS, BATCH_PREFETCHING
+    COVERED_PATCH_SIZE_MIN, COVERED_PATCH_SIZE_MAX, LIMIT_DATASET_SIZE, BATCH_PREFETCHING, NUM_DATA_LOADER_WORKERS
 from model.Model import UNet
 from model.inference import make_predictions
 from training import train_unet
@@ -74,21 +74,23 @@ def load_data():
                                            apply_augmentations=ENABLE_DATA_AUGMENTATION,
                                            augmentations=augmentations)
 
-        test_ds = SegmentationLiveDataset(dates=dates, transforms=transforms,
-                                          apply_augmentations=False,
-                                          augmentations=[])
+        train_loader = DataLoader(train_ds, shuffle=True, batch_size=BATCH_SIZE, prefetch_factor=BATCH_PREFETCHING,
+                                  pin_memory=PIN_MEMORY, num_workers=NUM_DATA_LOADER_WORKERS)
+
+        test_ds = train_ds
+        test_loader = train_loader
+
     else:
         train_ds = SegmentationDiskDataset(image_paths=trainImages, mask_paths=trainMasks, transforms=transforms,
                                            apply_augmentations=ENABLE_DATA_AUGMENTATION, augmentations=augmentations)
         test_ds = SegmentationDiskDataset(image_paths=testImages, mask_paths=testMasks,
                                           transforms=transforms, apply_augmentations=False)
 
-    # create the training and test data loaders
-    # TODO: check if we can use more workers
-    train_loader = DataLoader(train_ds, shuffle=True, batch_size=BATCH_SIZE, prefetch_factor=BATCH_PREFETCHING,
-                              pin_memory=PIN_MEMORY, num_workers=1)
-    test_loader = DataLoader(test_ds, shuffle=False, batch_size=BATCH_SIZE, prefetch_factor=BATCH_PREFETCHING,
-                             pin_memory=PIN_MEMORY, num_workers=1)
+        # create the training and test data loaders
+        train_loader = DataLoader(train_ds, shuffle=True, batch_size=BATCH_SIZE, prefetch_factor=BATCH_PREFETCHING,
+                                  pin_memory=PIN_MEMORY, num_workers=NUM_DATA_LOADER_WORKERS)
+        test_loader = DataLoader(test_ds, shuffle=False, batch_size=BATCH_SIZE, prefetch_factor=BATCH_PREFETCHING,
+                                 pin_memory=PIN_MEMORY, num_workers=NUM_DATA_LOADER_WORKERS)
 
     print(f"[INFO] loaded {len(train_ds)} examples in the train set.")
     print(f"[INFO] loaded {len(test_ds)} examples in the test set.")

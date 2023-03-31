@@ -49,7 +49,7 @@ dataset:
   # this option will be used to select the dates
   # if you wish to create masks for all dates, just leave the array empty
   # if limit_dates is set to a value > 0, this option will be ignored
-  s2_dates: [ '20210205T102221' , '20210710T101559']
+  s2_dates: [ ]
 
   # loads the data directly without creating the dataset (1 or 0)
   # if this option is enabled the recreate_dataset option will be ignored

@@ -62,6 +62,7 @@ class ModelTrainer:
 
             print(f"\nStart training epoch {self.epoch}...")
 
+            # TODO: forward train ds to switch dates after each step
             train_loss = self.__train_epoch(loader=train_loader, num_batches=train_steps)
             test_loss, metrics_results = self.__test_epoch(loader=test_loader, num_batches=test_steps)
 

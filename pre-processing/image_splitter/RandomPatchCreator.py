@@ -63,6 +63,9 @@ class RandomPatchCreator:
 
         assert date in self.__dates, "Invalid date given."
 
+        if date not in self.__centers.keys():
+            self.__centers[date] = []
+
         # lock the memory manager
         self.__lock.acquire()
         if not self.__memory_Manager.has_date(date):
@@ -74,11 +77,9 @@ class RandomPatchCreator:
                 'bands': self.__load_bands_into_memory(date),
                 'mask': self.__load_mask_into_memory(date),
             })
+
         else:
             self.__lock.release()
-
-        if date not in self.__centers.keys():
-            self.__centers[date] = []
 
     def close_date(self, date: str):
         """
@@ -209,6 +210,10 @@ class RandomPatchCreator:
         # sample new location
         mask_coverage = self.get_mask_coverage(date)
         coords = self.__sample_patch_center_coords(mask_coverage)
+
+        if date not in self.__centers.keys():
+            self.__centers[date] = []
+
         self.__centers[date].append(coords)
 
         x, y = coords
@@ -239,7 +244,9 @@ class RandomPatchCreator:
 
     # sample a random patch from the mask_coverage
     # where the mask_coverage is 1
-    def __sample_patch_center_coords(self, _mask_coverage):
+    def __sample_patch_center_coords(self, _mask_coverage, count=0):
+
+        assert count < 1_000, "Could not find a valid patch after 1'000 tries."
 
         # sample a random patch
         _x = np.random.randint(0, _mask_coverage.shape[0] - IMAGE_SIZE)
@@ -249,7 +256,7 @@ class RandomPatchCreator:
         if np.sum(_mask_coverage[_x:_x + IMAGE_SIZE, _y:_y + IMAGE_SIZE]) == IMAGE_SIZE ** 2:
             return _x, _y
         else:
-            return self.__sample_patch_center_coords(_mask_coverage)
+            return self.__sample_patch_center_coords(_mask_coverage, count + 1)
 
     # Load the mask_coverage and the mask
     def __load_mask_coverage(self, _date):
