@@ -266,9 +266,7 @@ else
   trap 'handle_signal USR1' USR1
 
   # Start the Python process in the background and save its PID
-  python3 "$BASE_DIR/models/unet/main.py" --retrain \
-    \
-    \
+  python3 -u "$BASE_DIR/models/unet/main.py" --retrain \
     PYTHON_PID=$! 1>"$LOG_DIR/python_train_model.log" \
     2>"$LOG_DIR/python_train_model.error"
 
