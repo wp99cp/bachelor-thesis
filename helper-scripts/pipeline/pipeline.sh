@@ -267,8 +267,10 @@ else
 
   # Start the Python process in the background and save its PID
   python3 -u "$BASE_DIR/models/unet/main.py" --retrain \
-    PYTHON_PID=$! 1>"$LOG_DIR/python_train_model.log" \
+    1>"$LOG_DIR/python_train_model.log" \
     2>"$LOG_DIR/python_train_model.error"
+
+  PYTHON_PID=$!
 
   # Wait for the Python process to finish
   echo "Waiting for Python process (PID=$PYTHON_PID) to finish"
