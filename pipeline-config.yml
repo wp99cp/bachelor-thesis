@@ -51,6 +51,7 @@ dataset:
   # if limit_dates is set to a value > 0, this option will be ignored
   s2_dates: [ '20210116T102351', '20210121T102239', '20210126T102311', '20210131T102149', '20210215T102121', '20210220T101939', '20210225T102021', '20210302T101839', '20210307T102021', '20210322T101649', '20210401T101559', '20210406T102021', '20210416T102021' ]
 
+  # WARNING: currently this option is very slow
   # loads the data directly without creating the dataset (1 or 0)
   # if this option is enabled the recreate_dataset option will be ignored
   # in this mode, the dataloader will dynamically load the data from the raw folder
