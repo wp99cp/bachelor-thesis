@@ -20,10 +20,8 @@ def make_predictions(model, image_path):
         # to float data type, and scale its pixel values
         image = np.load(image_path)
         # image = image['arr_0'] # this is only needed for the npy files saved with np.savez_compressed
-        image = image.astype(np.float32)
-        image = image / 255.0
         orig = image.copy()
-        orig = np.moveaxis(orig, 0, -1)
+        # orig = np.moveaxis(orig, 0, -1)
 
         # find the filename and generate the path to ground truth
         # mask
@@ -40,6 +38,7 @@ def make_predictions(model, image_path):
         # make the channel axis to be the leading one, add a batch
         # dimension, create a PyTorch tensor, and flash it to the
         # current device
+        image = np.moveaxis(image, 2, 0)
         image = np.expand_dims(image, 0)
         image = torch.from_numpy(image).to(DEVICE)
 

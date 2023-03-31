@@ -2,7 +2,7 @@ import os
 
 import yaml
 
-LIMIT_DATES = int(os.environ['LIMIT_DATES'])
+LIMIT_DATES = int(os.environ.get('LIMIT_DATES', 0))
 
 
 def load_pipeline_config():
