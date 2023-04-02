@@ -272,13 +272,15 @@ else
   # Start the Python process in the background and save its PID
   if [[ "${config_training_enabled}" -eq 0 ]]; then
     python3 -u "$BASE_DIR/models/unet/main.py" \
-      PYTHON_PID=$! 1>"$LOG_DIR/python_train_model.log" \
+      1>"$LOG_DIR/python_train_model.log" \
       2>"$LOG_DIR/python_train_model.error"
   else
     python3 -u "$BASE_DIR/models/unet/main.py" --retrain \
-      PYTHON_PID=$! 1>"$LOG_DIR/python_train_model.log" \
+      1>"$LOG_DIR/python_train_model.log" \
       2>"$LOG_DIR/python_train_model.error"
   fi
+
+  PYTHON_PID=$!
 
   # Wait for the Python process to finish
   echo "Waiting for Python process (PID=$PYTHON_PID) to finish"
