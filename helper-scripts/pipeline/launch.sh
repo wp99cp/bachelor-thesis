@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#SBATCH --time=03:59:00
+#SBATCH --time=23:59:00
 #SBATCH -n 8
 #SBATCH --mem-per-cpu=10G
 #SBATCH --gpus=1
