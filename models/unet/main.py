@@ -4,11 +4,13 @@ import sys
 import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
+import rasterio
 import torch
 from imutils import paths
 from sklearn.model_selection import train_test_split
 from torch.utils.data import DataLoader
 from torchvision import transforms as tsfm
+import tqdm
 
 from DataLoader.SegmentationDiskDataset import SegmentationDiskDataset
 from DataLoader.SegmentationLiveDataset import SegmentationLiveDataset
@@ -19,7 +21,8 @@ from augmentation.RandomErasing import RandomErasing
 from augmentation.VerticalFlip import VerticalFlip
 from configs.config import report_config, IMAGE_DATASET_PATH, MASK_DATASET_PATH, TEST_SPLIT, BATCH_SIZE, PIN_MEMORY, \
     DEVICE, BASE_OUTPUT, ENABLE_DATA_AUGMENTATION, IMAGE_FLIP_PROB, CHANNEL_DROPOUT_PROB, \
-    COVERED_PATCH_SIZE_MIN, COVERED_PATCH_SIZE_MAX, LIMIT_DATASET_SIZE, BATCH_PREFETCHING, NUM_DATA_LOADER_WORKERS
+    COVERED_PATCH_SIZE_MIN, COVERED_PATCH_SIZE_MAX, LIMIT_DATASET_SIZE, BATCH_PREFETCHING, NUM_DATA_LOADER_WORKERS, \
+    THRESHOLD
 from model.Model import UNet
 from model.inference import make_predictions
 from training import train_unet
@@ -28,6 +31,11 @@ from training import train_unet
 sys.path.insert(0, os.environ['BASE_DIR'] + '/helper-scripts/python_helpers')
 # noinspection PyUnresolvedReferences
 from pipeline_config import load_pipeline_config, get_dates
+
+# import the necessary packages form the pre-processing/image_splitter
+sys.path.insert(0, os.environ['BASE_DIR'] + '/pre-processing/image_splitter')
+# noinspection PyUnresolvedReferences
+from RandomPatchCreator import RandomPatchCreator
 
 
 def load_data():
@@ -161,17 +169,116 @@ def main():
 
     unet.print_summary()
 
-    # lost filenames inside IMAGE_DATASET_PATH
-    file_names = [f for f in os.listdir(IMAGE_DATASET_PATH) if os.path.isfile(os.path.join(IMAGE_DATASET_PATH, f))]
-    print(f"Found {len(file_names)} files in {IMAGE_DATASET_PATH}.")
+    pipeline_config = load_pipeline_config()
 
-    for i in range(10):
-        # choose a random file
-        file = np.random.choice(file_names)
-        print(f"Using {file} for prediction.")
+    if pipeline_config["inference"]["legacy_mode"]:
 
-        # make predictions and visualize the results
-        make_predictions(unet, os.path.join(IMAGE_DATASET_PATH, file))
+        # lost filenames inside IMAGE_DATASET_PATH
+        file_names = [f for f in os.listdir(IMAGE_DATASET_PATH) if os.path.isfile(os.path.join(IMAGE_DATASET_PATH, f))]
+        print(f"Found {len(file_names)} files in {IMAGE_DATASET_PATH}.")
+
+        for i in range(10):
+            # choose a random file
+            file = np.random.choice(file_names)
+            print(f"Using {file} for prediction.")
+
+            # make predictions and visualize the results
+            make_predictions(unet, os.path.join(IMAGE_DATASET_PATH, file))
+
+    else:
+
+        # create a mask for the s2_date
+        s2_date = pipeline_config["inference"]["s2_date"]
+        limit_patches = pipeline_config["inference"]["limit_patches"]
+
+        patch_creator = RandomPatchCreator(dates=[s2_date], coverage_mode=True)
+        patch_creator.open_date(s2_date)
+
+        profile = _get_profile(s2_date)
+
+        predicted_mask_full_tile = np.zeros((1, profile["height"], profile["width"]), dtype='uint8')
+
+        pbar = tqdm.tqdm(range(limit_patches))
+        for i in pbar:
+            # choose a random patch
+            (x, y), image, mask = patch_creator.next(get_coordinates=True)
+            w, h = mask.shape
+
+            # prepare image
+            image = image.transpose(2, 0, 1)
+            image = image[np.newaxis, ...]
+
+            pbar.set_description(f"Using {(x, y)} for prediction.")
+
+            # make predictions and visualize the results
+            # thus we can reuse the mask generation code
+            # turn off gradient tracking
+            with torch.no_grad():
+                image = torch.from_numpy(image).to(DEVICE)
+                _, predicted_mask = unet(image)
+                predicted_mask = predicted_mask.cpu().numpy()
+
+                # convert to encoded mask
+                pred_mask_encoded = get_encoded_prediction(predicted_mask)
+
+            # save the patch at the corresponding coordinates
+            predicted_mask_full_tile[0, x:x + w, y:y + h] = pred_mask_encoded
+
+            # Create the empty JP2 file
+            path = BASE_OUTPUT + f"/{s2_date}_mask_prediction.jp2"
+            with rasterio.open(path, 'w', **profile) as mask_file:
+                mask_file.write(predicted_mask_full_tile)
+
+
+def get_encoded_prediction(predicted_mask):
+    predicted_mask = predicted_mask[0, :, :, :]
+    predicted_mask = predicted_mask.transpose(1, 2, 0)
+    predicted_mask[:, :, 1] = (predicted_mask[:, :, 1] > THRESHOLD).astype(int)
+    predicted_mask[:, :, 2] = (predicted_mask[:, :, 2] > THRESHOLD).astype(int)
+    predicted_mask[:, :, 3] = (predicted_mask[:, :, 3] > THRESHOLD).astype(int)
+
+    pred_mask_encoded = np.zeros((predicted_mask.shape[0], predicted_mask.shape[1]), dtype=np.uint8)
+    pred_mask_encoded[predicted_mask[:, :, 1] == 1] = 1
+    pred_mask_encoded[predicted_mask[:, :, 2] == 1] = 2
+    pred_mask_encoded[predicted_mask[:, :, 3] == 1] = 3
+
+    return pred_mask_encoded
+
+
+def _get_base_path(date):
+    EXTRACTED_RAW_DATA = os.environ['EXTRACTED_RAW_DATA']
+
+    folders = os.listdir(EXTRACTED_RAW_DATA)
+    folders = [f for f in folders if f"_MSIL1C_{date}" in f]
+    folder = folders[0]
+
+    base_path = f"{EXTRACTED_RAW_DATA}/{folder}/GRANULE/"
+    sub_folder = os.listdir(base_path)
+    base_path += sub_folder[0] + '/IMG_DATA'
+
+    return base_path
+
+
+def _get_profile(s2_date):
+    base_path = _get_base_path(s2_date)
+    B02 = f"T32TNS_{s2_date}_B02.jp2"
+    B02 = rasterio.open(f"{base_path}/{B02}")
+
+    profile = {
+        'driver': 'GTiff',
+        'dtype': np.uint8,
+        'nodata': 0,
+        'width': B02.width,
+        'height': B02.height,
+        'count': 1,
+        'crs': B02.crs,
+        'transform': B02.transform,
+        'blockxsize': 512,
+        'blockysize': 512,
+        'compress': 'lzw',
+    }
+
+    return profile
 
 
 if __name__ == "__main__":

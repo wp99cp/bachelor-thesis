@@ -1,6 +1,7 @@
 import os
 import random
 from multiprocessing import Lock
+from typing import Tuple
 
 import cv2
 import numpy as np
@@ -10,7 +11,7 @@ from numpy import float32
 from PixelClassCounter import PixelClassCounter
 from SentinelMemoryManager import SentinelMemoryManager
 from config import NUM_ENCODED_CHANNELS, IMAGE_SIZE, MAKS_PATH, \
-    EXTRACTED_RAW_DATA, SELECTED_BANDS
+    EXTRACTED_RAW_DATA, SELECTED_BANDS, BORDER_WITH
 
 
 class RandomPatchCreator:
@@ -21,6 +22,7 @@ class RandomPatchCreator:
             mask_base_dir: str = MAKS_PATH,
             raw_data_base_dir: str = EXTRACTED_RAW_DATA,
             selected_bands: list[str] = SELECTED_BANDS,
+            coverage_mode: bool = False
     ):
         """
 
@@ -44,6 +46,10 @@ class RandomPatchCreator:
         self.__lock = Lock()
 
         self.__pixel_counter = PixelClassCounter(NUM_ENCODED_CHANNELS)
+
+        # Coverage Mode covers the whole tile, if set to false, the patches get sampled randomly
+        self.__coverage_mode = coverage_mode
+        self.__coverage_coords = [BORDER_WITH, BORDER_WITH]
 
     def get_bands(self, date: str):
         return self.__memory_Manager.get_date_data(date)['bands']
@@ -187,9 +193,10 @@ class RandomPatchCreator:
         # TODO: implement this function
         return True
 
-    def next(self):
+    def next(self, get_coordinates: bool = False):
         """
         Creates a random patch from the raw data.
+        :param get_coordinates: if True, the coordinates of the patch are returned
         :return: the patch, its center coordinates, and the mask
         """
 
@@ -198,9 +205,29 @@ class RandomPatchCreator:
         date = random.choice(list(self.__memory_Manager.get_open_dates()))
 
         # get a random patch from the given date
-        return self.random_patch(date)
+        if not self.__coverage_mode:
+            return self.random_patch(date, get_coordinates)
 
-    def random_patch(self, date: str):
+        # get location
+        coords = self.__next_coverage(date)
+        return self.__get_patch(date, get_coordinates, coords)
+
+    def __next_coverage(self, date):
+
+        self.__coverage_coords[0] = self.__coverage_coords[0] + IMAGE_SIZE
+        width = self.get_bands(date).shape[2] - BORDER_WITH
+        height = self.get_bands(date).shape[1] - BORDER_WITH
+
+        if self.__coverage_coords[0] >= width:
+            self.__coverage_coords[0] = BORDER_WITH
+            self.__coverage_coords[1] = self.__coverage_coords[1] + IMAGE_SIZE
+
+        if self.__coverage_coords[1] >= height:
+            raise StopIteration
+
+        return self.__coverage_coords
+
+    def random_patch(self, date: str, get_coordinates: bool = False):
         """
         Creates a random patch from the raw data.
 
@@ -211,6 +238,9 @@ class RandomPatchCreator:
         mask_coverage = self.get_mask_coverage(date)
         coords = self.__sample_patch_center_coords(mask_coverage)
 
+        return self.__get_patch(date, get_coordinates, coords)
+
+    def __get_patch(self, date: str, get_coordinates: bool = False, coords: Tuple[int, int] = None):
         if date not in self.__centers.keys():
             self.__centers[date] = []
 
@@ -234,6 +264,9 @@ class RandomPatchCreator:
         img_patch = img_patch.astype(np.float32)
         img_patch = img_patch / 255.0
         img_patch = np.moveaxis(img_patch, 0, -1)
+
+        if get_coordinates:
+            return coords, img_patch, mask_patch.astype(np.uint8)
 
         return img_patch, mask_patch.astype(np.uint8)
 

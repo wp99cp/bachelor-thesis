@@ -249,7 +249,11 @@ export LIVE_DATASET="$config_dataset_create_on_the_fly"
 
 if [[ -z "${RUNS_ON_EULER}" ]]; then
 
-  python3 "$BASE_DIR/models/unet/main.py" --retrain
+  if [[ "${config_training_enabled}" -eq 0 ]]; then
+    python3 "$BASE_DIR/models/unet/main.py"
+  else
+    python3 "$BASE_DIR/models/unet/main.py" --retrain
+  fi
 
 else
 
@@ -266,9 +270,15 @@ else
   trap 'handle_signal USR1' USR1
 
   # Start the Python process in the background and save its PID
-  python3 -u "$BASE_DIR/models/unet/main.py" --retrain \
-    PYTHON_PID=$! 1>"$LOG_DIR/python_train_model.log" \
-    2>"$LOG_DIR/python_train_model.error"
+  if [[ "${config_training_enabled}" -eq 0 ]]; then
+    python3 -u "$BASE_DIR/models/unet/main.py" \
+      PYTHON_PID=$! 1>"$LOG_DIR/python_train_model.log" \
+      2>"$LOG_DIR/python_train_model.error"
+  else
+    python3 -u "$BASE_DIR/models/unet/main.py" --retrain \
+      PYTHON_PID=$! 1>"$LOG_DIR/python_train_model.log" \
+      2>"$LOG_DIR/python_train_model.error"
+  fi
 
   # Wait for the Python process to finish
   echo "Waiting for Python process (PID=$PYTHON_PID) to finish"
