@@ -144,7 +144,13 @@ class RandomPatchCreator:
 
         # Search for a folder starting with "S2B_MSIL1C_$DATE"
         base_dir = self.__get_date_base_dir(date)
-        band_files = [f"{base_dir}/{band_file_names[b]}" for b in self.selected_bands]
+        band_files = [f"{base_dir}/{band_file_names[b]}" for b in self.selected_bands if b in band_file_names.keys()]
+
+        # add additional metadata to the bands
+        elevation_tiff = f"{self.raw_data_base_dir}/32TNS_auxiliary_data/DEM_32TNS_10m_epsg32632.tif"
+
+        if "ELEV" in self.selected_bands:
+            band_files.append(elevation_tiff)
 
         # open all the bands
         bands_data = []
