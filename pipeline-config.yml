@@ -44,7 +44,7 @@ dataset:
 
   # limits the number of dates to be used for the dataset
   # if you wish to use all dates, just set this to 0
-  limit_dates: 1
+  limit_dates: 0
 
   # this option will be used to select the dates
   # if you wish to create masks for all dates, just leave the array empty
