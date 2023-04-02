@@ -249,10 +249,16 @@ export LIVE_DATASET="$config_dataset_create_on_the_fly"
 
 if [[ -z "${RUNS_ON_EULER}" ]]; then
 
-  if [[ "${config_training_enabled}" -eq 0 ]]; then
+  if [[ "${config_training_enable}" -eq 0 ]]; then
+
+    echo "RUN python '$BASE_DIR/models/unet/main.py'"
     python3 "$BASE_DIR/models/unet/main.py"
+
   else
+
+    echo "RUN python '$BASE_DIR/models/unet/main.py' --retrain"
     python3 "$BASE_DIR/models/unet/main.py" --retrain
+
   fi
 
 else
@@ -270,11 +276,17 @@ else
   trap 'handle_signal USR1' USR1
 
   # Start the Python process in the background and save its PID
-  if [[ "${config_training_enabled}" -eq 0 ]]; then
+  if [[ "${config_training_enable}" -eq 0 ]]; then
+
+    echo "RUN python '$BASE_DIR/models/unet/main.py'"
+
     python3 -u "$BASE_DIR/models/unet/main.py" \
       1>"$LOG_DIR/python_train_model.log" \
       2>"$LOG_DIR/python_train_model.error"
   else
+
+    echo "RUN python '$BASE_DIR/models/unet/main.py' --retrain"
+
     python3 -u "$BASE_DIR/models/unet/main.py" --retrain \
       1>"$LOG_DIR/python_train_model.log" \
       2>"$LOG_DIR/python_train_model.error"
