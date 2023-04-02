@@ -158,15 +158,8 @@ def print_results(orig_image, orig_mask, predMask, imagePath: str):
     ax[0, 1].legend(handles=legend_elements, loc='upper right')
 
     predMask = predMask.transpose(1, 2, 0)
-    predMask[:, :, 1] = (predMask[:, :, 1] > THRESHOLD).astype(int)
-    predMask[:, :, 2] = (predMask[:, :, 2] > THRESHOLD).astype(int)
-    predMask[:, :, 3] = (predMask[:, :, 3] > THRESHOLD).astype(int)
-
-    # map to (255, 255) by setting ones of the layers to 1, 2, 3
-    pred_mask_encoded = np.zeros((predMask.shape[0], predMask.shape[1]), dtype=np.uint8)
-    pred_mask_encoded[predMask[:, :, 1] == 1] = 1
-    pred_mask_encoded[predMask[:, :, 2] == 1] = 2
-    pred_mask_encoded[predMask[:, :, 3] == 1] = 3
+    predMask[:, :, :] = (predMask[:, :, :] > THRESHOLD).astype(int)
+    pred_mask_encoded = np.argmax(predMask, axis=2)
 
     # compute difference between predicted mask and original mask
     diff_mask = pred_mask_encoded - orig_mask

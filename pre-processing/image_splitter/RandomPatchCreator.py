@@ -214,13 +214,13 @@ class RandomPatchCreator:
 
     def __next_coverage(self, date):
 
-        self.__coverage_coords[0] = self.__coverage_coords[0] + IMAGE_SIZE
+        self.__coverage_coords[0] = self.__coverage_coords[0] + IMAGE_SIZE // 2
         width = self.get_bands(date).shape[2] - BORDER_WITH
         height = self.get_bands(date).shape[1] - BORDER_WITH
 
         if self.__coverage_coords[0] >= width:
             self.__coverage_coords[0] = BORDER_WITH
-            self.__coverage_coords[1] = self.__coverage_coords[1] + IMAGE_SIZE
+            self.__coverage_coords[1] = self.__coverage_coords[1] + IMAGE_SIZE // 2
 
         if self.__coverage_coords[1] >= height:
             raise StopIteration
