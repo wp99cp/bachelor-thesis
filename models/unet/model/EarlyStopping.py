@@ -24,7 +24,7 @@ class EarlyStopping:
 
         elif self.best_loss - val_loss < self.min_delta:
             self.counter += 1
-            if self.counter >= self.patience:
+            if self.counter > self.patience:
                 self.status = f"Stopped on {self.counter}"
                 if self.restore_best_weights:
                     model.load_state_dict(self.best_model.state_dict())
