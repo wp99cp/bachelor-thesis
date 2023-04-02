@@ -131,7 +131,7 @@ class ModelTrainer:
         pbar = tqdm.tqdm(loader)
 
         # loop over the training set
-        for i, (x, y) in enumerate(pbar):
+        for _, (x, y) in enumerate(pbar):
             # send the input to the device
             (x, y) = (x.to(DEVICE), y.to(DEVICE))
 

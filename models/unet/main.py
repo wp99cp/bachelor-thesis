@@ -164,7 +164,7 @@ def main():
         print("[INFO] emergency stop: skipping model inference.")
         return
 
-    unet = UNet().to(DEVICE)
+    unet = torch.compile(UNet().to(DEVICE))
     model_path = os.path.join(BASE_OUTPUT, "unet.pth")
     unet.load_state_dict(torch.load(model_path))
 
