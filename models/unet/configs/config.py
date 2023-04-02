@@ -15,7 +15,7 @@ NUM_CHANNELS = 13  # all satellite images have 13 channels
 NUM_CLASSES = 4
 CLASS_NAMES = ["background", "snow", "clouds", "water"]  # "thin_clouds"
 NUM_ENCODED_CHANNELS = 5  # Number of channels used to encode the grayscale image
-CLASS_WEIGHTS = [0.40922, 0.29371, 0.28889, 0.00818]  # class weights for background, snow, clouds, water
+CLASS_WEIGHTS = [0.37, 0.57, 0.04, 0.01]  # class weights for background, snow, clouds, water
 
 # define threshold to filter weak predictions
 THRESHOLD = 0.65
@@ -35,7 +35,7 @@ LIMIT_DATASET_SIZE = 0
 # batch size
 INIT_LR = 0.001
 MOMENTUM = 0.950
-WEIGHT_DECAY = 0.150
+WEIGHT_DECAY = 0.2
 NUM_EPOCHS = 100
 BATCH_SIZE = 24
 
