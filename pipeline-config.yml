@@ -74,4 +74,4 @@ inference:
 
   # limits the patches, 0 stands for the whole tile
   # this option is only used in the new mode
-  limit_patches: 500
+  limit_patches: 2048

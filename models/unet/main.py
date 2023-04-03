@@ -6,11 +6,12 @@ import matplotlib.pyplot as plt
 import numpy as np
 import rasterio
 import torch
+import tqdm
 from imutils import paths
+from numpy.random import multivariate_normal
 from sklearn.model_selection import train_test_split
 from torch.utils.data import DataLoader
 from torchvision import transforms as tsfm
-import tqdm
 
 from DataLoader.SegmentationDiskDataset import SegmentationDiskDataset
 from DataLoader.SegmentationLiveDataset import SegmentationLiveDataset
@@ -22,7 +23,7 @@ from augmentation.VerticalFlip import VerticalFlip
 from configs.config import report_config, IMAGE_DATASET_PATH, MASK_DATASET_PATH, TEST_SPLIT, BATCH_SIZE, PIN_MEMORY, \
     DEVICE, BASE_OUTPUT, ENABLE_DATA_AUGMENTATION, IMAGE_FLIP_PROB, CHANNEL_DROPOUT_PROB, \
     COVERED_PATCH_SIZE_MIN, COVERED_PATCH_SIZE_MAX, LIMIT_DATASET_SIZE, BATCH_PREFETCHING, NUM_DATA_LOADER_WORKERS, \
-    THRESHOLD
+    THRESHOLD, NUM_CLASSES, IMAGE_SIZE
 from model.Model import UNet
 from model.inference import make_predictions
 from training import train_unet
@@ -196,10 +197,13 @@ def main():
 
         profile = _get_profile(s2_date)
 
-        predicted_mask_full_tile = np.zeros((1, profile["height"], profile["width"]), dtype='uint8')
+        predicted_mask_full_tile = np.zeros((NUM_CLASSES, profile["height"], profile["width"]), dtype='float32')
+        gaussian_smoother = __smooth_kern(IMAGE_SIZE)
+        # copy NUM_CLASSES times the gaussian_smoother
+        gaussian_smoother = np.repeat(gaussian_smoother[np.newaxis, ...], NUM_CLASSES, axis=0)
 
         pbar = tqdm.tqdm(range(limit_patches))
-        for i in pbar:
+        for _ in pbar:
             # choose a random patch
             (x, y), image, mask = patch_creator.next(get_coordinates=True)
             w, h = mask.shape
@@ -217,32 +221,22 @@ def main():
                 image = torch.from_numpy(image).to(DEVICE)
                 _, predicted_mask = unet(image)
                 predicted_mask = predicted_mask.cpu().numpy()
-
-                # convert to encoded mask
-                pred_mask_encoded = get_encoded_prediction(predicted_mask)
+                # predicted_mask = np.ones((1, NUM_CLASSES, IMAGE_SIZE, IMAGE_SIZE), dtype='float32')
 
             # save the patch at the corresponding coordinates
-            predicted_mask_full_tile[0, x:x + w, y:y + h] = pred_mask_encoded
+            # we use the gaussian to smooth out the mask
+            predicted_mask_full_tile[:, x:x + w, y:y + h] += predicted_mask[0, :, :, :] * gaussian_smoother
 
-            # Create the empty JP2 file
-            path = BASE_OUTPUT + f"/{s2_date}_mask_prediction.jp2"
-            with rasterio.open(path, 'w', **profile) as mask_file:
-                mask_file.write(predicted_mask_full_tile)
+        # Create the empty JP2 file
+        path = BASE_OUTPUT + f"/{s2_date}_mask_prediction.jp2"
+        with rasterio.open(path, 'w', **profile) as mask_file:
+            mask_file.write(get_encoded_prediction(predicted_mask_full_tile), 1)
 
 
 def get_encoded_prediction(predicted_mask):
-    predicted_mask = predicted_mask[0, :, :, :]
-    predicted_mask = predicted_mask.transpose(1, 2, 0)
-    predicted_mask[:, :, 1] = (predicted_mask[:, :, 1] > THRESHOLD).astype(int)
-    predicted_mask[:, :, 2] = (predicted_mask[:, :, 2] > THRESHOLD).astype(int)
-    predicted_mask[:, :, 3] = (predicted_mask[:, :, 3] > THRESHOLD).astype(int)
-
-    pred_mask_encoded = np.zeros((predicted_mask.shape[0], predicted_mask.shape[1]), dtype=np.uint8)
-    pred_mask_encoded[predicted_mask[:, :, 1] == 1] = 1
-    pred_mask_encoded[predicted_mask[:, :, 2] == 1] = 2
-    pred_mask_encoded[predicted_mask[:, :, 3] == 1] = 3
-
-    return pred_mask_encoded
+    print(f"Min/Max of predicted_mask: {np.min(predicted_mask)}/{np.max(predicted_mask)}")
+    predicted_mask[:, :, :] = (predicted_mask[:, :, :] > THRESHOLD).astype(int)
+    return np.argmax(predicted_mask, axis=0)
 
 
 def _get_base_path(date):
@@ -257,6 +251,21 @@ def _get_base_path(date):
     base_path += sub_folder[0] + '/IMG_DATA'
 
     return base_path
+
+
+def __smooth_kern(kernel_size=IMAGE_SIZE):
+    """
+
+    """
+
+    heaviside_lambda = lambda x: -np.sign(x) * x + 1
+    heaviside_lambda_2D = lambda x, y: heaviside_lambda(x) * heaviside_lambda(y)
+
+    xs = np.linspace(-1, 1, kernel_size)
+    ys = np.linspace(-1, 1, kernel_size)
+    xv, yv = np.meshgrid(xs, ys)
+
+    return heaviside_lambda_2D(xv, yv)
 
 
 def _get_profile(s2_date):

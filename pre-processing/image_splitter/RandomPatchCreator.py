@@ -144,7 +144,13 @@ class RandomPatchCreator:
 
         # Search for a folder starting with "S2B_MSIL1C_$DATE"
         base_dir = self.__get_date_base_dir(date)
-        band_files = [f"{base_dir}/{band_file_names[b]}" for b in self.selected_bands]
+        band_files = [f"{base_dir}/{band_file_names[b]}" for b in self.selected_bands if b in band_file_names.keys()]
+
+        # add additional metadata to the bands
+        elevation_tiff = f"{self.raw_data_base_dir}/32TNS_auxiliary_data/DEM_32TNS_10m_epsg32632.tif"
+
+        if "ELEV" in self.selected_bands:
+            band_files.append(elevation_tiff)
 
         # open all the bands
         bands_data = []
@@ -214,13 +220,13 @@ class RandomPatchCreator:
 
     def __next_coverage(self, date):
 
-        self.__coverage_coords[0] = self.__coverage_coords[0] + IMAGE_SIZE
+        self.__coverage_coords[0] = self.__coverage_coords[0] + IMAGE_SIZE // 2
         width = self.get_bands(date).shape[2] - BORDER_WITH
         height = self.get_bands(date).shape[1] - BORDER_WITH
 
         if self.__coverage_coords[0] >= width:
             self.__coverage_coords[0] = BORDER_WITH
-            self.__coverage_coords[1] = self.__coverage_coords[1] + IMAGE_SIZE
+            self.__coverage_coords[1] = self.__coverage_coords[1] + IMAGE_SIZE // 2
 
         if self.__coverage_coords[1] >= height:
             raise StopIteration
