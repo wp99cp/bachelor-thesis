@@ -27,7 +27,7 @@ LIMIT_DATASET_SIZE = 0
 
 # ====================================
 # ====================================
-# Training Hyperparameters
+# Training Hyper Parameters
 # ====================================
 # ====================================
 
@@ -41,6 +41,10 @@ BATCH_SIZE = 24
 
 WEIGHT_DECAY_PLATEAU_PATIENCE = 2
 EARLY_STOPPING_PATIENCE = 30
+
+STEPS_PER_EPOCH = 1024
+STEPS_PER_EPOCH_TEST = 128
+
 
 # ====================================
 # ====================================

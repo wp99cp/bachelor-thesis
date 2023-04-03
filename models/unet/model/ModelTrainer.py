@@ -3,14 +3,15 @@ from signal import signal, SIGUSR1
 
 import torch
 import tqdm
+from configs.config import NUM_EPOCHS, BATCH_SIZE, BASE_OUTPUT, DEVICE
+from model import Model
+from model.EarlyStopping import EarlyStopping
 from pytictac import ClassTimer, accumulate_time
 from torch.nn.modules.loss import _Loss
 from torch.optim import Optimizer
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 
-from configs.config import NUM_EPOCHS, BATCH_SIZE, BASE_OUTPUT, DEVICE
-from model import Model
-from model.EarlyStopping import EarlyStopping
+from models.unet.configs.config import STEPS_PER_EPOCH, STEPS_PER_EPOCH_TEST
 
 
 class ModelTrainer:
@@ -52,8 +53,8 @@ class ModelTrainer:
         self.epoch = 0
 
         # calculate steps per epoch for training and test set
-        train_steps = len(train_ds) // BATCH_SIZE
-        test_steps = len(test_ds) // BATCH_SIZE
+        train_steps = min(len(train_ds) // BATCH_SIZE, STEPS_PER_EPOCH)
+        test_steps = min(len(test_ds) // BATCH_SIZE, STEPS_PER_EPOCH_TEST)
 
         done = False
 
@@ -102,7 +103,7 @@ class ModelTrainer:
             self.model.eval()
 
             # loop over the validation set
-            for (x, y) in loader:
+            for i, (x, y) in enumerate(loader):
                 # send the input to the device
                 (x, y) = (x.to(DEVICE), y.to(DEVICE))
 
@@ -112,6 +113,9 @@ class ModelTrainer:
 
                 # calculate the metrics
                 metrics_results += torch.tensor([m(masks, y) for m in self.metrics])
+
+                if i >= num_batches:
+                    break
 
         avg_test_loss = total_test_loss / num_batches
 
@@ -131,7 +135,7 @@ class ModelTrainer:
         pbar = tqdm.tqdm(loader)
 
         # loop over the training set
-        for _, (x, y) in enumerate(pbar):
+        for i, (x, y) in enumerate(pbar):
             # send the input to the device
             (x, y) = (x.to(DEVICE), y.to(DEVICE))
 
@@ -149,6 +153,9 @@ class ModelTrainer:
 
             # add the loss to the total training loss so far
             total_train_loss += loss
+
+            if i >= num_batches:
+                break
 
             if self.emergency_stop:
                 print("Emergency stop triggered, skip rest of epoch...")
