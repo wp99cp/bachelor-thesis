@@ -81,11 +81,12 @@ def save_history(history):
 
 def get_class_weights():
     class_weights = torch.tensor(CLASS_WEIGHTS)
-    class_weights = 1. / class_weights
-    # class_weights = class_weights / class_weights.sum()
 
+    # see https://stackoverflow.com/a/69832861/13371311
+    class_weights = (1 - class_weights) / class_weights
     print("Class weights: ", class_weights)
 
+    # repeat the weights for each pixel in the image
     class_weights = class_weights.repeat(IMAGE_SIZE, IMAGE_SIZE, 1)
     class_weights = class_weights.permute(2, 0, 1)
     return class_weights
