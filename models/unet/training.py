@@ -24,7 +24,7 @@ def train_unet(train_loader, test_loader, train_ds, test_ds):
     class_weights = get_class_weights()
 
     # initialize loss function and optimizer
-    loss_func = BCEWithLogitsLoss(pos_weight=class_weights.to(DEVICE), reduction='sum')
+    loss_func = BCEWithLogitsLoss(pos_weight=class_weights.to(DEVICE), reduction='mean')
     opt = RMSprop(unet.parameters(), lr=INIT_LR, momentum=MOMENTUM)
     scheduler = lr_scheduler.ReduceLROnPlateau(opt, 'min', patience=WEIGHT_DECAY_PLATEAU_PATIENCE,
                                                factor=WEIGHT_DECAY, verbose=True)
