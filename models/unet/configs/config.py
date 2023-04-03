@@ -33,7 +33,7 @@ LIMIT_DATASET_SIZE = 0
 
 # initialize learning rate, number of epochs to train for, and the
 # batch size
-INIT_LR = 0.001
+INIT_LR = 0.01
 MOMENTUM = 0.950
 WEIGHT_DECAY = 0.2
 NUM_EPOCHS = 256
@@ -64,13 +64,13 @@ ENABLE_DATA_AUGMENTATION = True
 # the best value according to the paper is 0.3
 # "MixChannel: Advanced Augmentation for Multi spectral Satellite Images" (https://www.mdpi.com/2072-4292/13/11/2181)
 # Every channel gets dropped with a probability of 0.3
-CHANNEL_DROPOUT_PROB = 0.1
+CHANNEL_DROPOUT_PROB = 0.3
 
 # probability of flipping the image horizontally and/or vertically (this happens independently)
-IMAGE_FLIP_PROB = 0.3
+IMAGE_FLIP_PROB = 0.25
 
 # cover a random patch of the image (i.g. setting all channels and the mask to zero)
-PATCH_COVERING_PROB = 0.3
+PATCH_COVERING_PROB = 0
 COVERED_PATCH_SIZE_MIN = 8  # in pixels
 COVERED_PATCH_SIZE_MAX = 64  # in pixels
 
