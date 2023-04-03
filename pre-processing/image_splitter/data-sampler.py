@@ -2,6 +2,7 @@
 # it is used to generate the training and testing datasets
 import os
 import sys
+from concurrent.futures import ThreadPoolExecutor
 
 import matplotlib
 import matplotlib.pyplot as plt
@@ -46,9 +47,12 @@ def save_patch(i, _patch_creator, _date):
 def create_patches(_patch_creator, _date):
     print(f"    Start creating patches...")
 
-    # TODO: Consider using multiprocessing
-    for i in tqdm(range(SAMPLES_PER_DATE)):
+    def __create_patches(i):
         save_patch(i, _patch_creator, _date)
+
+    num_workers = 8
+    with ThreadPoolExecutor(num_workers) as executor:
+        list(tqdm(executor.map(__create_patches, range(SAMPLES_PER_DATE)), total=SAMPLES_PER_DATE))
 
     pixel_count = _patch_creator.get_PixelClassCounter().get_class_distribution(_date)
     print(f"    Class Distribution for {_date}: {np.round(pixel_count, 2)}")
