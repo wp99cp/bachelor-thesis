@@ -25,8 +25,9 @@ def train_unet(train_loader, test_loader, train_ds, test_ds):
 
     # initialize loss function and optimizer
     loss_func = BCEWithLogitsLoss(pos_weight=class_weights.to(DEVICE), reduction='sum')
-    opt = RMSprop(unet.parameters(), lr=INIT_LR, momentum=MOMENTUM, weight_decay=WEIGHT_DECAY)
-    scheduler = lr_scheduler.ReduceLROnPlateau(opt, 'max', patience=WEIGHT_DECAY_PLATEAU_PATIENCE)
+    opt = RMSprop(unet.parameters(), lr=INIT_LR, momentum=MOMENTUM)
+    scheduler = lr_scheduler.ReduceLROnPlateau(opt, 'min', patience=WEIGHT_DECAY_PLATEAU_PATIENCE,
+                                               factor=WEIGHT_DECAY, verbose=True)
     es = EarlyStopping(patience=EARLY_STOPPING_PATIENCE, min_delta=0, restore_best_weights=True)
     metrics = get_segmentation_metrics()
 
