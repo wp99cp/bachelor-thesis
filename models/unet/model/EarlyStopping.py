@@ -1,8 +1,17 @@
 import copy
 
 
-# based on https://github.com/jeffheaton/t81_558_deep_learning/blob/pytorch/t81_558_class_03_4_early_stop.ipynb
 class EarlyStopping:
+
+    """
+    A Simple Early Stopping class
+
+    This code is based on
+    https://github.com/jeffheaton/t81_558_deep_learning/blob/pytorch/t81_558_class_03_4_early_stop.ipynb
+
+    Released under APACHE LICENSE, VERSION 2.0
+    """
+
     def __init__(self, patience=5, min_delta=0, restore_best_weights=True):
         self.patience = patience
         self.min_delta = min_delta
