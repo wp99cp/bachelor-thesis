@@ -9,7 +9,7 @@ TEST_SPLIT = 0.15
 # define the number of channels in the input, number of classes,
 # and number of levels in the U-Net model
 IMAGE_SIZE = 256  # defines the input image dimensions
-NUM_CHANNELS = 14  # all satellite images have 13 channels
+NUM_CHANNELS = 13  # all satellite images have 13 channels
 
 # Maks Settings
 NUM_CLASSES = 4
