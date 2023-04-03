@@ -3,15 +3,14 @@ from signal import signal, SIGUSR1
 
 import torch
 import tqdm
-from configs.config import NUM_EPOCHS, BATCH_SIZE, BASE_OUTPUT, DEVICE
-from model import Model
-from model.EarlyStopping import EarlyStopping
 from pytictac import ClassTimer, accumulate_time
 from torch.nn.modules.loss import _Loss
 from torch.optim import Optimizer
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 
-from models.unet.configs.config import STEPS_PER_EPOCH, STEPS_PER_EPOCH_TEST
+from configs.config import NUM_EPOCHS, BATCH_SIZE, BASE_OUTPUT, DEVICE, STEPS_PER_EPOCH, STEPS_PER_EPOCH_TEST
+from model import Model
+from model.EarlyStopping import EarlyStopping
 
 
 class ModelTrainer:
