@@ -9,7 +9,7 @@ from torch.optim import Optimizer
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 
 from configs.config import NUM_EPOCHS, BATCH_SIZE, BASE_OUTPUT, DEVICE, STEPS_PER_EPOCH, STEPS_PER_EPOCH_TEST, \
-    USE_PIXED_PRECISION
+    USE_PIXED_PRECISION, GRADIENT_CLIPPING
 from model import Model
 from model.EarlyStopping import EarlyStopping
 
@@ -151,6 +151,14 @@ class ModelTrainer:
 
             # Backpropagation with (optional) mixed precision
             self.scaler.scale(loss).backward()
+
+            if GRADIENT_CLIPPING:
+                # Unscales the gradients of optimizer's assigned params in-place
+                self.scaler.unscale_(self.optimizer)
+
+                # Since the gradients of optimizer's assigned params are unscaled, clips as usual:
+                torch.nn.utils.clip_grad_norm_(self.model.parameters(), max_norm=1.0)
+
             self.scaler.step(self.optimizer)
             self.scaler.update()
 

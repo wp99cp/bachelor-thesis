@@ -48,6 +48,7 @@ STEPS_PER_EPOCH_TEST = 640
 # switches to mixed precision training after the specified epoch
 # if set to 0, mixed precision training is disabled
 USE_PIXED_PRECISION = False
+GRADIENT_CLIPPING = True
 
 # ====================================
 # ====================================
@@ -97,6 +98,8 @@ DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 
 # determine if we will be pinning memory during data loading
 PIN_MEMORY = True if DEVICE == "cuda" else False
+
+CONTINUE_TRAINING = os.environ['CONTINUE_TRAINING'] if 'CONTINUE_TRAINING' in os.environ else False
 
 # ====================================
 # ====================================

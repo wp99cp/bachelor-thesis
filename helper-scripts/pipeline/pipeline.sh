@@ -246,6 +246,7 @@ fi
 
 # export environment variables
 export LIVE_DATASET="$config_dataset_create_on_the_fly"
+export CONTINUE_TRAINING="$config_training_continue_training"
 
 if [[ -z "${RUNS_ON_EULER}" ]]; then
 

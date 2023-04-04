@@ -7,7 +7,7 @@ from torch.nn import BCEWithLogitsLoss, DataParallel
 from torch.optim import RMSprop, lr_scheduler
 
 from configs.config import DEVICE, INIT_LR, BASE_OUTPUT, IMAGE_SIZE, CLASS_WEIGHTS, MOMENTUM, \
-    WEIGHT_DECAY, EARLY_STOPPING_PATIENCE, WEIGHT_DECAY_PLATEAU_PATIENCE
+    WEIGHT_DECAY, EARLY_STOPPING_PATIENCE, WEIGHT_DECAY_PLATEAU_PATIENCE, CONTINUE_TRAINING
 from model.EarlyStopping import EarlyStopping
 from model.Model import UNet
 from model.ModelTrainer import ModelTrainer
@@ -20,6 +20,13 @@ def train_unet(train_loader, test_loader, train_ds, test_ds):
 
     # print model summary
     unet.to(DEVICE).print_summary(3, step_up=True, show_hierarchical=True)
+
+    # if continue training, load the model
+    if CONTINUE_TRAINING:
+        print("[INFO] Training will continue from previous checkpoint...")
+        print("[INFO] loading the weights...")
+        model_path = os.path.join(BASE_OUTPUT, "unet.pth")
+        unet.load_state_dict(torch.load(model_path))
 
     unet = DataParallel(unet)  # allow multiple GPUs
     unet = unet.to(DEVICE)  # move the model to the GPU
@@ -39,7 +46,7 @@ def train_unet(train_loader, test_loader, train_ds, test_ds):
     class_weights = get_class_weights()
 
     # initialize loss function and optimizer
-    loss_func = BCEWithLogitsLoss(pos_weight=class_weights.to(DEVICE), reduction='sum')
+    loss_func = BCEWithLogitsLoss(pos_weight=class_weights.to(DEVICE), reduction='mean')
     opt = RMSprop(unet.parameters(), lr=INIT_LR, momentum=MOMENTUM)
     scheduler = lr_scheduler.ReduceLROnPlateau(opt, 'min', patience=WEIGHT_DECAY_PLATEAU_PATIENCE,
                                                factor=WEIGHT_DECAY, verbose=True)
