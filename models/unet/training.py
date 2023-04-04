@@ -4,6 +4,7 @@ import os
 import torch
 from matplotlib import pyplot as plt
 from torch.nn import BCEWithLogitsLoss
+from torch.nn.parallel import DistributedDataParallel
 from torch.optim import RMSprop, lr_scheduler
 
 from configs.config import DEVICE, INIT_LR, BASE_OUTPUT, IMAGE_SIZE, CLASS_WEIGHTS, MOMENTUM, \
@@ -16,7 +17,9 @@ from model.metrices import get_segmentation_metrics
 
 def train_unet(train_loader, test_loader, train_ds, test_ds):
     # initialize our UNet model
-    unet = UNet().to(DEVICE)
+    unet = UNet()
+    unet = DistributedDataParallel(unet)  # allow multiple GPUs
+    unet = unet.to(DEVICE)  # move the model to the GPU
     unet.print_summary(3, step_up=True, show_hierarchical=True)
 
     # the classes are unbalanced, so we need to artificially increase the

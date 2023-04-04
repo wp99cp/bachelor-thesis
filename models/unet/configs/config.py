@@ -9,13 +9,13 @@ TEST_SPLIT = 0.15
 # define the number of channels in the input, number of classes,
 # and number of levels in the U-Net model
 IMAGE_SIZE = 256  # defines the input image dimensions
-NUM_CHANNELS = 13  # all satellite images have 13 channels
+NUM_CHANNELS = 14  # all satellite images have 13 channels
 
 # Maks Settings
 NUM_CLASSES = 4
 CLASS_NAMES = ["background", "snow", "clouds", "water"]  # "thin_clouds"
 NUM_ENCODED_CHANNELS = 5  # Number of channels used to encode the grayscale image
-CLASS_WEIGHTS = [0.51181, 0.33982, 0.13864, 0.00973]  # class weights for background, snow, clouds, water
+CLASS_WEIGHTS = [0.41005, 0.2931, 0.28905, 0.0078]  # class weights for background, snow, clouds, water
 
 # define threshold to filter weak predictions
 THRESHOLD = 0.75
@@ -35,16 +35,15 @@ LIMIT_DATASET_SIZE = 0
 # batch size
 INIT_LR = 0.01
 MOMENTUM = 0.950
-WEIGHT_DECAY = 0.2
+WEIGHT_DECAY = 0.1
 NUM_EPOCHS = 256
-BATCH_SIZE = 24
+BATCH_SIZE = 48
 
 WEIGHT_DECAY_PLATEAU_PATIENCE = 2
 EARLY_STOPPING_PATIENCE = 30
 
-STEPS_PER_EPOCH = 1024
-STEPS_PER_EPOCH_TEST = 128
-
+STEPS_PER_EPOCH = 4096
+STEPS_PER_EPOCH_TEST = 640
 
 # ====================================
 # ====================================
@@ -70,7 +69,7 @@ CHANNEL_DROPOUT_PROB = 0.3
 IMAGE_FLIP_PROB = 0.25
 
 # cover a random patch of the image (i.g. setting all channels and the mask to zero)
-PATCH_COVERING_PROB = 0
+PATCH_COVERING_PROB = 0.2
 COVERED_PATCH_SIZE_MIN = 8  # in pixels
 COVERED_PATCH_SIZE_MAX = 64  # in pixels
 
