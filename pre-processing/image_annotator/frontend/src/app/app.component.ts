@@ -59,6 +59,8 @@ export class AppComponent implements OnInit {
     private control_is_down: boolean = false;
 
     private color_adding_mode: boolean = false;
+    private color_adding_mode_all: boolean = false;
+
     private active_scene_code: string = 'scene_original';
     public threshold: number = 5;
 
@@ -90,6 +92,10 @@ export class AppComponent implements OnInit {
 
             if (e.key === '+') {
                 this.color_adding_mode = true;
+            }
+
+            if (e.key === '*') {
+                this.color_adding_mode_all = true;
             }
 
             if (this.control_is_down && this.enter_is_down) {
@@ -129,6 +135,11 @@ export class AppComponent implements OnInit {
 
             if (e.key === '+') {
                 this.color_adding_mode = false;
+                this.color_adding_mode_disabled = true;
+            }
+
+            if (e.key === '*') {
+                this.color_adding_mode_all = false;
                 this.color_adding_mode_disabled = true;
             }
 
@@ -172,6 +183,12 @@ export class AppComponent implements OnInit {
                     return;
                 }
 
+                if (this.color_adding_mode_all) {
+                    points = [];
+                    await this.run_selection_all(this.get_coords(e, canvas));
+                    return;
+                }
+
                 let {x, y} = this.get_coords(e, canvas)
                 points.push({x, y})
                 this.draw_on_canvas(points, path);
@@ -190,6 +207,12 @@ export class AppComponent implements OnInit {
                 if (this.color_adding_mode) {
                     points = [];
                     await this.run_selection(this.get_coords(e, canvas));
+                    return;
+                }
+
+                if (this.color_adding_mode_all) {
+                    points = [];
+                    await this.run_selection_all(this.get_coords(e, canvas));
                     return;
                 }
 
@@ -480,6 +503,17 @@ export class AppComponent implements OnInit {
 
     }
 
+    private async run_selection_all(current_position: any) {
+
+        await this.mark_similar_pixels_all(current_position.x, current_position.y);
+
+        const readonly_canvas = document.getElementById('canvas_readonly') as HTMLCanvasElement
+        const context = readonly_canvas.getContext('2d')!
+        context.putImageData(new ImageData(this.canvas_data, RAW_MASK_DIM, RAW_MASK_DIM), 0, 0);
+        this.canvas_history.push(new Uint8ClampedArray(this.canvas_data))
+
+    }
+
     private async run_selection(current_position: any) {
 
         await this.mark_similar_pixels(current_position.x, current_position.y);
@@ -488,6 +522,69 @@ export class AppComponent implements OnInit {
         const context = readonly_canvas.getContext('2d')!
         context.putImageData(new ImageData(this.canvas_data, RAW_MASK_DIM, RAW_MASK_DIM), 0, 0);
         this.canvas_history.push(new Uint8ClampedArray(this.canvas_data))
+
+    }
+
+    private async mark_similar_pixels_all(x0: number, y0: number): Promise<void> {
+
+        const tmp_canvas = document.createElement('canvas');
+        tmp_canvas.width = RAW_MASK_DIM;
+        tmp_canvas.height = RAW_MASK_DIM;
+
+        const ctx = tmp_canvas.getContext('2d');
+
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        const image = document.getElementById(this.active_scene_code) as HTMLImageElement;
+        img.src = image.src;
+
+        const threshold = this.threshold;
+        const visited = new Set<string>();
+
+        // Wait for the image to load
+        await new Promise<void>((resolve) => {
+            img.onload = () => {
+                ctx?.drawImage(img, 0, 0, RAW_MASK_DIM, RAW_MASK_DIM);
+                resolve();
+            };
+        });
+
+        const mask_color = Class_Colors[this.current_color]
+
+        const colors = ctx?.getImageData(x0 - 1, y0 - 1, 3, 3).data
+        if (!colors) throw new Error('color is null')
+
+        const color = [
+            (colors[0] + colors[4] + colors[8] + colors[12] + colors[16] + colors[20] + colors[24] + colors[28] + colors[32]) / 9,
+            (colors[1] + colors[5] + colors[9] + colors[13] + colors[17] + colors[21] + colors[25] + colors[29] + colors[33]) / 9,
+            (colors[2] + colors[6] + colors[10] + colors[14] + colors[18] + colors[22] + colors[26] + colors[30] + colors[34]) / 9
+        ]
+
+        // Copy the pixel data from the canvas into the imageData array
+        const canvasData = ctx?.getImageData(0, 0, RAW_MASK_DIM, RAW_MASK_DIM).data;
+        if (!canvasData) throw new Error('canvasData is null')
+
+        const canvas_data = this.canvas_data;
+
+        // Iterate over the pixels
+        for (let y = 0; y < RAW_MASK_DIM; y++) {
+            for (let x = 0; x < RAW_MASK_DIM; x++) {
+
+                const index = (y * RAW_MASK_DIM + x) * 4;
+
+                // Check if pixel color is similar to the target color
+                const pixelColor = canvasData.slice(index, index + 3);
+
+                if (!is_similar_color(pixelColor, color, threshold)) continue;
+
+                // MARK PIXEL
+                canvas_data[index] = mask_color[0];
+                canvas_data[index + 1] = mask_color[1];
+                canvas_data[index + 2] = mask_color[2];
+                canvas_data[index + 3] = 255;
+
+            }
+        }
 
     }
 
