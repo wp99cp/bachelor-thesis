@@ -8,7 +8,8 @@ from torch.nn.modules.loss import _Loss
 from torch.optim import Optimizer
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 
-from configs.config import NUM_EPOCHS, BATCH_SIZE, BASE_OUTPUT, DEVICE, STEPS_PER_EPOCH, STEPS_PER_EPOCH_TEST
+from configs.config import NUM_EPOCHS, BATCH_SIZE, BASE_OUTPUT, DEVICE, STEPS_PER_EPOCH, STEPS_PER_EPOCH_TEST, \
+    USE_PIXED_PRECISION
 from model import Model
 from model.EarlyStopping import EarlyStopping
 
@@ -33,6 +34,8 @@ class ModelTrainer:
         self.scheduler = scheduler
         self.early_stopping = early_stopping
         self.metrics = metrics
+
+        self.scaler = torch.cuda.amp.GradScaler(enabled=USE_PIXED_PRECISION)
 
         self.history = None
         self.initialize_history()
@@ -135,17 +138,21 @@ class ModelTrainer:
             # send the input to the device
             (x, y) = (x.to(DEVICE), y.to(DEVICE))
 
-            # perform a forward pass and calculate the training loss
-            logit, _ = self.model(x)
-            loss = self.loss_func(logit, y)
-
-            pbar.set_description(f"Epoch: {self.epoch}, train_loss {loss:}")
-
             # first, zero out any previously accumulated gradients, then
             # perform backpropagation, and then update model parameters
             self.optimizer.zero_grad()
-            loss.backward()
-            self.optimizer.step()
+
+            # perform a forward pass and calculate the training loss
+            with torch.amp.autocast(enabled=USE_PIXED_PRECISION, device_type=DEVICE, dtype=torch.float16):
+                logit, _ = self.model(x)
+                loss = self.loss_func(logit, y)
+
+            pbar.set_description(f"Epoch: {self.epoch}, train_loss {loss:}")
+
+            # Backpropagation with (optional) mixed precision
+            self.scaler.scale(loss).backward()
+            self.scaler.step(self.optimizer)
+            self.scaler.update()
 
             # add the loss to the total training loss so far
             total_train_loss += loss

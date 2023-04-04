@@ -37,13 +37,17 @@ INIT_LR = 0.01
 MOMENTUM = 0.950
 WEIGHT_DECAY = 0.1
 NUM_EPOCHS = 256
-BATCH_SIZE = 48
+BATCH_SIZE = 24
 
 WEIGHT_DECAY_PLATEAU_PATIENCE = 1
 EARLY_STOPPING_PATIENCE = 30
 
 STEPS_PER_EPOCH = 4096
 STEPS_PER_EPOCH_TEST = 640
+
+# switches to mixed precision training after the specified epoch
+# if set to 0, mixed precision training is disabled
+USE_PIXED_PRECISION = False
 
 # ====================================
 # ====================================
