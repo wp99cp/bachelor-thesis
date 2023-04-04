@@ -15,9 +15,9 @@ The annotations are stored in the `/data/masks` folder. Completely annotated sce
 
 ### The following scenes are partially annotated / currently being annotated:
 
-- `20210819T101559` --> currently on annotator Server
+- `20210819T101559`
 - `20210710T101559` (a summer scene some small clouds over the mountains, some thin clouds over the Ticino) --> currently on annotator Server
-
+- `20211023T102101` --> currently on annotator Server
 
 ### The following scenes are not annotated but interesting:
 
