@@ -44,9 +44,13 @@ export RESULTS_DIR=$BASE_DIR/results
 export TMP_DIR=$BASE_DIR/tmp
 export EXTRACTED_RAW_DATA=$BASE_DIR/tmp
 
+# add additional python paths
+export PYTHONPATH="${PYTHONPATH}:/scratch2/pucyril/python"
+
 # cleanup
 # find $TMP_DIR -type f ! -name '.gitignore' -delete
 # find $TMP_DIR -type d -empty -delete
+
 ```
 
 :::

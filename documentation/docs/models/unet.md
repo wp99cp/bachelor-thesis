@@ -31,6 +31,14 @@ Trained based on a hand-selected limited dataset, containing of the bands:
 ![Example Image 1](../images/results/202ea7d/example_image_1_202ea7d.png)
 ![Example Image 2](../images/results/202ea7d/example_image_2_202ea7d.png)
 
+### Problems
+Huge Problem on scene `20211023T102101`
+
+- false positive clouds in bright snow
+- huge problem with water prediction
+
+![img.png](../images/results/202ea7d/example_image_3.png)
+
 :::
 
 
@@ -64,6 +72,7 @@ STEPS_PER_EPOCH_TEST = 128
 This was slurm id `13611024`
 
 Big mode, trained with 243'712 patches from 35 different dates. All 13 channels and the elevation data were used.
+Additionally, the elevation data was used.
 
 The training set has the following class distribution:
 
@@ -78,6 +87,10 @@ Results:
 
 ![Example Image 1](../images/results/a2528d2/example_image_1_a2528d2.png)
 ![Example Image 2](../images/results/a2528d2/example_image_2_a2528d2.png)
+
+Compared to the model `202ea7d` , the results for scene `20211023T102101` are much better.
+
+![img.png](../images/results/a2528d2/example_image_3_a2528d2.png)
 
 :::
 
