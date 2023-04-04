@@ -3,15 +3,14 @@ from signal import signal, SIGUSR1
 
 import torch
 import tqdm
-from configs.config import NUM_EPOCHS, BATCH_SIZE, BASE_OUTPUT, DEVICE
-from model import Model
-from model.EarlyStopping import EarlyStopping
 from pytictac import ClassTimer, accumulate_time
 from torch.nn.modules.loss import _Loss
 from torch.optim import Optimizer
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 
-from models.unet.configs.config import STEPS_PER_EPOCH, STEPS_PER_EPOCH_TEST
+from configs.config import NUM_EPOCHS, BATCH_SIZE, BASE_OUTPUT, DEVICE, STEPS_PER_EPOCH, STEPS_PER_EPOCH_TEST
+from model import Model
+from model.EarlyStopping import EarlyStopping
 
 
 class ModelTrainer:
@@ -55,6 +54,7 @@ class ModelTrainer:
         # calculate steps per epoch for training and test set
         train_steps = min(len(train_ds) // BATCH_SIZE, STEPS_PER_EPOCH)
         test_steps = min(len(test_ds) // BATCH_SIZE, STEPS_PER_EPOCH_TEST)
+        print(f"train_steps: {train_steps}, test_steps: {test_steps}")
 
         done = False
 
@@ -63,7 +63,6 @@ class ModelTrainer:
 
             print(f"\nStart training epoch {self.epoch}...")
 
-            # TODO: forward train ds to switch dates after each step
             train_loss = self.__train_epoch(loader=train_loader, num_batches=train_steps)
             test_loss, metrics_results = self.__test_epoch(loader=test_loader, num_batches=test_steps)
 
@@ -81,9 +80,6 @@ class ModelTrainer:
             print("[INFO] saving the model...")
             model_path = os.path.join(BASE_OUTPUT, "unet_intermediate.pth")
             torch.save(self.model.state_dict(), model_path)
-
-    def validate(self):
-        pass
 
     def print_metrics(self, metrics_results):
         print("Metrics for validation of epoch: ", self.epoch)
@@ -132,7 +128,7 @@ class ModelTrainer:
 
         # initialize the total training and validation loss
         total_train_loss = 0
-        pbar = tqdm.tqdm(loader)
+        pbar = tqdm.tqdm(loader, total=num_batches)
 
         # loop over the training set
         for i, (x, y) in enumerate(pbar):
@@ -140,8 +136,8 @@ class ModelTrainer:
             (x, y) = (x.to(DEVICE), y.to(DEVICE))
 
             # perform a forward pass and calculate the training loss
-            logits, _ = self.model(x)
-            loss = self.loss_func(logits, y)
+            logit, _ = self.model(x)
+            loss = self.loss_func(logit, y)
 
             pbar.set_description(f"Epoch: {self.epoch}, train_loss {loss:}")
 

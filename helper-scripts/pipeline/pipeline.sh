@@ -282,14 +282,14 @@ else
 
     python3 -u "$BASE_DIR/models/unet/main.py" \
       1>"$LOG_DIR/python_train_model.log" \
-      2>"$LOG_DIR/python_train_model.error"
+      2>"$LOG_DIR/python_train_model.error" &
   else
 
     echo "RUN python '$BASE_DIR/models/unet/main.py' --retrain"
 
     python3 -u "$BASE_DIR/models/unet/main.py" --retrain \
       1>"$LOG_DIR/python_train_model.log" \
-      2>"$LOG_DIR/python_train_model.error"
+      2>"$LOG_DIR/python_train_model.error" &
   fi
 
   PYTHON_PID=$!

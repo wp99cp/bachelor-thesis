@@ -8,7 +8,12 @@ from configs.config import NUM_CLASSES, NUM_CHANNELS, IMAGE_SIZE, DEVICE
 
 
 class DoubleConv(nn.Module):
-    """(convolution => [BN] => ReLU) * 2"""
+    """
+    (convolution => [BN] => ReLU) * 2
+
+    This code is based on https://github.com/milesial/Pytorch-UNet
+    released under GNU General Public License v3.0
+    """
 
     def __init__(self, in_channels, out_channels, mid_channels=None):
         super().__init__()
@@ -28,7 +33,12 @@ class DoubleConv(nn.Module):
 
 
 class Down(nn.Module):
-    """Downscaling with maxpool then double conv"""
+    """
+    Down-scaling with max pool then double conv
+
+    This code is based on https://github.com/milesial/Pytorch-UNet
+    released under GNU General Public License v3.0
+    """
 
     def __init__(self, in_channels, out_channels):
         super().__init__()
@@ -42,7 +52,12 @@ class Down(nn.Module):
 
 
 class Up(nn.Module):
-    """Upscaling then double conv"""
+    """
+    Up-scaling then double conv
+
+    This code is based on https://github.com/milesial/Pytorch-UNet
+    released under GNU General Public License v3.0
+    """
 
     def __init__(self, in_channels, out_channels, bilinear=True):
         super().__init__()
@@ -71,6 +86,13 @@ class Up(nn.Module):
 
 
 class OutConv(nn.Module):
+    """
+
+    This code is based on https://github.com/milesial/Pytorch-UNet
+    released under GNU General Public License v3.0
+
+    """
+
     def __init__(self, in_channels, out_channels):
         super(OutConv, self).__init__()
         self.conv = nn.Conv2d(in_channels, out_channels, kernel_size=1)
@@ -80,6 +102,13 @@ class OutConv(nn.Module):
 
 
 class UNet(nn.Module):
+    """
+
+    This code is based on https://github.com/milesial/Pytorch-UNet
+    released under GNU General Public License v3.0
+
+    """
+
     def __init__(self, n_channels=NUM_CHANNELS, n_classes=NUM_CLASSES, bilinear=False):
         super(UNet, self).__init__()
 
@@ -113,10 +142,10 @@ class UNet(nn.Module):
         x = self.up3(x, x2)
         x = self.up4(x, x1)
 
-        logits = self.outc(x)
-        mask = torch.softmax(logits, dim=1)
+        logit = self.outc(x)
+        mask = torch.softmax(logit, dim=1)
 
-        return logits, mask
+        return logit, mask
 
     def print_summary(self, max_depth=2, step_up=False, show_hierarchical=False):
 

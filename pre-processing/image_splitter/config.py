@@ -17,7 +17,7 @@ MAKS_PATH = os.environ['ANNOTATED_MASKS_DIR']
 DATASET_DIR = os.environ['DATASET_DIR']
 RESULTS = os.environ['RESULTS_DIR']
 
-BORDER_WITH = 2048
+BORDER_WITH = 256
 
 
 # ====================================
