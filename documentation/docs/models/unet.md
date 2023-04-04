@@ -10,18 +10,99 @@ Resources for Python Code
 You can train the model using the following command:
 
 ```bash
-python3 main.py --retrain
+bash helper-scripts/pipeline/pipeline.sh pipeline-config.yml
 ```
 
-Once training is complete, you can infer with the model using
-
-```bash
-python3 main.py 
-```
+Within the `pipeline-config.yml` you can configure if you wish to train the model or not, i.g. just run inference.
 
 ## Results of Previous Iterations
 
-::: details Git Commit ([4c654a2](https://github.com/wp99cp/bachelor-thesis/commit/281cf3feecaa7b215e618b462445804b12b53a2f)) - 29.03.2023
+::: details Git Commit ([202ea7d](https://github.com/wp99cp/bachelor-thesis/commit/202ea7d)) - 03.04.2023
+
+Trained based on a hand-selected limited dataset, containing of the bands:
+
+```yml
+[ '20210116T102351', '20210215T102121', '20210302T101839', '20210401T101559', '20210406T102021', '20210531T101559', '20210625T102021', '20210720T101559', '20210913T102021', '20211018T101939', '20211028T102039', '20211013T101951' ]
+```
+
+![inference_7040_5248](../images/results/202ea7d/inference_7040_5248_202ea7d.png)
+![inference_9600_7168](../images/results/202ea7d/inference_9600_7168_202ea7d.png)
+
+![Example Image 1](../images/results/202ea7d/example_image_1_202ea7d.png)
+![Example Image 2](../images/results/202ea7d/example_image_2_202ea7d.png)
+
+:::
+
+
+::: details Git Commit ([8ad1ca2](https://github.com/wp99cp/bachelor-thesis/commit/8ad1ca2)) - 03.04.2023
+
+Trained based on a hand-selected limited dataset, containing of the bands:
+
+```yml
+[ '20210116T102351', '20210215T102121', '20210302T101839', '20210401T101559', '20210406T102021', '20210531T101559', '20210625T102021', '20210720T101559', '20210913T102021', '20211018T101939', '20211028T102039', '20211013T101951' ]
+```
+
+Additionally, the steps per epoch was limited:
+
+```
+STEPS_PER_EPOCH = 1024
+STEPS_PER_EPOCH_TEST = 128
+```
+
+![inference_7040_5248](../images/results/8ad1ca2/inference_7040_5248_8ad1ca2.png)
+![inference_9600_7168](../images/results/8ad1ca2/inference_9600_7168_8ad1ca2.png)
+
+![Example Image 1](../images/results/8ad1ca2/example_image_1_8ad1ca2.png)
+![Example Image 2](../images/results/8ad1ca2/example_image_2_8ad1ca2.png)
+
+
+:::
+
+
+::: details Git Commit ([a2528d2](https://github.com/wp99cp/bachelor-thesis/commit/a2528d2)) - 02.04.2023
+
+This was slurm id `13611024`
+
+Big mode, trained with 243'712 patches from 35 different dates. All 13 channels and the elevation data were used.
+
+The training set has the following class distribution:
+
+```
+ Total Class Distribution: [0.41002, 0.29181, 0.29019, 0.00798]
+```
+
+Results:
+
+![inference_7040_5248](../images/results/a2528d2/inference_7040_5248_a2528d2.png)
+![inference_9600_7168](../images/results/a2528d2/inference_9600_7168_a2528d2.png)
+
+![Example Image 1](../images/results/a2528d2/example_image_1_a2528d2.png)
+![Example Image 2](../images/results/a2528d2/example_image_2_a2528d2.png)
+
+:::
+
+::: details Git Commit ([8fe0cea](https://github.com/wp99cp/bachelor-thesis/commit/8fe0cea)) - 02.04.2023
+
+This was slurm id `13611087`.
+
+Big model, trained with 243'712 patches from 35 different dates. All 13 channels and no additional auxiliary data were
+used. The training set has the following class distribution:
+
+```
+ Total Class Distribution: [0.41002, 0.29181, 0.29019, 0.00798]
+```
+
+Results:
+
+![inference_7040_5248](../images/results/8fe0cea/inference_7040_5248_8fe0cea.png)
+![inference_9600_7168](../images/results/8fe0cea/inference_9600_7168_8fe0cea.png)
+
+![Example Image 1](../images/results/8fe0cea/example_image_1_8fe0cea.png)
+![Example Image 2](../images/results/8fe0cea/example_image_2_8fe0cea.png)
+
+:::
+
+::: details Git Commit ([4c654a2](https://github.com/wp99cp/bachelor-thesis/commit/4c654a2)) - 29.03.2023
 
 Trained using auto masks for all images (73) scenes, using 600 samples per date. The training set has the following
 class distribution:
@@ -31,8 +112,9 @@ class distribution:
 « Background, Snow, Clouds, Water, Semi-Transparent Clouds
 ```
 
-```
 Configuration:
+
+```
  - SAMPLES_PER_DATE = 600
  - IMG_SIZE = 256
  - NUM_ENCODED_CHANNELS = 5
@@ -87,7 +169,7 @@ Non-trainable params: 0
 
 :::
 
-::: details Git Commit ([913b2a3801](https://github.com/wp99cp/bachelor-thesis/tree/913b2a38017)) - 14.03.2023
+::: details Git Commit ([913b2a3](https://github.com/wp99cp/bachelor-thesis/tree/913b2a38017)) - 14.03.2023
 
 Trained on 10_240 of a single scene (20211008T101829) using all 13 bands.
 
