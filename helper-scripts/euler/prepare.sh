@@ -14,6 +14,10 @@ nvidia-smi --query-gpu=name --format=csv,noheader
 lscpu | sed -nr '/Model name/ s/.*:\s*(.*) @ .*/\1/p'
 echo -e "\n\n"
 
+# print git info
+echo "Git commit hash: $(git log --pretty=format:'%h' -n 1)"
+echo "View the commit online: https://github.com/wp99cp/bachelor-thesis/commit/$(git log --pretty=format:'%h' -n 1)"
+
 # Set the environment variable RUNS_ON_EULER to 1
 # this allow us to do euler specific things in the pipeline
 # or ignore, e.g. delete commands, on euler
