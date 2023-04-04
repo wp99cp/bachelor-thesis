@@ -25,7 +25,7 @@ from configs.config import report_config, IMAGE_DATASET_PATH, MASK_DATASET_PATH,
     COVERED_PATCH_SIZE_MIN, COVERED_PATCH_SIZE_MAX, LIMIT_DATASET_SIZE, BATCH_PREFETCHING, NUM_DATA_LOADER_WORKERS, \
     THRESHOLD, NUM_CLASSES, IMAGE_SIZE
 from model.Model import UNet
-from model.inference import make_predictions
+from model.inference import make_predictions, print_results
 from training import train_unet
 
 # import the necessary packages form the pre-processing/image_splitter
@@ -178,7 +178,7 @@ def main():
         file_names = [f for f in os.listdir(IMAGE_DATASET_PATH) if os.path.isfile(os.path.join(IMAGE_DATASET_PATH, f))]
         print(f"Found {len(file_names)} files in {IMAGE_DATASET_PATH}.")
 
-        for i in range(10):
+        for i in range(25):
             # choose a random file
             file = np.random.choice(file_names)
             print(f"Using {file} for prediction.")
@@ -203,29 +203,33 @@ def main():
         gaussian_smoother = np.repeat(gaussian_smoother[np.newaxis, ...], NUM_CLASSES, axis=0)
 
         pbar = tqdm.tqdm(range(limit_patches))
-        for _ in pbar:
+        for i in pbar:
             # choose a random patch
             (x, y), image, mask = patch_creator.next(get_coordinates=True)
             w, h = mask.shape
 
             # prepare image
-            image = image.transpose(2, 0, 1)
-            image = image[np.newaxis, ...]
+            img = np.moveaxis(image, 2, 0)
+            img = np.expand_dims(img, 0)
 
             pbar.set_description(f"Using {(x, y)} for prediction.")
 
-            # make predictions and visualize the results
-            # thus we can reuse the mask generation code
-            # turn off gradient tracking
+            # make predictions and visualize the results, thus we can reuse the mask generation code
+            # for that we turn off gradient tracking and switch the model to evaluation mode
+            # the latter is very important, otherwise the results are bad
+            # https://discuss.pytorch.org/t/why-the-result-is-changed-after-model-eval/111997/3
+            unet.eval()
             with torch.no_grad():
-                image = torch.from_numpy(image).to(DEVICE)
-                _, predicted_mask = unet(image)
-                predicted_mask = predicted_mask.cpu().numpy()
-                # predicted_mask = np.ones((1, NUM_CLASSES, IMAGE_SIZE, IMAGE_SIZE), dtype='float32')
+                image_gpu = torch.from_numpy(img).to(DEVICE)
+                _, predicted_mask = unet(image_gpu)
+                predicted_mask = predicted_mask.cpu().numpy().squeeze()
+
+            if i % 250 == 0:
+                print_results(image, mask, predicted_mask, f"{x}_{y}")
 
             # save the patch at the corresponding coordinates
             # we use the gaussian to smooth out the mask
-            predicted_mask_full_tile[:, x:x + w, y:y + h] += predicted_mask[0, :, :, :] * gaussian_smoother
+            predicted_mask_full_tile[:, x:x + w, y:y + h] += predicted_mask * gaussian_smoother
 
         # Create the empty JP2 file
         path = BASE_OUTPUT + f"/{s2_date}_mask_prediction.jp2"

@@ -18,7 +18,7 @@ NUM_ENCODED_CHANNELS = 5  # Number of channels used to encode the grayscale imag
 CLASS_WEIGHTS = [0.51181, 0.33982, 0.13864, 0.00973]  # class weights for background, snow, clouds, water
 
 # define threshold to filter weak predictions
-THRESHOLD = 0.65
+THRESHOLD = 0.75
 
 # 0 for unlimited
 # artificially limit the number of samples in the dataset

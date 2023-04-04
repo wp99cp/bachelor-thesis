@@ -183,3 +183,5 @@ def print_results(orig_image, orig_mask, predMask, imagePath: str):
 
     inference_path = os.path.join(BASE_OUTPUT, f"inference_{imagePath}.png")
     figure.savefig(inference_path)
+
+    plt.close(figure)
