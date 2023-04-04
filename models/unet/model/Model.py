@@ -3,8 +3,9 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as func
 from pytorch_model_summary import summary
+from torch import amp
 
-from configs.config import NUM_CLASSES, NUM_CHANNELS, IMAGE_SIZE, DEVICE
+from configs.config import NUM_CLASSES, NUM_CHANNELS, IMAGE_SIZE, DEVICE, USE_PIXED_PRECISION
 
 
 class DoubleConv(nn.Module):
@@ -130,6 +131,7 @@ class UNet(nn.Module):
 
         self.outc = (OutConv(64, n_classes))
 
+    @amp.autocast(enabled=USE_PIXED_PRECISION, device_type=DEVICE)
     def forward(self, x) -> tuple[torch.Tensor, torch.Tensor]:
         x1 = self.inc(x)
         x2 = self.down1(x1)

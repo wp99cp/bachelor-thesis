@@ -3,7 +3,7 @@ import os
 
 import torch
 from matplotlib import pyplot as plt
-from torch.nn import BCEWithLogitsLoss
+from torch.nn import BCEWithLogitsLoss, DataParallel
 from torch.optim import RMSprop, lr_scheduler
 
 from configs.config import DEVICE, INIT_LR, BASE_OUTPUT, IMAGE_SIZE, CLASS_WEIGHTS, MOMENTUM, \
@@ -16,8 +16,23 @@ from model.metrices import get_segmentation_metrics
 
 def train_unet(train_loader, test_loader, train_ds, test_ds):
     # initialize our UNet model
-    unet = UNet().to(DEVICE)
-    unet.print_summary(3, step_up=True, show_hierarchical=True)
+    unet = UNet()
+
+    # print model summary
+    unet.to(DEVICE).print_summary(3, step_up=True, show_hierarchical=True)
+
+    unet = DataParallel(unet)  # allow multiple GPUs
+    unet = unet.to(DEVICE)  # move the model to the GPU
+
+    # if torch version 2.0 or higher, we compile the model
+    if torch.__version__ >= "2.0":
+        print(f"[INFO] compiling the model with torch {torch.__version__}...")
+
+        # check if cuda compatibility is greater or equal to 7.0
+        if torch.cuda.get_device_capability()[0] >= 7:
+            unet = torch.compile(unet)
+        else:
+            print("[INFO] cuda version is too old, skipping compilation...")
 
     # the classes are unbalanced, so we need to artificially increase the
     # weight of the positive classes
