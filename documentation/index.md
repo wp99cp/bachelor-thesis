@@ -12,6 +12,6 @@ hero:
   actions:
     - theme: brand
       text: Getting Started
-      link: /docs/getting-started
+      link: /docs/working_pipeline/getting-started
 
 ---

@@ -9,7 +9,7 @@ export default {
 
         nav: [
             {text: 'Start', link: '/index'},
-            {text: 'Getting Started', link: '/docs/getting-started'}
+            {text: 'Getting Started', link: '/docs/working_pipeline/getting-started'}
         ],
 
         sidebar: {
@@ -18,8 +18,8 @@ export default {
                 {
                     text: 'Working Pipeline',
                     items: [
-                        {text: 'Getting Started', link: 'docs/getting-started'},
-                        {text: 'Pipeline', link: 'docs/pipeline'},
+                        {text: 'Getting Started', link: 'docs/working_pipeline/getting-started'},
+                        {text: 'Pipeline', link: 'docs/working_pipeline/pipeline'},
                     ],
                     collapsible: true,
                     collapsed: false,
@@ -28,9 +28,9 @@ export default {
                 {
                     text: 'Data Sources',
                     items: [
-                        {text: 'ExoLabs', link: 'docs/ExoLabs_Classifications'},
-                        {text: 'Sentinel2 (Bands)', link: 'docs/sentinel2_bands'},
-                        {text: 'Landsat8', link: 'docs/landsat8'},
+                        {text: 'ExoLabs', link: 'docs/datasources/ExoLabs_Classifications'},
+                        {text: 'Sentinel2 (Bands)', link: 'docs/datasources/sentinel2_bands'},
+                        {text: 'Landsat8', link: 'docs/datasources/landsat8'},
                     ],
                     collapsible: true,
                     collapsed: true,
@@ -39,10 +39,10 @@ export default {
                 {
                     text: 'Nice to Know',
                     items: [
-                        {text: 'Python and Conda', link: 'docs/python_and_conda'},
-                        {text: 'Working with Euler', link: 'docs/euler'},
-                        {text: 'Working with Remote Desktop', link: 'docs/remote_desktop'},
-                        {text: 'Improve VPN Stability', link: 'docs/improve-vpn'},
+                        {text: 'Python and Conda', link: 'docs/nice_to_know/python_and_conda'},
+                        {text: 'Working with Euler', link: 'docs/nice_to_know/euler'},
+                        {text: 'Working with Remote Desktop', link: 'docs/nice_to_know/remote_desktop'},
+                        {text: 'Improve VPN Stability', link: 'docs/nice_to_know/improve-vpn'},
                     ],
                     collapsible: true,
                     collapsed: true,
@@ -51,10 +51,10 @@ export default {
                 {
                     text: 'Data Preparation',
                     items: [
-                        {text: 'Data Source', link: 'docs/data_sources'},
-                        {text: 'Augmentation and Sampling', link: 'docs/augmentation_and_sampling'},
-                        {text: 'Hand Annotations', link: 'docs/hand_annotations'},
-                        {text: 'Automated Annotations', link: 'docs/automated_annotations'},
+                        {text: 'Data Source', link: 'docs/pre-processing/data_sources'},
+                        {text: 'Augmentation and Sampling', link: 'docs/pre-processing/augmentation_and_sampling'},
+                        {text: 'Hand Annotations', link: 'docs/pre-processing/hand_annotations'},
+                        {text: 'Automated Annotations', link: 'docs/pre-processing/automated_annotations'},
                     ],
                     collapsible: true,
                     collapsed: true,
