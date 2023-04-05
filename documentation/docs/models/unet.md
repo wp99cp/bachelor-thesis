@@ -92,6 +92,15 @@ Compared to the model `202ea7d` , the results for scene `20211023T102101` are mu
 
 ![img.png](../images/results/a2528d2/example_image_3_a2528d2.png)
 
+Winter scene `20211217T102329`:
+
+![Example Image 3](../images/results/a2528d2/example_image_3_original.png)
+![Example Image 3](../images/results/a2528d2/example_image_3_training_mask.png)
+![Example Image 3](../images/results/a2528d2/example_image_3_original_with_training_mask.png)
+![Example Image 3](../images/results/a2528d2/example_image_3_predicted_classification.png)
+![Example Image 3](../images/results/a2528d2/example_image_3_original_with_predicted_classification.png)
+![Example Image 3](../images/results/a2528d2/example_image_3_both_masks.png)
+
 :::
 
 ::: details Git Commit ([8fe0cea](https://github.com/wp99cp/bachelor-thesis/commit/8fe0cea)) - 02.04.2023
@@ -112,6 +121,8 @@ Results:
 
 ![Example Image 1](../images/results/8fe0cea/example_image_1_8fe0cea.png)
 ![Example Image 2](../images/results/8fe0cea/example_image_2_8fe0cea.png)
+
+
 
 :::
 
