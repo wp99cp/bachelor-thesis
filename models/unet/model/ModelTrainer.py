@@ -131,7 +131,7 @@ class ModelTrainer:
 
         # initialize the total training and validation loss
         total_train_loss = 0
-        pbar = tqdm.tqdm(loader, total=num_batches)
+        pbar = tqdm.tqdm(loader, total=num_batches, miniters=(num_batches // 50))
 
         # loop over the training set
         for i, (x, y) in enumerate(pbar):
