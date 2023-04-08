@@ -4,7 +4,7 @@ import os
 import torch
 from matplotlib import pyplot as plt
 from torch.nn import BCEWithLogitsLoss, DataParallel
-from torch.optim import RMSprop, lr_scheduler
+from torch.optim import RMSprop, lr_scheduler, Adam
 
 from configs.config import DEVICE, INIT_LR, BASE_OUTPUT, IMAGE_SIZE, CLASS_WEIGHTS, MOMENTUM, \
     WEIGHT_DECAY, EARLY_STOPPING_PATIENCE, WEIGHT_DECAY_PLATEAU_PATIENCE, CONTINUE_TRAINING
@@ -47,7 +47,8 @@ def train_unet(train_loader, test_loader, train_ds, test_ds):
 
     # initialize loss function and optimizer
     loss_func = BCEWithLogitsLoss(pos_weight=class_weights.to(DEVICE), reduction='mean')
-    opt = RMSprop(unet.parameters(), lr=INIT_LR, momentum=MOMENTUM)
+    opt = Adam(unet.parameters(), lr=INIT_LR, amsgrad=True, betas=(0.9, 0.999))
+    # opt = RMSprop(unet.parameters(), lr=INIT_LR, momentum=MOMENTUM)
     scheduler = lr_scheduler.ReduceLROnPlateau(opt, 'min', patience=WEIGHT_DECAY_PLATEAU_PATIENCE,
                                                factor=WEIGHT_DECAY, verbose=True)
     es = EarlyStopping(patience=EARLY_STOPPING_PATIENCE, min_delta=0, restore_best_weights=True)

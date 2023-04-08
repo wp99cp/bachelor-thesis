@@ -33,7 +33,7 @@ LIMIT_DATASET_SIZE = 0
 
 # initialize learning rate, number of epochs to train for, and the
 # batch size
-INIT_LR = 0.01
+INIT_LR = 0.001 # if using amp the INIT_LR should be below 0.001
 MOMENTUM = 0.950
 WEIGHT_DECAY = 0.1
 NUM_EPOCHS = 256
@@ -42,12 +42,12 @@ BATCH_SIZE = 24
 WEIGHT_DECAY_PLATEAU_PATIENCE = 1
 EARLY_STOPPING_PATIENCE = 30
 
-STEPS_PER_EPOCH = 4096
-STEPS_PER_EPOCH_TEST = 640
+STEPS_PER_EPOCH = 100
+STEPS_PER_EPOCH_TEST = 50
 
 # switches to mixed precision training after the specified epoch
 # if set to 0, mixed precision training is disabled
-USE_PIXED_PRECISION = False
+USE_PIXED_PRECISION = True
 GRADIENT_CLIPPING = True
 
 # ====================================
@@ -99,7 +99,7 @@ DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 # determine if we will be pinning memory during data loading
 PIN_MEMORY = True if DEVICE == "cuda" else False
 
-CONTINUE_TRAINING = os.environ['CONTINUE_TRAINING'] if 'CONTINUE_TRAINING' in os.environ else False
+CONTINUE_TRAINING = os.environ['CONTINUE_TRAINING'] == 1 if 'CONTINUE_TRAINING' in os.environ else False
 
 # ====================================
 # ====================================
