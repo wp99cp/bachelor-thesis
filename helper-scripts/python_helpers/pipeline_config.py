@@ -37,7 +37,7 @@ EXTRACTED_RAW_DATA = os.environ['EXTRACTED_RAW_DATA']
 def get_dates(pipeline_config, pipeline_step="annotation"):
     dates = pipeline_config[pipeline_step]['s2_dates']
 
-    if len(dates) == 0 or LIMIT_DATES > 0:
+    if len(dates) == 0:
         print("No dates specified in the config file.")
 
         dates = []
@@ -55,11 +55,11 @@ def get_dates(pipeline_config, pipeline_step="annotation"):
         print("Found the following dates: ")
         print(dates)
 
-        if LIMIT_DATES > 0:
-            dates = dates[:LIMIT_DATES]
-            print("Limiting the dates to the first {} dates.".format(LIMIT_DATES))
-            print(dates)
+    if LIMIT_DATES > 0:
+        dates = dates[:LIMIT_DATES]
+        print("Limiting the dates to the first {} dates.".format(LIMIT_DATES))
+        print(dates)
 
-        print("")
+    print("")
 
     return dates
