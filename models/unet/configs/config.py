@@ -37,13 +37,13 @@ INIT_LR = 0.001  # if using amp the INIT_LR should be below 0.001
 MOMENTUM = 0.950
 WEIGHT_DECAY = 0.1
 NUM_EPOCHS = 256
-BATCH_SIZE = 24
+BATCH_SIZE = 32  # fastest to compute on Euler (assuming Quadro RTX 6000)
 
 WEIGHT_DECAY_PLATEAU_PATIENCE = 1
 EARLY_STOPPING_PATIENCE = 30
 
-STEPS_PER_EPOCH = 100
-STEPS_PER_EPOCH_TEST = 50
+STEPS_PER_EPOCH = 1024
+STEPS_PER_EPOCH_TEST = 256
 
 # switches to mixed precision training after the specified epoch
 # if set to 0, mixed precision training is disabled
