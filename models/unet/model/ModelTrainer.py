@@ -4,6 +4,7 @@ from signal import signal, SIGUSR1
 import torch
 import tqdm
 from pytictac import ClassTimer, accumulate_time
+from torch.backends import cudnn
 from torch.nn.modules.loss import _Loss
 from torch.optim import Optimizer
 from torch.optim.lr_scheduler import ReduceLROnPlateau
@@ -41,6 +42,9 @@ class ModelTrainer:
         self.initialize_history()
 
         self.cct = ClassTimer(objects=[self], names=["ModelTrainer"], enabled=True)
+
+        # enable cudnn benchmark for faster training
+        cudnn.benchmark = True
 
         # We register a signal handler for SIGUSR1 to interrupt the training
         # and save the model.
@@ -131,7 +135,7 @@ class ModelTrainer:
 
         # initialize the total training and validation loss
         total_train_loss = 0
-        pbar = tqdm.tqdm(loader, total=num_batches, miniters=(num_batches // 50))
+        pbar = tqdm.tqdm(loader, total=num_batches, miniters=(num_batches // 25))
 
         # loop over the training set
         for i, (x, y) in enumerate(pbar):
