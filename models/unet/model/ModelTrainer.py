@@ -86,7 +86,7 @@ class ModelTrainer:
 
             print("[INFO] saving the model...")
             model_path = os.path.join(BASE_OUTPUT, "unet_intermediate.pth")
-            torch.save(self.model.state_dict(), model_path)
+            torch.save(self.model.module.state_dict(), model_path)
 
     def print_metrics(self, metrics_results):
         print("Metrics for validation of epoch: ", self.epoch)

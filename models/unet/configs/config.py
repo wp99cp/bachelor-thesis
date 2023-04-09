@@ -15,7 +15,7 @@ NUM_CHANNELS = 14  # all satellite images have 13 channels
 NUM_CLASSES = 4
 CLASS_NAMES = ["background", "snow", "clouds", "water"]  # "thin_clouds"
 NUM_ENCODED_CHANNELS = 5  # Number of channels used to encode the grayscale image
-CLASS_WEIGHTS = [0.41005, 0.2931, 0.28905, 0.0078]  # class weights for background, snow, clouds, water
+CLASS_WEIGHTS = [0.42180, 0.30025, 0.26984, 0.00811]  # class weights for background, snow, clouds, water
 
 # define threshold to filter weak predictions
 THRESHOLD = 0.75
@@ -39,11 +39,11 @@ WEIGHT_DECAY = 0.1
 NUM_EPOCHS = 256
 BATCH_SIZE = 32  # fastest to compute on Euler (assuming Quadro RTX 6000)
 
-WEIGHT_DECAY_PLATEAU_PATIENCE = 1
+WEIGHT_DECAY_PLATEAU_PATIENCE = 3
 EARLY_STOPPING_PATIENCE = 30
 
-STEPS_PER_EPOCH = 1024
-STEPS_PER_EPOCH_TEST = 256
+STEPS_PER_EPOCH = 4096
+STEPS_PER_EPOCH_TEST = 1024
 
 # switches to mixed precision training after the specified epoch
 # if set to 0, mixed precision training is disabled
@@ -74,9 +74,18 @@ CHANNEL_DROPOUT_PROB = 0.3
 IMAGE_FLIP_PROB = 0.25
 
 # cover a random patch of the image (i.g. setting all channels and the mask to zero)
-PATCH_COVERING_PROB = 0.2
+PATCH_COVERING_PROB = 0.4
 COVERED_PATCH_SIZE_MIN = 8  # in pixels
-COVERED_PATCH_SIZE_MAX = 64  # in pixels
+COVERED_PATCH_SIZE_MAX = 128  # in pixels
+
+
+# ====================================
+# ====================================
+# Inference Settings
+# ====================================
+# ====================================
+
+LOAD_CORRUPT_WEIGHTS = False
 
 # ====================================
 # ====================================

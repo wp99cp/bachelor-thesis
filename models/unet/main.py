@@ -1,5 +1,6 @@
 import os
 import sys
+from collections import OrderedDict
 
 import matplotlib
 import matplotlib.pyplot as plt
@@ -23,7 +24,7 @@ from augmentation.VerticalFlip import VerticalFlip
 from configs.config import report_config, IMAGE_DATASET_PATH, MASK_DATASET_PATH, TEST_SPLIT, BATCH_SIZE, PIN_MEMORY, \
     DEVICE, BASE_OUTPUT, ENABLE_DATA_AUGMENTATION, IMAGE_FLIP_PROB, CHANNEL_DROPOUT_PROB, \
     COVERED_PATCH_SIZE_MIN, COVERED_PATCH_SIZE_MAX, LIMIT_DATASET_SIZE, BATCH_PREFETCHING, NUM_DATA_LOADER_WORKERS, \
-    THRESHOLD, NUM_CLASSES, IMAGE_SIZE
+    THRESHOLD, NUM_CLASSES, IMAGE_SIZE, LOAD_CORRUPT_WEIGHTS
 from model.Model import UNet
 from model.inference import make_predictions, print_results
 from training import train_unet
@@ -165,9 +166,24 @@ def main():
         return
 
     unet = UNet().to(DEVICE)
-    model_path = os.path.join(BASE_OUTPUT, "unet.pth")
-    unet.load_state_dict(torch.load(model_path))
 
+    model_path = os.path.join(BASE_OUTPUT, "unet.pth")
+
+    if not LOAD_CORRUPT_WEIGHTS:  # correct way
+        state_dict = torch.load(model_path)
+
+    else:
+        # Inference with CPU: use torch.load with map_location=torch.device('cpu') to map your storages to the CPU.
+        # original saved file with DataParallel
+        state_dict_corrupt = torch.load(model_path)
+
+        # create new OrderedDict that does not contain `module.`
+        state_dict = OrderedDict()
+        for k, v in state_dict_corrupt.items():
+            name = k[17:]  # remove '_orig_mod.module.'
+            state_dict[name] = v
+
+    unet.load_state_dict(state_dict)
     unet.print_summary()
 
     pipeline_config = load_pipeline_config()
