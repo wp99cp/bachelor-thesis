@@ -84,17 +84,10 @@ ansible-playbook -i hosts.yml submit_euler.yml --extra-vars "task=helper-scripts
 
 ## Copy Dataset to Euler
 
-To copy the dataset to the cluster, you first need to create a zip folder containing the dataset.
 
 ```bash
-zip -r dataset.zip .
-```
-
-Then you can use the `scp` command to copy the zip file to the cluster. The following command copies the zip file to the
-cluster:
-
-```bash
-scp -r dataset.zip pucyril@euler.ethz.ch:/cluster/scratch/pucyril
+scp -r data/annotated_masks/* pucyril@euler.ethz.ch:/cluster/scratch/pucyril/data_sources/masks && \
+scp -r tmp/* pucyril@euler.ethz.ch:/cluster/scratch/pucyril/data_sources/extracted_raw_data
 ```
 
 Monitor your running tasks with the following command (inside `/cluster/scratch/pucyril/<jobId>/log`)
