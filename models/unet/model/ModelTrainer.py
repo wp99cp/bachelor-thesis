@@ -151,7 +151,7 @@ class ModelTrainer:
                 logit, _ = self.model(x)
                 loss = self.loss_func(logit, y)
 
-            pbar.set_description(f"Epoch: {self.epoch}, train_loss {loss:}")
+            pbar.set_description(f"Epoch: {self.epoch}, train_loss {loss:}", refresh=False)
 
             # Backpropagation with (optional) mixed precision
             self.scaler.scale(loss).backward()
@@ -178,7 +178,7 @@ class ModelTrainer:
 
         # calculate the average training and validation loss
         avg_train_loss = total_train_loss / num_batches
-        pbar.set_description(f"Epoch: {self.epoch}, train_loss {avg_train_loss:}")
+        pbar.set_description(f"Epoch: {self.epoch}, train_loss {avg_train_loss:}", refresh=False)
 
         self.history["train_loss"].append(avg_train_loss.cpu().detach().numpy())
 
