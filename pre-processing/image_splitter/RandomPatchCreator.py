@@ -287,6 +287,8 @@ class RandomPatchCreator:
 
         assert count < 1_000, "Could not find a valid patch after 1'000 tries."
 
+        # TODO: add option to oversample water pixels
+
         # sample a random patch
         _x = np.random.randint(0, _mask_coverage.shape[0] - IMAGE_SIZE)
         _y = np.random.randint(0, _mask_coverage.shape[1] - IMAGE_SIZE)
