@@ -15,7 +15,7 @@ NUM_CHANNELS = 14  # all satellite images have 13 channels
 NUM_CLASSES = 4
 CLASS_NAMES = ["background", "snow", "clouds", "water"]  # "thin_clouds"
 NUM_ENCODED_CHANNELS = 5  # Number of channels used to encode the grayscale image
-CLASS_WEIGHTS = [0.42180, 0.30025, 0.26984, 0.00811]  # class weights for background, snow, clouds, water
+CLASS_WEIGHTS = [0.4132, 0.31163, 0.26706, 0.00812]  # class weights for background, snow, clouds, water
 
 # define threshold to filter weak predictions
 THRESHOLD = 0.75
@@ -78,7 +78,6 @@ IMAGE_FLIP_PROB = 0.25
 PATCH_COVERING_PROB = 0.4
 COVERED_PATCH_SIZE_MIN = 8  # in pixels
 COVERED_PATCH_SIZE_MAX = 128  # in pixels
-
 
 # ====================================
 # ====================================
