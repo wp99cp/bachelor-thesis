@@ -17,6 +17,8 @@ Within the `pipeline-config.yml` you can configure if you wish to train the mode
 
 ## Results of Previous Iterations
 
+Currently by best model is `a2528d2`. It works reliably in different scenes and seasons.
+
 ::: details Git Commit ([202ea7d](https://github.com/wp99cp/bachelor-thesis/commit/202ea7d)) - 03.04.2023
 
 Trained based on a hand-selected limited dataset, containing of the bands:
@@ -32,6 +34,7 @@ Trained based on a hand-selected limited dataset, containing of the bands:
 ![Example Image 2](../images/results/202ea7d/example_image_2_202ea7d.png)
 
 ### Problems
+
 Huge Problem on scene `20211023T102101`
 
 - false positive clouds in bright snow
@@ -40,7 +43,6 @@ Huge Problem on scene `20211023T102101`
 ![img.png](../images/results/202ea7d/example_image_3.png)
 
 :::
-
 
 ::: details Git Commit ([8ad1ca2](https://github.com/wp99cp/bachelor-thesis/commit/8ad1ca2)) - 03.04.2023
 
@@ -63,9 +65,7 @@ STEPS_PER_EPOCH_TEST = 128
 ![Example Image 1](../images/results/8ad1ca2/example_image_1_8ad1ca2.png)
 ![Example Image 2](../images/results/8ad1ca2/example_image_2_8ad1ca2.png)
 
-
 :::
-
 
 ::: details Git Commit ([a2528d2](https://github.com/wp99cp/bachelor-thesis/commit/a2528d2)) - 02.04.2023
 
@@ -121,8 +121,6 @@ Results:
 
 ![Example Image 1](../images/results/8fe0cea/example_image_1_8fe0cea.png)
 ![Example Image 2](../images/results/8fe0cea/example_image_2_8fe0cea.png)
-
-
 
 :::
 
