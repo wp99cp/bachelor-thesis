@@ -19,6 +19,33 @@ Within the `pipeline-config.yml` you can configure if you wish to train the mode
 
 Currently by best model is `a2528d2`. It works reliably in different scenes and seasons.
 
+::: details Git Commit ([2d0d993](https://github.com/wp99cp/bachelor-thesis/commit/2d0d993)) - 10.04.2023
+
+That was `14035434` slurm job.
+
+Model trained using amp (mixed precision) and AdamW optimizer. Using all 13 bands and the elevation data.
+
+This model has slow convergence, however it is learning quite well.
+
+```
+Epoch: 49, train_loss: 0.074335, test_loss: 0.061889
+Metrics for validation of epoch:  49
+ - pixel_accuracy___background: 0.9733
+ - union_over_inter_background: 0.9346
+ - dice_coefficient_background: 0.9666
+ - pixel_accuracy___snow: 0.9776
+ - union_over_inter_snow: 0.9220
+ - dice_coefficient_snow: 0.9597
+ - pixel_accuracy___clouds: 0.9820
+ - union_over_inter_clouds: 0.9302
+ - dice_coefficient_clouds: 0.9641
+ - pixel_accuracy___water: 0.9996
+ - union_over_inter_water: 0.6934
+ - dice_coefficient_water: 0.8009
+```
+
+:::
+
 ::: details Git Commit ([202ea7d](https://github.com/wp99cp/bachelor-thesis/commit/202ea7d)) - 03.04.2023
 
 Trained based on a hand-selected limited dataset, containing of the bands:
