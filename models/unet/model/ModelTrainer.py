@@ -122,6 +122,12 @@ class ModelTrainer:
 
         avg_test_loss = total_test_loss / num_batches
 
+        # check if average test loss is nan
+        # this terminates the training
+        if torch.isnan(avg_test_loss):
+            self.emergency_stop = True
+            print("Emergency stop: test loss is nan!")
+
         # update our training history
         self.history["test_loss"].append(avg_test_loss.cpu().detach().numpy())
 
@@ -179,6 +185,12 @@ class ModelTrainer:
         # calculate the average training and validation loss
         avg_train_loss = total_train_loss / num_batches
         pbar.set_description(f"Epoch: {self.epoch}, train_loss {avg_train_loss:}", refresh=False)
+
+        # check if average training loss is nan
+        # this terminates the training
+        if torch.isnan(avg_train_loss):
+            self.emergency_stop = True
+            print("Emergency stop: training loss is nan!")
 
         self.history["train_loss"].append(avg_train_loss.cpu().detach().numpy())
 
