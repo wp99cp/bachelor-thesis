@@ -47,7 +47,7 @@ def train_unet(train_loader, test_loader, train_ds, test_ds):
 
     # initialize loss function and optimizer
     loss_func = BCEWithLogitsLoss(pos_weight=class_weights.to(DEVICE), reduction='mean')
-    opt = AdamW(unet.parameters(), lr=INIT_LR, amsgrad=True, betas=(0.9, 0.999))
+    opt = AdamW(unet.parameters(), lr=INIT_LR, amsgrad=True, betas=(0.9, 0.999), eps=1e-6)
     # opt = Adam(unet.parameters(), lr=INIT_LR, amsgrad=True, betas=(0.9, 0.999))
     # opt = RMSprop(unet.parameters(), lr=INIT_LR, momentum=MOMENTUM)
     scheduler = lr_scheduler.ReduceLROnPlateau(opt, 'min', patience=WEIGHT_DECAY_PLATEAU_PATIENCE,
