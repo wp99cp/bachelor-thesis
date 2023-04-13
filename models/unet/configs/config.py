@@ -86,6 +86,7 @@ COVERED_PATCH_SIZE_MAX = 128  # in pixels
 # ====================================
 
 LOAD_CORRUPT_WEIGHTS = False
+THRESHOLDED_PREDICTION = False
 
 # ====================================
 # ====================================
