@@ -74,3 +74,22 @@ To restore the environment, use the following command:
 conda env create -f environment.yml
 ```
 
+## QGis Installation and Usage
+
+The MapSwipe Plugin does not run under python3.10. Therefore, you first need to install activate the python3.9 conda environment.
+
+```bash
+conda activate python3.9
+```
+
+Then, you can install QGis.
+
+```bash
+conda install -c conda-forge qgis
+```
+
+To run QGis, use the following command:
+
+```bash
+qgis
+```
