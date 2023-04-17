@@ -4,6 +4,8 @@ SAMPLES_PER_DATE = 8192
 
 IMAGE_SIZE = 256
 NUM_ENCODED_CHANNELS = 5
+
+# TODO: add the modified band B11
 SELECTED_BANDS = ["B01", "B02", "B03", "B04", "B05", "B06", "B07", "B08", "B8A", "B09", "B10", "B11", "B12", "ELEV"]
 
 # ====================================

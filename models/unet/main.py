@@ -24,7 +24,7 @@ from augmentation.VerticalFlip import VerticalFlip
 from configs.config import report_config, IMAGE_DATASET_PATH, MASK_DATASET_PATH, TEST_SPLIT, BATCH_SIZE, PIN_MEMORY, \
     DEVICE, BASE_OUTPUT, ENABLE_DATA_AUGMENTATION, IMAGE_FLIP_PROB, CHANNEL_DROPOUT_PROB, \
     COVERED_PATCH_SIZE_MIN, COVERED_PATCH_SIZE_MAX, LIMIT_DATASET_SIZE, BATCH_PREFETCHING, NUM_DATA_LOADER_WORKERS, \
-    THRESHOLD, NUM_CLASSES, IMAGE_SIZE, LOAD_CORRUPT_WEIGHTS
+    THRESHOLD, NUM_CLASSES, IMAGE_SIZE, LOAD_CORRUPT_WEIGHTS, THRESHOLDED_PREDICTION
 from model.Model import UNet
 from model.inference import make_predictions, print_results
 from training import train_unet
@@ -255,7 +255,8 @@ def main():
 
 def get_encoded_prediction(predicted_mask):
     print(f"Min/Max of predicted_mask: {np.min(predicted_mask)}/{np.max(predicted_mask)}")
-    predicted_mask[:, :, :] = (predicted_mask[:, :, :] > THRESHOLD).astype(int)
+    if THRESHOLDED_PREDICTION:
+        predicted_mask[:, :, :] = (predicted_mask[:, :, :] > THRESHOLD).astype(int)
     return np.argmax(predicted_mask, axis=0)
 
 

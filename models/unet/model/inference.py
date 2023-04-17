@@ -7,7 +7,8 @@ import torch
 from matplotlib import pyplot as plt
 from matplotlib.patches import Patch
 
-from configs.config import IMAGE_SIZE, MASK_DATASET_PATH, DEVICE, BASE_OUTPUT, NUM_ENCODED_CHANNELS, THRESHOLD
+from configs.config import IMAGE_SIZE, MASK_DATASET_PATH, DEVICE, BASE_OUTPUT, NUM_ENCODED_CHANNELS, THRESHOLD, \
+    THRESHOLDED_PREDICTION
 
 
 def make_predictions(model, image_path):
@@ -158,7 +159,8 @@ def print_results(orig_image, orig_mask, predMask, imagePath: str):
     ax[0, 1].legend(handles=legend_elements, loc='upper right')
 
     predMask = predMask.transpose(1, 2, 0)
-    predMask[:, :, :] = (predMask[:, :, :] > THRESHOLD).astype(int)
+    if THRESHOLDED_PREDICTION:
+        predMask[:, :, :] = (predMask[:, :, :] > THRESHOLD).astype(int)
     pred_mask_encoded = np.argmax(predMask, axis=2)
 
     # compute difference between predicted mask and original mask
