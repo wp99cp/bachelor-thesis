@@ -40,7 +40,7 @@ dataset:
   # forces a recreation of the dataset (1 or 0)
   # this deletes the dataset folder and recreates it using the current raw data
   # will be ignored if create_on_the_fly is enabled
-  recreate_dataset: 1
+  recreate_dataset: 0
 
   # limits the number of dates to be used for the dataset
   # if you wish to use all dates, just set this to 0
@@ -61,7 +61,7 @@ dataset:
 training:
 
   # enables the training (1 or 0)
-  enable: 1
+  enable: 0
 
   # continues the training from the checkpoint "unet.pth" (1 or 0)
   continue_training: 0
@@ -73,12 +73,16 @@ inference:
   legacy_mode: 0
 
   # this date is used for inference in the new mode
-  s2_date: '20211112T102251'
+  s2_date: '20210720T101559'
+
+  # model name, if left empty the default model will be used (unet.pth)
+  model_file_name: 'unet_e40b271_ep21.pth'
 
   # limits the patches, 0 stands for the whole tile
   # this option is only used in the new mode
   limit_patches: 6500
 
+# This is not yet implemented
 ensemble:
 
   # ensembles the predictions of different models

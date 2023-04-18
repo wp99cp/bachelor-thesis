@@ -81,7 +81,7 @@ def colorize_mask(mask_):
     return cmap_, mask_
 
 
-def print_results(orig_image, orig_mask, predMask, imagePath: str):
+def print_results(orig_image, orig_mask, predMask, imagePath: str, file_path_prefix=''):
     # initialize our figure
     matplotlib.use('Agg')
     figure, ax = plt.subplots(nrows=2, ncols=6, figsize=(30, 10))
@@ -183,7 +183,7 @@ def print_results(orig_image, orig_mask, predMask, imagePath: str):
     # set the layout of the figure and display it
     figure.tight_layout()
 
-    inference_path = os.path.join(BASE_OUTPUT, f"inference_{imagePath}.png")
+    inference_path = os.path.join(BASE_OUTPUT, file_path_prefix, f"inference_{imagePath}.png")
     figure.savefig(inference_path)
 
     plt.close(figure)

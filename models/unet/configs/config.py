@@ -48,8 +48,8 @@ STEPS_PER_EPOCH_TEST = 1024
 # switches to mixed precision training after the specified epoch
 # if set to 0, mixed precision training is disabled
 # make sure to disable mixed precision during inference!
-USE_PIXED_PRECISION = True
-GRADIENT_CLIPPING = True
+USE_PIXED_PRECISION = False
+GRADIENT_CLIPPING = False
 
 # ====================================
 # ====================================
