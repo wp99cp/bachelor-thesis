@@ -55,6 +55,7 @@ export default {
                         {text: 'Augmentation and Sampling', link: 'docs/pre-processing/augmentation_and_sampling'},
                         {text: 'Hand Annotations', link: 'docs/pre-processing/hand_annotations'},
                         {text: 'Automated Annotations', link: 'docs/pre-processing/automated_annotations'},
+                        {text: 'Clean Up Masks', link: 'docs/pre-processing/clean_up_masks'},
                     ],
                     collapsible: true,
                     collapsed: true,
