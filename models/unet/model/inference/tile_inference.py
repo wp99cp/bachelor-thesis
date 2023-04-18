@@ -95,6 +95,7 @@ def tile_inference(pipeline_config, unet, model_file_name='unet'):
     # save bands as RGB jp2 images
     _save_bands(patch_creator, s2_date, path=path_prefix, name='TCI', selected_bands=[3, 2, 1])
     _save_bands(patch_creator, s2_date, path=path_prefix, name='FCI', selected_bands=[12, 7, 3])
+    _save_training_mask(patch_creator, s2_date, path=path_prefix)
 
     profile = _get_profile(s2_date)
     predicted_mask_full_tile = np.zeros((NUM_CLASSES, profile["height"], profile["width"]), dtype='float32')
@@ -137,6 +138,26 @@ def tile_inference(pipeline_config, unet, model_file_name='unet'):
     with rasterio.open(path, 'w', **profile) as mask_file:
         mask_file.write(_get_encoded_prediction(predicted_mask_full_tile), 1)
 
+    # calculate the difference between the predicted mask and the training mask
+    # and save it as a jp2 file
+
+    # load the training mask
+    training_mask = patch_creator.get_mask(s2_date)
+    pred_mask = _get_encoded_prediction(predicted_mask_full_tile)
+
+    # calculate the difference (pixel wise)
+    # define a lookup table for the output values
+    # calculate the difference using vectorized operations and the lookup table
+    lookup = np.array([0, 11, 12, 13, 1, 0, 14, 15, 2, 4, 0, 16, 3, 5, 6, 0])
+    diff = lookup[training_mask * 4 + pred_mask]
+    diff = diff.astype('int8')
+
+    # save the difference
+    path = os.path.join(BASE_OUTPUT, path_prefix, f"{s2_date}_mask_diff.jp2")
+
+    with rasterio.open(path, 'w', **profile) as mask_file:
+        mask_file.write(diff, 1)
+
 
 def _save_bands(patch_creator, s2_date, path, name='TCI', selected_bands=None):
     if selected_bands is None:
@@ -145,7 +166,7 @@ def _save_bands(patch_creator, s2_date, path, name='TCI', selected_bands=None):
     assert len(selected_bands) == 3, "selected_bands must be a list of 3 elements"
 
     bands = patch_creator.get_bands(s2_date)
-    print(f"bands.shape: {bands.shape}")
+    # print(f"bands.shape: {bands.shape}")
     image = bands[selected_bands, :, :]
 
     # use rasterio to save the tci
@@ -154,3 +175,13 @@ def _save_bands(patch_creator, s2_date, path, name='TCI', selected_bands=None):
     profile["dtype"] = np.uint8
     with rasterio.open(os.path.join(BASE_OUTPUT, path, f"{name}.jp2"), 'w', **profile) as dst:
         dst.write(image)
+
+
+def _save_training_mask(patch_creator, s2_date, path):
+    mask = patch_creator.get_mask(s2_date)
+
+    profile = _get_profile(s2_date)
+    profile["dtype"] = np.uint8
+
+    with rasterio.open(os.path.join(BASE_OUTPUT, path, f"training_mask.jp2"), 'w', **profile) as dst:
+        dst.write(mask, 1)
