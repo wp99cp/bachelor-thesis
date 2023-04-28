@@ -6,7 +6,7 @@ import numpy as np
 import rasterio
 
 from SentinelDataLoader import SentinelDataLoader
-from configs.config import BASE_OUTPUT
+from configs.config import BASE_OUTPUT, DATASET_PATH
 from utils.rasterio_helpers import get_profile
 
 sys.path.insert(0, os.environ['BASE_DIR'] + '/helper-scripts/python_helpers')
@@ -37,7 +37,13 @@ def run_testing_on_date(s2_date, path_prefix):
     # Step 1: load predicted, ground truth and the mask used for training
     with rasterio.open(os.path.join(BASE_OUTPUT, path_prefix, f"{s2_date}_mask_prediction.jp2")) as mask:
         prediction = mask.read(1)
-    ground_truth = dataloader.get_ground_truth(s2_date)
+
+    with rasterio.open(os.path.join(DATASET_PATH, '..', 'ground_truth_masks', s2_date, "mask.jp2")) as mask:
+        ground_truth = mask.read(1)
+
+        # merge classes for dense and sparse clouds, set both to class 2 (dense clouds)
+        ground_truth[ground_truth == 4] = 2
+
     training_mask = dataloader.get_mask(s2_date)
 
     __create_different_mask(ground_truth, prediction, s2_date, path_prefix, name="mask_diff_ground_truth")
@@ -55,19 +61,24 @@ def run_testing_on_date(s2_date, path_prefix):
     # As our metrics are geometrically invariant, we can simply ignore the areas
     # where the masks are not defined by dropping the corresponding pixels in all three masks.
 
+    # load coverage masks
+    prediction_coverage = np.ones(prediction.shape, dtype=np.bool_)
+    with rasterio.open(os.path.join(DATASET_PATH, '..', 'ground_truth_masks', s2_date, "mask_coverage.jp2")) as mask:
+        ground_truth_coverage = mask.read(1)
+    training_mask_coverage = dataloader.get_mask_coverage(s2_date)
+
+    # intersect coverage masks
+    coverage = np.logical_and(ground_truth_coverage, training_mask_coverage, prediction_coverage)
+    coverage = coverage.flatten()
+
+    print(f"Coverage: {((np.sum(coverage) / coverage.shape[0]) * 100):02.3f} %")
+    print(f"Dropped pixels: {coverage.shape[0] - np.sum(coverage)}")
+    print()
+
     # reduce to 1D arrays
     prediction = prediction.flatten()
     ground_truth = ground_truth.flatten()
     training_mask = training_mask.flatten()
-
-    # load coverage masks
-    prediction_coverage = np.zeros(prediction.shape, dtype=np.bool_)
-    ground_truth_coverage = dataloader.get_mask_coverage(s2_date)
-    training_mask_coverage = dataloader.get_mask_coverage(s2_date)
-
-    # intersect coverage masks
-    coverage = np.logical_and(ground_truth_coverage, training_mask_coverage)
-    coverage = coverage.flatten()
 
     # drop pixels where any of the masks is undefined (i.g. coverage = 0)
     prediction = prediction[coverage]
@@ -85,7 +96,7 @@ def run_testing_on_date(s2_date, path_prefix):
     report_dice(ground_truth, prediction)
     report_jaccard(ground_truth, prediction)
 
-    # Step 4: save metrics and create plots
+    print("\n\n\n=================\nTesting results:\n=================\n")
 
 
 def report_jaccard(ground_truth, prediction):

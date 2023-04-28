@@ -97,6 +97,9 @@ def __tile_inference_of_date(s2_date, pipeline_config, unet, path_prefix):
     with rasterio.open(path, 'w', **profile) as mask_file:
         mask_file.write(get_encoded_prediction(predicted_mask_full_tile), 1)
 
+    # this is important, otherwise the inference of the next date will be corrupted
+    patch_creator.close_date(s2_date)
+
 
 def _save_bands(patch_creator, s2_date, path, name='TCI', selected_bands=None):
     if selected_bands is None:

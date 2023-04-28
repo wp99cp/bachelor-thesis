@@ -13,6 +13,7 @@ from PixelClassCounter import PixelClassCounter
 from SentinelMemoryManager import SentinelMemoryManager
 from config import NUM_ENCODED_CHANNELS, IMAGE_SIZE, MAKS_PATH, \
     EXTRACTED_RAW_DATA, SELECTED_BANDS, BORDER_WIDTH
+from configs.config import BASE_DIR
 
 
 class SentinelDataLoader:
@@ -56,10 +57,6 @@ class SentinelDataLoader:
 
     def get_bands(self, date: str):
         return self.__memory_Manager.get_date_data(date)['bands']
-
-    def get_ground_truth(self, date: str):
-        # TODO: this should return the ground truth (i.g., hand labeled data)
-        return self.__memory_Manager.get_date_data(date)['mask'][0]
 
     def get_mask(self, date: str):
         return self.__memory_Manager.get_date_data(date)['mask'][0]  # 0 is the mask, 1 is the mask_coverage
