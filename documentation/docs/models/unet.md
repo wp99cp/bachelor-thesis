@@ -19,6 +19,16 @@ Within the `pipeline-config.yml` you can configure if you wish to train the mode
 
 Currently by best model is `a2528d2`. It works reliably in different scenes and seasons.
 
+::: details Git Commit ([e40b271](https://github.com/wp99cp/bachelor-thesis/commit/e40b271)) - 14.04.2023
+
+This was `14235800` slurm job.
+
+Model trained using amp (mixed precision) and AdamW optimizer. Using all 13 bands and the elevation data.
+Great performance except for water.
+
+:::
+
+
 ::: details Git Commit ([2d0d993](https://github.com/wp99cp/bachelor-thesis/commit/2d0d993)) - 10.04.2023
 
 That was `14035434` slurm job.
