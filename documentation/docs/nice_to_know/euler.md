@@ -84,6 +84,11 @@ ansible-playbook -i hosts.yml submit_euler.yml --extra-vars "task=helper-scripts
 
 ## Copy Dataset to Euler
 
+::: danger
+
+Keep in mind that you have to merge the `clean_up_masks` folder into the `mask` directory!!
+
+:::
 
 ```bash
 scp -r data/annotated_masks/* pucyril@euler.ethz.ch:/cluster/scratch/pucyril/data_sources/masks && \
