@@ -11,7 +11,7 @@ from PIL import Image
 from matplotlib import patches
 from tqdm import tqdm
 
-from RandomPatchCreator import RandomPatchCreator
+from SentinelDataLoader import SentinelDataLoader
 from config import IMAGE_SIZE, SAMPLES_PER_DATE, MAKS_PATH, \
     DATASET_DIR, RESULTS, report_config, EXTRACTED_RAW_DATA, SELECTED_BANDS
 
@@ -70,7 +70,7 @@ def main():
     os.makedirs(f"{DATASET_DIR}/images", exist_ok=True)
     os.makedirs(f"{DATASET_DIR}/masks", exist_ok=True)
 
-    patch_creator = RandomPatchCreator(dates=dates,
+    patch_creator = SentinelDataLoader(dates=dates,
                                        mask_base_dir=MAKS_PATH,
                                        raw_data_base_dir=EXTRACTED_RAW_DATA,
                                        selected_bands=SELECTED_BANDS)
@@ -97,7 +97,7 @@ def main():
           f"« Background, Snow, Clouds, Water, Semi-Transparent Clouds\n")
 
 
-def plot_patch_centers(date, _patch_creator: RandomPatchCreator):
+def plot_patch_centers(date, _patch_creator: SentinelDataLoader):
     mask_data = _patch_creator.get_mask(date)
     mask_coverage_data = _patch_creator.get_mask_coverage(date)
 

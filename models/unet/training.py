@@ -11,7 +11,7 @@ from configs.config import DEVICE, INIT_LR, BASE_OUTPUT, IMAGE_SIZE, CLASS_WEIGH
 from model.EarlyStopping import EarlyStopping
 from model.Model import UNet
 from model.ModelTrainer import ModelTrainer
-from model.metrices import get_segmentation_metrics
+from model.training_metrices import get_segmentation_metrics
 
 
 def train_unet(train_loader, test_loader, train_ds, test_ds):

@@ -6,80 +6,30 @@ import rasterio
 import torch
 import tqdm
 
-from configs.config import IMAGE_SIZE, THRESHOLDED_PREDICTION, THRESHOLD, NUM_CLASSES, DEVICE, BASE_OUTPUT
+from configs.config import NUM_CLASSES, DEVICE, BASE_OUTPUT
 from model.inference.patch_inference import print_results
+from utils.encoder_decoder import get_encoded_prediction
+from utils.rasterio_helpers import get_profile
+from utils.smoothing import smooth_kern
 
 # import the necessary packages form the pre-processing/image_splitter
 sys.path.insert(0, os.environ['BASE_DIR'] + '/pre-processing/image_splitter')
 # noinspection PyUnresolvedReferences
-from RandomPatchCreator import RandomPatchCreator
-
-
-def _get_base_path(date):
-    EXTRACTED_RAW_DATA = os.environ['EXTRACTED_RAW_DATA']
-
-    folders = os.listdir(EXTRACTED_RAW_DATA)
-    folders = [f for f in folders if f"_MSIL1C_{date}" in f]
-    folder = folders[0]
-
-    base_path = f"{EXTRACTED_RAW_DATA}/{folder}/GRANULE/"
-    sub_folder = os.listdir(base_path)
-    base_path += sub_folder[0] + '/IMG_DATA'
-
-    return base_path
-
-
-def __smooth_kern(kernel_size_x=IMAGE_SIZE, kernel_size_y=IMAGE_SIZE):
-    """
-
-    """
-
-    heaviside_lambda = lambda x: -np.sign(x) * x + 1
-    heaviside_lambda_2D = lambda x, y: heaviside_lambda(x) * heaviside_lambda(y)
-
-    xs = np.linspace(-1, 1, kernel_size_x)
-    ys = np.linspace(-1, 1, kernel_size_y)
-    xv, yv = np.meshgrid(xs, ys)
-
-    return heaviside_lambda_2D(xv, yv)
-
-
-def _get_profile(s2_date):
-    base_path = _get_base_path(s2_date)
-    B02 = f"T32TNS_{s2_date}_B02.jp2"
-    B02 = rasterio.open(f"{base_path}/{B02}")
-
-    profile = {
-        'driver': 'GTiff',
-        'dtype': np.uint8,
-        'nodata': 0,
-        'width': B02.width,
-        'height': B02.height,
-        'count': 1,
-        'crs': B02.crs,
-        'transform': B02.transform,
-        'blockxsize': 512,
-        'blockysize': 512,
-        'compress': 'lzw',
-    }
-
-    return profile
-
-
-def _get_encoded_prediction(predicted_mask):
-    print(f"Min/Max of predicted_mask: {np.min(predicted_mask)}/{np.max(predicted_mask)}")
-    if THRESHOLDED_PREDICTION:
-        predicted_mask[:, :, :] = (predicted_mask[:, :, :] > THRESHOLD).astype(int)
-    return np.argmax(predicted_mask, axis=0)
+from SentinelDataLoader import SentinelDataLoader
 
 
 def tile_inference(pipeline_config, unet, model_file_name='unet'):
     # create a mask for the s2_date
-    s2_date = pipeline_config["inference"]["s2_date"]
+    s2_dates = pipeline_config["inference"]["s2_dates"]
 
-    model_name = model_file_name.split(".")[0]
-    path_prefix = os.path.join(f"{s2_date}_pred", model_name)
+    for s2_date in s2_dates:
+        model_name = model_file_name.split(".")[0]
+        path_prefix = os.path.join(f"{s2_date}_pred", model_name)
 
+        __tile_inference_of_date(s2_date, pipeline_config, unet, path_prefix)
+
+
+def __tile_inference_of_date(s2_date, pipeline_config, unet, path_prefix):
     # create dir in BASE_OUTPUT/s2_date_pred/model_name
     os.makedirs(os.path.join(BASE_OUTPUT, path_prefix), exist_ok=True)
 
@@ -88,7 +38,7 @@ def tile_inference(pipeline_config, unet, model_file_name='unet'):
         os.remove(os.path.join(BASE_OUTPUT, path_prefix, file))
 
     limit_patches = pipeline_config["inference"]["limit_patches"]
-    patch_creator = RandomPatchCreator(dates=[s2_date], coverage_mode=True, border_width=0)
+    patch_creator = SentinelDataLoader(dates=[s2_date], coverage_mode=True, border_width=0)
     patch_creator.open_date(s2_date)
 
     # calculate the number of patches if limit_patches is not set
@@ -101,9 +51,9 @@ def tile_inference(pipeline_config, unet, model_file_name='unet'):
     _save_bands(patch_creator, s2_date, path=path_prefix, name='FCI', selected_bands=[12, 7, 3])
     _save_training_mask(patch_creator, s2_date, path=path_prefix)
 
-    profile = _get_profile(s2_date)
+    profile = get_profile(s2_date)
     predicted_mask_full_tile = np.zeros((NUM_CLASSES, profile["height"], profile["width"]), dtype='float32')
-    gaussian_smoother = __smooth_kern()
+    gaussian_smoother = smooth_kern()
 
     # copy NUM_CLASSES times the gaussian_smoother
     gaussian_smoother = np.repeat(gaussian_smoother[np.newaxis, ...], NUM_CLASSES, axis=0)
@@ -135,7 +85,7 @@ def tile_inference(pipeline_config, unet, model_file_name='unet'):
 
         # update gaussian_smoother if shape is not correct
         if gaussian_smoother.shape[1] != w or gaussian_smoother.shape[2] != h:
-            gaussian_smoother = __smooth_kern(h, w)
+            gaussian_smoother = smooth_kern(h, w)
             gaussian_smoother = np.repeat(gaussian_smoother[np.newaxis, ...], NUM_CLASSES, axis=0)
 
         # save the patch at the corresponding coordinates
@@ -145,27 +95,7 @@ def tile_inference(pipeline_config, unet, model_file_name='unet'):
     # Create the empty JP2 file
     path = os.path.join(BASE_OUTPUT, path_prefix, f"{s2_date}_mask_prediction.jp2")
     with rasterio.open(path, 'w', **profile) as mask_file:
-        mask_file.write(_get_encoded_prediction(predicted_mask_full_tile), 1)
-
-    # calculate the difference between the predicted mask and the training mask
-    # and save it as a jp2 file
-
-    # load the training mask
-    training_mask = patch_creator.get_mask(s2_date)
-    pred_mask = _get_encoded_prediction(predicted_mask_full_tile)
-
-    # calculate the difference (pixel wise)
-    # define a lookup table for the output values
-    # calculate the difference using vectorized operations and the lookup table
-    lookup = np.array([0, 11, 12, 13, 1, 0, 14, 15, 2, 4, 0, 16, 3, 5, 6, 0])
-    diff = lookup[training_mask * 4 + pred_mask]
-    diff = diff.astype('int8')
-
-    # save the difference
-    path = os.path.join(BASE_OUTPUT, path_prefix, f"{s2_date}_mask_diff.jp2")
-
-    with rasterio.open(path, 'w', **profile) as mask_file:
-        mask_file.write(diff, 1)
+        mask_file.write(get_encoded_prediction(predicted_mask_full_tile), 1)
 
 
 def _save_bands(patch_creator, s2_date, path, name='TCI', selected_bands=None):
@@ -179,7 +109,7 @@ def _save_bands(patch_creator, s2_date, path, name='TCI', selected_bands=None):
     image = bands[selected_bands, :, :]
 
     # use rasterio to save the tci
-    profile = _get_profile(s2_date)
+    profile = get_profile(s2_date)
     profile["count"] = 3
     profile["dtype"] = np.uint8
     with rasterio.open(os.path.join(BASE_OUTPUT, path, f"{name}.jp2"), 'w', **profile) as dst:
@@ -189,7 +119,7 @@ def _save_bands(patch_creator, s2_date, path, name='TCI', selected_bands=None):
 def _save_training_mask(patch_creator, s2_date, path):
     mask = patch_creator.get_mask(s2_date)
 
-    profile = _get_profile(s2_date)
+    profile = get_profile(s2_date)
     profile["dtype"] = np.uint8
 
     with rasterio.open(os.path.join(BASE_OUTPUT, path, f"training_mask.jp2"), 'w', **profile) as dst:

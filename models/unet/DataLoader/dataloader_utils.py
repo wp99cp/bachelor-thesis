@@ -22,11 +22,6 @@ sys.path.insert(0, os.environ['BASE_DIR'] + '/helper-scripts/python_helpers')
 # noinspection PyUnresolvedReferences
 from pipeline_config import load_pipeline_config, get_dates
 
-# import the necessary packages form the pre-processing/image_splitter
-sys.path.insert(0, os.environ['BASE_DIR'] + '/pre-processing/image_splitter')
-# noinspection PyUnresolvedReferences
-from RandomPatchCreator import RandomPatchCreator
-
 
 def load_data():
     # load the image and mask filepaths in a sorted manner

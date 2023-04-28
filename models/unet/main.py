@@ -4,15 +4,13 @@ from collections import OrderedDict
 
 import matplotlib
 import matplotlib.pyplot as plt
-import numpy as np
 import torch
-from numpy.random import multivariate_normal
 
-from DataLoader.dataloader import load_data
-from configs.config import report_config, IMAGE_DATASET_PATH, DEVICE, BASE_OUTPUT, LOAD_CORRUPT_WEIGHTS
+from DataLoader.dataloader_utils import load_data
+from configs.config import report_config, DEVICE, BASE_OUTPUT, LOAD_CORRUPT_WEIGHTS
 from model.Model import UNet
-from model.inference.patch_inference import make_predictions
 from model.inference.tile_inference import tile_inference
+from model.testing.testing import run_testing
 from training import train_unet
 
 # import the necessary packages form the pre-processing/image_splitter
@@ -71,8 +69,6 @@ def main():
         print("[INFO] emergency stop: skipping model inference.")
         return
 
-    unet = UNet().to(DEVICE)
-
     pipeline_config = load_pipeline_config()
 
     model_file_name = pipeline_config["inference"]["model_file_name"]
@@ -81,39 +77,37 @@ def main():
     print(f"[INFO] loading model weights from {model_file_name}...")
     model_path = os.path.join(BASE_OUTPUT, model_file_name)
 
-    if not LOAD_CORRUPT_WEIGHTS:  # correct way
-        state_dict = torch.load(model_path)
+    # run inference
+    if pipeline_config["inference"]["enable_inference"] == 1:
+        unet = UNet().to(DEVICE)
 
-    else:
-        # Inference with CPU: use torch.load with map_location=torch.device('cpu') to map your storages to the CPU.
-        # original saved file with DataParallel
-        state_dict_corrupt = torch.load(model_path)
+        if not LOAD_CORRUPT_WEIGHTS:  # correct way
+            state_dict = torch.load(model_path)
 
-        # create new OrderedDict that does not contain `module.`
-        state_dict = OrderedDict()
-        for k, v in state_dict_corrupt.items():
-            name = k[17:]  # remove '_orig_mod.module.'
-            state_dict[name] = v
+        else:
+            # Inference with CPU: use torch.load with map_location=torch.device('cpu') to map your storages to the CPU.
+            # original saved file with DataParallel
+            state_dict_corrupt = torch.load(model_path)
 
-    unet.load_state_dict(state_dict)
-    unet.print_summary()
+            # create new OrderedDict that does not contain `module.`
+            state_dict = OrderedDict()
+            for k, v in state_dict_corrupt.items():
+                name = k[17:]  # remove '_orig_mod.module.'
+                state_dict[name] = v
 
-    if pipeline_config["inference"]["legacy_mode"]:
+        unet.load_state_dict(state_dict)
+        unet.print_summary()
 
-        # lost filenames inside IMAGE_DATASET_PATH
-        file_names = [f for f in os.listdir(IMAGE_DATASET_PATH) if os.path.isfile(os.path.join(IMAGE_DATASET_PATH, f))]
-        print(f"Found {len(file_names)} files in {IMAGE_DATASET_PATH}.")
-
-        for i in range(25):
-            # choose a random file
-            file = np.random.choice(file_names)
-            print(f"Using {file} for prediction.")
-
-            # make predictions and visualize the results
-            make_predictions(unet, os.path.join(IMAGE_DATASET_PATH, file))
-
-    else:
         tile_inference(pipeline_config, unet, model_file_name=model_file_name)
+    else:
+        print("[INFO] skipping inference.")
+
+    # run testing
+    if pipeline_config['testing']['enable_testing'] == 1:
+        run_testing(pipeline_config, model_file_name=model_file_name)
+
+    else:
+        print("[INFO] skipping testing.")
 
 
 if __name__ == "__main__":

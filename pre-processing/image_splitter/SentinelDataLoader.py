@@ -15,7 +15,7 @@ from config import NUM_ENCODED_CHANNELS, IMAGE_SIZE, MAKS_PATH, \
     EXTRACTED_RAW_DATA, SELECTED_BANDS, BORDER_WIDTH
 
 
-class RandomPatchCreator:
+class SentinelDataLoader:
 
     def __init__(
             self,
@@ -57,6 +57,10 @@ class RandomPatchCreator:
     def get_bands(self, date: str):
         return self.__memory_Manager.get_date_data(date)['bands']
 
+    def get_ground_truth(self, date: str):
+        # TODO: this should return the ground truth (i.g., hand labeled data)
+        return self.__memory_Manager.get_date_data(date)['mask'][0]
+
     def get_mask(self, date: str):
         return self.__memory_Manager.get_date_data(date)['mask'][0]  # 0 is the mask, 1 is the mask_coverage
 
@@ -84,11 +88,12 @@ class RandomPatchCreator:
         return math.floor((shape[0] - border_margin) / (IMAGE_SIZE // 2)) * \
             math.ceil((shape[1] - border_margin) / (IMAGE_SIZE // 2))
 
-    def open_date(self, date: str):
+    def open_date(self, date: str, fast_mode: bool = False):
         """
         Sets the date for which the patches should be created.
 
         :param date: the date
+        :param fast_mode: if true, the bands are not loaded into memory
         """
 
         assert date in self.__dates, "Invalid date given."
@@ -104,7 +109,7 @@ class RandomPatchCreator:
             self.__lock.release()
 
             self.__memory_Manager.add_date_data(date, {
-                'bands': self.__load_bands_into_memory(date),
+                'bands': self.__load_bands_into_memory(date) if not fast_mode else None,
                 'mask': self.__load_mask_into_memory(date),
             })
 

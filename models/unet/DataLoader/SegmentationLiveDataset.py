@@ -15,7 +15,7 @@ from configs.config import NUM_CLASSES, BATCH_PREFETCHING, BATCH_MIXTURE, BATCH_
 sys.path.insert(0, os.environ['BASE_DIR'] + '/pre-processing/image_splitter')
 # noinspection PyUnresolvedReferences
 from config import SAMPLES_PER_DATE
-from RandomPatchCreator import RandomPatchCreator
+from SentinelDataLoader import SentinelDataLoader
 
 
 class SegmentationLiveDataset(SegmentationDataset):
@@ -50,7 +50,7 @@ class SegmentationLiveDataset(SegmentationDataset):
         )
 
         self.__dates = dates
-        self.patch_creator = RandomPatchCreator(dates=dates)
+        self.patch_creator = SentinelDataLoader(dates=dates)
 
         print(f"\nDataloader initialized with the following dates: {dates}")
         print(f"- number mixture queues: {mixture}")
