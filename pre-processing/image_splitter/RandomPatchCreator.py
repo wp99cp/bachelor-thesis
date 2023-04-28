@@ -1,3 +1,4 @@
+import math
 import os
 import random
 from multiprocessing import Lock
@@ -11,7 +12,7 @@ from numpy import float32
 from PixelClassCounter import PixelClassCounter
 from SentinelMemoryManager import SentinelMemoryManager
 from config import NUM_ENCODED_CHANNELS, IMAGE_SIZE, MAKS_PATH, \
-    EXTRACTED_RAW_DATA, SELECTED_BANDS, BORDER_WITH
+    EXTRACTED_RAW_DATA, SELECTED_BANDS, BORDER_WIDTH
 
 
 class RandomPatchCreator:
@@ -22,7 +23,8 @@ class RandomPatchCreator:
             mask_base_dir: str = MAKS_PATH,
             raw_data_base_dir: str = EXTRACTED_RAW_DATA,
             selected_bands: list[str] = SELECTED_BANDS,
-            coverage_mode: bool = False
+            coverage_mode: bool = False,
+            border_width: int = BORDER_WIDTH
     ):
         """
 
@@ -49,7 +51,8 @@ class RandomPatchCreator:
 
         # Coverage Mode covers the whole tile, if set to false, the patches get sampled randomly
         self.__coverage_mode = coverage_mode
-        self.__coverage_coords = [BORDER_WITH, BORDER_WITH]
+        self.__border_width = border_width
+        self.__coverage_coords = [self.__border_width, self.__border_width]
 
     def get_bands(self, date: str):
         return self.__memory_Manager.get_date_data(date)['bands']
@@ -59,6 +62,27 @@ class RandomPatchCreator:
 
     def get_mask_coverage(self, date: str):
         return self.__memory_Manager.get_date_data(date)['mask'][1]  # 0 is the mask, 1 is the mask_coverage
+
+    def get_max_number_of_cover_patches(self, date: str):
+        """
+        Returns the maximum number of patches that can be created for the given date if the coverage mode is enabled.
+
+        :param date: the date
+        :return: the maximum number of patches
+
+        if the date is not opened, this function throws an error
+        if the coverage mode is not enabled, this function throws an error
+
+        """
+
+        assert self.__coverage_mode is True, "Coverage mode is not enabled."
+        assert date in self.__centers.keys(), "Date not opened."
+
+        shape = self.__memory_Manager.get_date_data(date)['mask'][1].shape
+        border_margin = self.__border_width * 2
+
+        return math.floor((shape[0] - border_margin) / (IMAGE_SIZE // 2)) * \
+            math.ceil((shape[1] - border_margin) / (IMAGE_SIZE // 2))
 
     def open_date(self, date: str):
         """
@@ -221,11 +245,11 @@ class RandomPatchCreator:
     def __next_coverage(self, date):
 
         self.__coverage_coords[0] = self.__coverage_coords[0] + IMAGE_SIZE // 2
-        width = self.get_bands(date).shape[2] - BORDER_WITH
-        height = self.get_bands(date).shape[1] - BORDER_WITH
+        width = self.get_bands(date).shape[2] - self.__border_width
+        height = self.get_bands(date).shape[1] - self.__border_width
 
         if self.__coverage_coords[0] >= width:
-            self.__coverage_coords[0] = BORDER_WITH
+            self.__coverage_coords[0] = self.__border_width
             self.__coverage_coords[1] = self.__coverage_coords[1] + IMAGE_SIZE // 2
 
         if self.__coverage_coords[1] >= height:

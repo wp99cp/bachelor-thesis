@@ -73,14 +73,22 @@ inference:
   legacy_mode: 0
 
   # this date is used for inference in the new mode
-  s2_date: '20210720T101559'
+  s2_date: '20211008T101829'
 
   # model name, if left empty the default model will be used (unet.pth)
   model_file_name: 'unet_e40b271_ep21.pth'
 
   # limits the patches, 0 stands for the whole tile
   # this option is only used in the new mode
-  limit_patches: 6500
+  limit_patches: 0
+
+# Enable testing if you wish to test the model's performance.
+testing:
+
+  enable_testing: 1
+
+  # Those data should be saved within the /data/test_masks folder
+  s2_dates: [ ]
 
 # This is not yet implemented
 ensemble:

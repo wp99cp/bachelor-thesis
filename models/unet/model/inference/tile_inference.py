@@ -29,7 +29,7 @@ def _get_base_path(date):
     return base_path
 
 
-def __smooth_kern(kernel_size=IMAGE_SIZE):
+def __smooth_kern(kernel_size_x=IMAGE_SIZE, kernel_size_y=IMAGE_SIZE):
     """
 
     """
@@ -37,8 +37,8 @@ def __smooth_kern(kernel_size=IMAGE_SIZE):
     heaviside_lambda = lambda x: -np.sign(x) * x + 1
     heaviside_lambda_2D = lambda x, y: heaviside_lambda(x) * heaviside_lambda(y)
 
-    xs = np.linspace(-1, 1, kernel_size)
-    ys = np.linspace(-1, 1, kernel_size)
+    xs = np.linspace(-1, 1, kernel_size_x)
+    ys = np.linspace(-1, 1, kernel_size_y)
     xv, yv = np.meshgrid(xs, ys)
 
     return heaviside_lambda_2D(xv, yv)
@@ -88,9 +88,13 @@ def tile_inference(pipeline_config, unet, model_file_name='unet'):
         os.remove(os.path.join(BASE_OUTPUT, path_prefix, file))
 
     limit_patches = pipeline_config["inference"]["limit_patches"]
-    assert (limit_patches > 0, "limit_patches must be greater than 0")
-    patch_creator = RandomPatchCreator(dates=[s2_date], coverage_mode=True)
+    patch_creator = RandomPatchCreator(dates=[s2_date], coverage_mode=True, border_width=0)
     patch_creator.open_date(s2_date)
+
+    # calculate the number of patches if limit_patches is not set
+    if limit_patches == 0:
+        limit_patches = patch_creator.get_max_number_of_cover_patches(s2_date)
+        print(f"Number of patches: {limit_patches}")
 
     # save bands as RGB jp2 images
     _save_bands(patch_creator, s2_date, path=path_prefix, name='TCI', selected_bands=[3, 2, 1])
@@ -99,7 +103,7 @@ def tile_inference(pipeline_config, unet, model_file_name='unet'):
 
     profile = _get_profile(s2_date)
     predicted_mask_full_tile = np.zeros((NUM_CLASSES, profile["height"], profile["width"]), dtype='float32')
-    gaussian_smoother = __smooth_kern(IMAGE_SIZE)
+    gaussian_smoother = __smooth_kern()
 
     # copy NUM_CLASSES times the gaussian_smoother
     gaussian_smoother = np.repeat(gaussian_smoother[np.newaxis, ...], NUM_CLASSES, axis=0)
@@ -128,6 +132,11 @@ def tile_inference(pipeline_config, unet, model_file_name='unet'):
 
         if i % 250 == 0:
             print_results(image, mask, predicted_mask, f"{x}_{y}", path_prefix)
+
+        # update gaussian_smoother if shape is not correct
+        if gaussian_smoother.shape[1] != w or gaussian_smoother.shape[2] != h:
+            gaussian_smoother = __smooth_kern(h, w)
+            gaussian_smoother = np.repeat(gaussian_smoother[np.newaxis, ...], NUM_CLASSES, axis=0)
 
         # save the patch at the corresponding coordinates
         # we use the gaussian to smooth out the mask
