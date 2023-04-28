@@ -16,7 +16,8 @@ The annotations are stored in the `/data/masks` folder. Completely annotated sce
 ### The following scenes are partially annotated / currently being annotated:
 
 - `20210819T101559`
-- `20210710T101559` (a summer scene some small clouds over the mountains, some thin clouds over the Ticino) --> currently on annotator Server
+- `20210710T101559` (a summer scene some small clouds over the mountains, some thin clouds over the Ticino) -->
+  currently on annotator Server
 - `20211023T102101` --> currently on annotator Server
 
 ### The following scenes are not annotated but interesting:
@@ -54,6 +55,17 @@ I've created a web application helps to annotate the images. The workflow is as 
 3 - water
 4 - semi-transparent clouds
 ```
+
+## Error / Diff Classes
+
+The following encoding is used to encode the differences between the prediction and the ground truth.
+
+| pred / training | background | cloud | snow | water |
+|:---------------:|:----------:|:-----:|:----:|:-----:|
+|   background    |     0      |  11   |  12  |  13   |
+|      cloud      |     1      |   0   |  14  |  15   |
+|      snow       |     2      |   4   |  0   |  16   |
+|      water      |     3      |   5   |  6   |   0   |
 
 ## Annotation Software
 
