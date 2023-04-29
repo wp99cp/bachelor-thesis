@@ -17,13 +17,13 @@ SELECTED_BANDS = ["B01", "B02", "B03", "B04", "B05", "B06", "B07", "B08", "B8A",
 # disable sigma clipping and normalization for
 # inference with algorithms older than (including) `e40b271`.
 # and enable the legacy mode
-LEGACY_MODE = False
+LEGACY_MODE = False  # legacy: True
 
-SIGMA_CLIPPING = True
+SIGMA_CLIPPING = True  # legacy: False
 SIGMA_SCALE = 2.0
 
 # val = (val - min) / (max - min)
-NORMALIZE = True
+NORMALIZE = True  # legacy: False
 
 # ====================================
 # ====================================

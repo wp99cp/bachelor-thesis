@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 import torch
 
 from DataLoader.dataloader_utils import load_data
-from configs.config import report_config, DEVICE, BASE_OUTPUT, LOAD_CORRUPT_WEIGHTS
+from configs.config import report_config, DEVICE, BASE_OUTPUT, LOAD_CORRUPT_WEIGHTS, USE_PIXED_PRECISION
 from model.Model import UNet
 from model.inference.tile_inference import tile_inference
 from model.testing.testing import run_testing
@@ -83,6 +83,9 @@ def main():
 
     # run inference
     if pipeline_config["inference"]["enable_inference"] == 1:
+
+        assert USE_PIXED_PRECISION is False, "Inference with mixed precision is not supported yet."
+
         unet = UNet().to(DEVICE)
 
         if not LOAD_CORRUPT_WEIGHTS:  # correct way

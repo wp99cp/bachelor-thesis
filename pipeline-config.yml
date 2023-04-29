@@ -40,7 +40,7 @@ dataset:
   # forces a recreation of the dataset (1 or 0)
   # this deletes the dataset folder and recreates it using the current raw data
   # will be ignored if create_on_the_fly is enabled
-  recreate_dataset: 0
+  recreate_dataset: 1
 
   # limits the number of dates to be used for the dataset
   # if you wish to use all dates, just set this to 0
@@ -61,14 +61,14 @@ dataset:
 training:
 
   # enables the training (1 or 0)
-  enable: 0
+  enable: 1
 
   # continues the training from the checkpoint "unet.pth" (1 or 0)
   continue_training: 0
 
 inference:
 
-  enable_inference: 1
+  enable_inference: 0
 
   # this date is used for inference in the new mode
   s2_dates: [ '20211008T101829', '20211102T102201', '20210720T101559' ]
@@ -83,7 +83,7 @@ inference:
 # Enable testing if you wish to test the model's performance.
 testing:
 
-  enable_testing: 1
+  enable_testing: 0
 
   # those dates must be included in the s2_dates of the inference step, otherwise the testing will fail
   s2_dates: [ '20211008T101829', '20211102T102201', '20210720T101559' ]
