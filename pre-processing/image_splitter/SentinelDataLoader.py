@@ -1,3 +1,4 @@
+import json
 import math
 import os
 import random
@@ -7,13 +8,11 @@ from typing import Tuple
 import cv2
 import numpy as np
 import rasterio
-from numpy import float32
 
 from PixelClassCounter import PixelClassCounter
 from SentinelMemoryManager import SentinelMemoryManager
 from config import NUM_ENCODED_CHANNELS, IMAGE_SIZE, MAKS_PATH, \
-    EXTRACTED_RAW_DATA, SELECTED_BANDS, BORDER_WIDTH
-from configs.config import BASE_DIR
+    EXTRACTED_RAW_DATA, SELECTED_BANDS, BORDER_WIDTH, SIGMA_CLIPPING, SIGMA_SCALE, NORMALIZE, RESULTS, LEGACY_MODE
 
 
 class SentinelDataLoader:
@@ -147,8 +146,15 @@ class SentinelDataLoader:
         return mask_data, mask_coverage_data
 
     def __load_bands_into_memory(self, date):
-        # Plot the mask_coverage and the mask
 
+        """
+        Loads the bands into memory.
+        All the bands are resized 10m resolution and normalized to 0-255.
+
+        :param date: the date
+        """
+
+        # Plot the mask_coverage and the mask
         print(f"    Loading bands for {date} into memory...")
 
         band_file_names = {
@@ -165,7 +171,7 @@ class SentinelDataLoader:
             'B10': f"T32TNS_{date}_B10.jp2",
             'B11': f"T32TNS_{date}_B11.jp2",
             'B12': f"T32TNS_{date}_B12.jp2",
-            'TCI': f"T32TNS_{date}_TCI.jp2",
+            # 'TCI': f"T32TNS_{date}_TCI.jp2", # the TCI can be reconstructed from bands 4, 3, 2
         }
 
         # Search for a folder starting with "S2B_MSIL1C_$DATE"
@@ -175,32 +181,164 @@ class SentinelDataLoader:
         # add additional metadata to the bands
         elevation_tiff = f"{self.raw_data_base_dir}/32TNS_auxiliary_data/DEM_32TNS_10m_epsg32632.tif"
 
-        if "ELEV" in self.selected_bands:
-            band_files.append(elevation_tiff)
-
-        # open all the bands
-        bands_data = []
-
-        for band in band_files:
-            with rasterio.open(band, dtype='uint16') as b:
-                bands_data.append(b.read(1))
-
         # upscale all bands to 10m resolution using cv2.resize
         b02_meta = rasterio.open(f"{base_dir}/{band_file_names['B02']}").meta
-
         image_with = b02_meta['width']
         image_height = b02_meta['height']
-        bands_data = np.array(
-            [cv2.resize(band, (image_with, image_height), interpolation=cv2.INTER_CUBIC).astype(float32) for band in
-             bands_data]
-        )
 
-        print(f"    » Memory usage: {(bands_data.nbytes / (1024 ** 3)):.2f} GB")
+        summary_stats = []
+
+        # open and pre-process all bands (except additional metadata, i.g. elevation)
+        bands_data = []
+        for i, band in enumerate(band_files):
+
+            # load band into memory
+            with rasterio.open(band, dtype='uint16') as b:
+                band_data = b.read(1)
+
+            mean = np.mean(band_data)
+            sigma = np.std(band_data)
+
+            percentile_5 = np.percentile(band_data, 5)
+            percentile_95 = np.percentile(band_data, 95)
+
+            min_val_raw, max_val_raw = np.min(band_data), np.max(band_data)
+
+            # resize image
+            band_data = cv2.resize(band_data, (image_with, image_height), interpolation=cv2.INTER_CUBIC)
+            min_val_resized, max_val_resized = np.min(band_data), np.max(band_data)
+
+            # Clipping to overall channel [mean - SIGMA_SCALE * sigma range, mean + SIGMA_SCALE * sigma range]
+            if SIGMA_CLIPPING:
+                lower_bound = max(0, mean - SIGMA_SCALE * sigma)
+                upper_bound = min(mean + SIGMA_SCALE * sigma, 65_535)
+                np.clip(band_data, lower_bound, upper_bound, out=band_data)
+
+            min_val_clipped, max_val_clipped = np.min(band_data), np.max(band_data)
+
+            # Convert to float32
+            band_data = band_data.astype(np.float32)
+
+            # Then normalizing according to (val - min) / (max - min)
+            # Then rescaling to 0-255
+            if NORMALIZE:
+                band_data = (band_data - np.min(band_data)) / (np.max(band_data) - np.min(band_data)) * 255
+            else:
+                if not LEGACY_MODE:
+                    # Clip values to 0-10_000
+                    np.clip(band_data, 0, 10_000, out=band_data)
+                band_data = band_data / 10_000 * 255
+
+            # save band data
+            bands_data.append(band_data)
+
+            # ########################
+            # Report some statistics
+            # ########################
+
+            band_id = i + 1
+            if i == 8:
+                band_id = "8A"
+            elif i > 8:
+                band_id = i
+
+            summary_stats.append({
+                "band": band_id,
+                "raw": {
+                    "min": min_val_raw,
+                    "max": max_val_raw,
+                    "percentile_5": percentile_5,
+                    "percentile_95": percentile_95,
+                    "sigma": sigma,
+                    "mean": mean,
+                },
+                "resized": {
+                    "min": min_val_resized,
+                    "max": max_val_resized,
+                },
+                "clipped": {
+                    "min": min_val_clipped,
+                    "max": max_val_clipped,
+                }
+            })
+
+        # we load the elevation data separately, since it used a different data type
+        if "ELEV" in self.selected_bands:
+            with rasterio.open(elevation_tiff, dtype='float32') as b:
+                band_data = b.read(1)
+
+                mean = np.mean(band_data)
+                sigma = np.std(band_data)
+
+                percentile_5 = np.percentile(band_data, 5)
+                percentile_95 = np.percentile(band_data, 95)
+
+                min_val_raw, max_val_raw = np.min(band_data), np.max(band_data)
+
+                # normalize elevation data
+                band_data = cv2.resize(band_data, (image_with, image_height), interpolation=cv2.INTER_CUBIC)
+
+                min_val_resized, max_val_resized = np.min(band_data), np.max(band_data)
+
+                if LEGACY_MODE:
+                    band_data = band_data / 10_000 * 255
+                else:
+                    band_data = band_data / np.max(band_data) * 255
+
+                bands_data.append(band_data)
+
+                # ########################
+                # Report some statistics
+                # ########################
+
+                summary_stats.append({
+                    "band": "ELEV",
+                    "raw": {
+                        "min": min_val_raw,
+                        "max": max_val_raw,
+                        "percentile_5": percentile_5,
+                        "percentile_95": percentile_95,
+                        "sigma": sigma,
+                        "mean": mean,
+                    },
+                    "resized": {
+                        "min": min_val_resized,
+                        "max": max_val_resized,
+                    },
+                    "clipped": {
+                        "min": min_val_resized,
+                        "max": max_val_resized,
+                    }
+                })
+
+        class NpEncoder(json.JSONEncoder):
+            """
+            Special json encoder for numpy types
+            Source: https://stackoverflow.com/a/57915246
+            """
+
+            def default(self, obj):
+                if isinstance(obj, np.integer):
+                    return int(obj)
+                if isinstance(obj, np.floating):
+                    return float(obj)
+                if isinstance(obj, np.ndarray):
+                    return obj.tolist()
+                return super(NpEncoder, self).default(obj)
+
+        # save summary statistics
+        if not os.path.exists(f"{RESULTS}/summary_stats"):
+            os.makedirs(f"{RESULTS}/summary_stats")
+
+        with open(f"{RESULTS}/summary_stats/{date}.json", 'w') as f:
+            json.dump(summary_stats, f, indent=4, cls=NpEncoder)
+
+        # convert to numpy array
+        bands_data = np.array(bands_data)
+
+        print(f"  » Memory usage: {(bands_data.nbytes / (1024 ** 3)):.2f} GB")
         print(f"    Opened {len(bands_data)} bands for date {date}.")
         print(f"    Number of bands: {bands_data.shape}")
-
-        # normalize the bands
-        bands_data = bands_data / 10_000 * 255
 
         return bands_data
 
