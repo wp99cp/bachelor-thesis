@@ -15,9 +15,31 @@ bash helper-scripts/pipeline/pipeline.sh pipeline-config.yml
 
 Within the `pipeline-config.yml` you can configure if you wish to train the model or not, i.g. just run inference.
 
-## Results of Previous Iterations
+## Latest Results
+The following models were trained using the adjusted pre-processing and image splitting pipeline.
+The new pipeline has updated the normalization and clipping of the data and is therefore not compatible with older
+models.
 
-Currently by best model is `a2528d2`. It works reliably in different scenes and seasons.
+
+
+## Older Models
+
+Currently by best model is `e40b271`. It works reliably in different scenes and seasons.
+
+For older models the image splitter must be set to legacy mode. This can be done by setting inside the `config.py`.
+
+```python
+# disable sigma clipping and normalization for inference 
+# with algorithms older than (including) `e40b271`.
+# and enable the legacy mode
+LEGACY_MODE = True
+
+SIGMA_CLIPPING = False
+SIGMA_SCALE = 2.0
+
+# val = (val - min) / (max - min)
+NORMALIZE = False
+```
 
 ::: details Git Commit ([e40b271](https://github.com/wp99cp/bachelor-thesis/commit/e40b271)) - 14.04.2023
 
@@ -27,7 +49,6 @@ Model trained using amp (mixed precision) and AdamW optimizer. Using all 13 band
 Great performance except for water.
 
 :::
-
 
 ::: details Git Commit ([2d0d993](https://github.com/wp99cp/bachelor-thesis/commit/2d0d993)) - 10.04.2023
 
