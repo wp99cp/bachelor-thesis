@@ -46,9 +46,6 @@ def run_testing_on_date(s2_date, path_prefix):
 
     training_mask = dataloader.get_mask(s2_date)
 
-    __create_different_mask(ground_truth, prediction, s2_date, path_prefix, name="mask_diff_ground_truth")
-    __create_different_mask(training_mask, prediction, s2_date, path_prefix, name="mask_diff_training")
-
     # Step 3: calculate metrics
     print("\n\n\n=================\nTesting results:\n=================\n")
 
@@ -66,6 +63,11 @@ def run_testing_on_date(s2_date, path_prefix):
     with rasterio.open(os.path.join(DATASET_PATH, '..', 'ground_truth_masks', s2_date, "mask_coverage.jp2")) as mask:
         ground_truth_coverage = mask.read(1)
     training_mask_coverage = dataloader.get_mask_coverage(s2_date)
+
+    __create_different_mask(ground_truth, prediction, ground_truth_coverage, s2_date, path_prefix,
+                            name="mask_diff_ground_truth")
+    __create_different_mask(training_mask, prediction, training_mask_coverage, s2_date, path_prefix,
+                            name="mask_diff_training")
 
     # intersect coverage masks
     coverage = np.logical_and(ground_truth_coverage, training_mask_coverage, prediction_coverage)
@@ -230,7 +232,7 @@ def report_accuracies(ground_truth, prediction, training_mask):
     print("")
 
 
-def __create_different_mask(ground_truth, prediction, s2_date, path_prefix, name="mask_diff"):
+def __create_different_mask(ground_truth, prediction, coverage, s2_date, path_prefix, name="mask_diff"):
     # calculate the difference between the predicted mask and the training mask
     # and save it as a jp2 file
 
@@ -240,6 +242,9 @@ def __create_different_mask(ground_truth, prediction, s2_date, path_prefix, name
     lookup = np.array([0, 11, 12, 13, 1, 0, 14, 15, 2, 4, 0, 16, 3, 5, 6, 0])
     diff = lookup[ground_truth * 4 + prediction]
     diff = diff.astype('int8')
+
+    # set the difference to -1 if there is no coverage
+    diff[coverage == 0] = -1  # set the difference to -1 if there is no coverage
 
     # save the difference
     path = os.path.join(BASE_OUTPUT, path_prefix, f"{s2_date}_{name}.jp2")
