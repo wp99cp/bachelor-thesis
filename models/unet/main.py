@@ -24,6 +24,10 @@ def print_data_sample(train_loader):
     sample = next(iter(train_loader))
 
     img = sample[0][0].permute(1, 2, 0)
+
+    # assert image values are between 0 and 1
+    assert img.min() >= 0 and img.max() <= 1
+
     masks = sample[1][0].permute(1, 2, 0)
 
     print(f"Image shape: {img.shape}")

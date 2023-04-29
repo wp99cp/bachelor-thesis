@@ -26,7 +26,10 @@ def tile_inference(pipeline_config, unet, model_file_name='unet'):
         model_name = model_file_name.split(".")[0]
         path_prefix = os.path.join(f"{s2_date}_pred", model_name)
 
-        __tile_inference_of_date(s2_date, pipeline_config, unet, path_prefix)
+        try:
+            __tile_inference_of_date(s2_date, pipeline_config, unet, path_prefix)
+        except Exception as e:
+            print(f"Error in tile_inference for {s2_date}: {e}\n\n")
 
 
 def __tile_inference_of_date(s2_date, pipeline_config, unet, path_prefix):

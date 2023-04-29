@@ -71,7 +71,7 @@ inference:
   enable_inference: 1
 
   # this date is used for inference in the new mode
-  s2_dates: [ '20210819T101559', '20211008T101829' ]
+  s2_dates: [ '20211008T101829', '20211102T102201', '20210720T101559' ]
 
   # model name, if left empty the default model will be used (unet.pth)
   model_file_name: 'unet_e40b271_ep21.pth'
@@ -86,7 +86,7 @@ testing:
   enable_testing: 1
 
   # those dates must be included in the s2_dates of the inference step, otherwise the testing will fail
-  s2_dates: [ '20210819T101559', '20211008T101829' ]
+  s2_dates: [ '20211008T101829', '20211102T102201', '20210720T101559' ]
 
 # This is not yet implemented
 ensemble:

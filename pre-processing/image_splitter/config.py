@@ -10,6 +10,23 @@ SELECTED_BANDS = ["B01", "B02", "B03", "B04", "B05", "B06", "B07", "B08", "B8A",
 
 # ====================================
 # ====================================
+# Loader Config (Normalisation, etc.)
+# ====================================
+# ====================================
+
+# disable sigma clipping and normalization for
+# inference with algorithms older than (including) `e40b271`.
+# and enable the legacy mode
+LEGACY_MODE = False
+
+SIGMA_CLIPPING = True
+SIGMA_SCALE = 2.0
+
+# val = (val - min) / (max - min)
+NORMALIZE = True
+
+# ====================================
+# ====================================
 # Automatic Configs
 # ====================================
 # ====================================
