@@ -68,17 +68,20 @@ training:
 
 inference:
 
-  enable_inference: 0
+  enable_inference: 1
 
   # this date is used for inference in the new mode
   s2_dates: [ '20211008T101829', '20211102T102201', '20210720T101559' ]
 
   # model name, if left empty the default model will be used (unet.pth)
-  model_file_name: 'unet_e40b271_ep21.pth'
+  model_file_name: '' # 'unet_1c88144_e40.pth'
 
   # limits the patches, 0 stands for the whole tile
   # this option is only used in the new mode
   limit_patches: 0
+
+  # save TCI and FCI for processed s2 dates
+  save_RGB_jp2_images: 1
 
 # Enable testing if you wish to test the model's performance.
 testing:

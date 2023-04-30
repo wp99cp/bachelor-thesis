@@ -6,6 +6,7 @@ import rasterio
 import torch
 import tqdm
 
+from config import MEAN_MEANs, MEAN_PERCENTILES_30s, MEAN_PERCENTILES_70s
 from configs.config import NUM_CLASSES, DEVICE, BASE_OUTPUT
 from model.inference.patch_inference import print_results
 from utils.encoder_decoder import get_encoded_prediction
@@ -26,10 +27,7 @@ def tile_inference(pipeline_config, unet, model_file_name='unet'):
         model_name = model_file_name.split(".")[0]
         path_prefix = os.path.join(f"{s2_date}_pred", model_name)
 
-        try:
-            __tile_inference_of_date(s2_date, pipeline_config, unet, path_prefix)
-        except Exception as e:
-            print(f"Error in tile_inference for {s2_date}: {e}\n\n")
+        __tile_inference_of_date(s2_date, pipeline_config, unet, path_prefix)
 
 
 def __tile_inference_of_date(s2_date, pipeline_config, unet, path_prefix):
@@ -50,8 +48,9 @@ def __tile_inference_of_date(s2_date, pipeline_config, unet, path_prefix):
         print(f"Number of patches: {limit_patches}")
 
     # save bands as RGB jp2 images
-    _save_bands(patch_creator, s2_date, path=path_prefix, name='TCI', selected_bands=[3, 2, 1])
-    _save_bands(patch_creator, s2_date, path=path_prefix, name='FCI', selected_bands=[12, 7, 3])
+    if pipeline_config["inference"]["save_RGB_jp2_images"]:
+        _save_bands(patch_creator, s2_date, path=path_prefix, name='TCI', selected_bands=[3, 2, 1])
+        _save_bands(patch_creator, s2_date, path=path_prefix, name='FCI', selected_bands=[12, 7, 3])
     _save_training_mask(patch_creator, s2_date, path=path_prefix)
 
     profile = get_profile(s2_date)
@@ -114,10 +113,29 @@ def _save_bands(patch_creator, s2_date, path, name='TCI', selected_bands=None):
     # print(f"bands.shape: {bands.shape}")
     image = bands[selected_bands, :, :]
 
+    # shift back by adding mean channel values
+    a = -1.7346  # 0.15 == 1 / (1 + Exp[-x]) // Solve
+    b = +1.7346  # 0.85 == 1 / (1 + Exp[-x]) // Solve
+    c = np.log10(np.array(MEAN_PERCENTILES_30s)[selected_bands])
+    d = np.log10(np.array(MEAN_PERCENTILES_70s)[selected_bands])
+    offset = np.log10(np.array(MEAN_MEANs)[selected_bands])
+    offset = (offset - c) * (b - a) / (d - c) + a
+    offset = 1 / (1 + np.exp(-offset))
+
+    image = image + offset[:, np.newaxis, np.newaxis]
+    image = np.clip(image, 0, 1)
+    image = image * 255.0
+    image = image.astype(np.uint8)
+
+    # lift zero values to 0.1
+    # to prevent qgis to show those areas as no data (white)
+    image[image == 0] = 1
+    assert image.shape[0] == 3, "image must have 3 channels"
+
     # use rasterio to save the tci
     profile = get_profile(s2_date)
     profile["count"] = 3
-    profile["dtype"] = np.uint8
+    profile["dtype"] = np.uint8  # could also use uint8 to save space or float16 to preserve more information
     with rasterio.open(os.path.join(BASE_OUTPUT, path, f"{name}.jp2"), 'w', **profile) as dst:
         dst.write(image)
 

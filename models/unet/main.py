@@ -56,7 +56,8 @@ def main():
 
     if "--retrain" in sys.argv:
         train_loader, test_loader, train_ds, test_ds, _, test_images = load_data()
-        print_data_sample(train_loader)
+        # TODO: fix; it as it is broken as we introduced the normalization to [-1, 1]
+        # print_data_sample(train_loader)
 
         print("[INFO] retraining model...")
         emergency_stop = train_unet(train_loader, test_loader, train_ds, test_ds)

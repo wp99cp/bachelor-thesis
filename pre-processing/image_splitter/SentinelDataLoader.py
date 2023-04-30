@@ -8,11 +8,13 @@ from typing import Tuple
 import cv2
 import numpy as np
 import rasterio
+from numpy import float32
 
 from PixelClassCounter import PixelClassCounter
 from SentinelMemoryManager import SentinelMemoryManager
 from config import NUM_ENCODED_CHANNELS, IMAGE_SIZE, MAKS_PATH, \
-    EXTRACTED_RAW_DATA, SELECTED_BANDS, BORDER_WIDTH, SIGMA_CLIPPING, SIGMA_SCALE, NORMALIZE, RESULTS, LEGACY_MODE
+    EXTRACTED_RAW_DATA, SELECTED_BANDS, BORDER_WIDTH, SIGMA_CLIPPING, SIGMA_SCALE, RESULTS, LEGACY_MODE, \
+    PERCENTILE_CLPPING_DYNAMIC_WORLD_METHOD, MEAN_PERCENTILES_30s, MEAN_PERCENTILES_70s, MEAN_MEANs
 
 
 class SentinelDataLoader:
@@ -199,8 +201,16 @@ class SentinelDataLoader:
             mean = np.mean(band_data)
             sigma = np.std(band_data)
 
+            percentile_01 = np.percentile(band_data, 1)
+            percentile_1 = np.percentile(band_data, 1)
             percentile_5 = np.percentile(band_data, 5)
+            percentile_10 = np.percentile(band_data, 10)
+            percentile_30 = np.percentile(band_data, 30)
+            percentile_70 = np.percentile(band_data, 70)
+            percentile_90 = np.percentile(band_data, 90)
             percentile_95 = np.percentile(band_data, 95)
+            percentile_99 = np.percentile(band_data, 99)
+            percentile_999 = np.percentile(band_data, 99.9)
 
             min_val_raw, max_val_raw = np.min(band_data), np.max(band_data)
 
@@ -221,8 +231,38 @@ class SentinelDataLoader:
 
             # Then normalizing according to (val - min) / (max - min)
             # Then rescaling to 0-255
-            if NORMALIZE:
+            if SIGMA_CLIPPING:
                 band_data = (band_data - np.min(band_data)) / (np.max(band_data) - np.min(band_data)) * 255
+            elif PERCENTILE_CLPPING_DYNAMIC_WORLD_METHOD:
+
+                # log scale the raw data (map 0 to 0)
+                np.log10(band_data, where=band_data > 0, out=band_data, dtype=float32)
+
+                # print(f"Min/Max (log10):\t{np.min(band_data):2.4f}/{np.max(band_data):2.4f}")
+
+                # squeeze the data to 15% and 85% of [0, 1]
+                # val_out = (val_in - c) * (b - a) / (d - c) + a
+                a = -1.7346  # 0.15 == 1 / (1 + Exp[-x]) // Solve
+                b = +1.7346  # 0.85 == 1 / (1 + Exp[-x]) // Solve
+                c = np.log10(MEAN_PERCENTILES_30s[i])
+                d = np.log10(MEAN_PERCENTILES_70s[i])
+
+                band_data = (band_data - c) * (b - a) / (d - c) + a
+                # print(f"Min/Max (normalized):\t{np.min(band_data):2.4f}/{np.max(band_data):2.4f}")
+
+                # sigmoid function to normalize the data to 0-1
+                band_data = 1 / (1 + np.exp(-band_data))
+                # print(f"Min/Max (sigmoid):\t{np.min(band_data):2.4f}/{np.max(band_data):2.4f}")
+
+                # shift mean to, the final values should be in the range of [-1, 1] and has a max range of 1
+                offset = np.log10(MEAN_MEANs[i])
+                offset = (offset - c) * (b - a) / (d - c) + a
+                offset = 1 / (1 + np.exp(-offset))
+                band_data = band_data - offset
+
+                # print(f"Min/Max (centralized):\t{np.min(band_data):2.4f}/{np.max(band_data):2.4f}")
+                # print()
+
             else:
                 if not LEGACY_MODE:
                     # Clip values to 0-10_000
@@ -247,8 +287,16 @@ class SentinelDataLoader:
                 "raw": {
                     "min": min_val_raw,
                     "max": max_val_raw,
+                    "percentile_01": percentile_01,
+                    "percentile_1": percentile_1,
                     "percentile_5": percentile_5,
+                    "percentile_10": percentile_10,
+                    "percentile_30": percentile_30,
+                    "percentile_70": percentile_70,
+                    "percentile_90": percentile_90,
                     "percentile_95": percentile_95,
+                    "percentile_99": percentile_99,
+                    "percentile_999": percentile_999,
                     "sigma": sigma,
                     "mean": mean,
                 },
@@ -283,7 +331,7 @@ class SentinelDataLoader:
                 if LEGACY_MODE:
                     band_data = band_data / 10_000 * 255
                 else:
-                    band_data = band_data / np.max(band_data) * 255
+                    band_data = (band_data - np.mean(band_data)) / np.max(band_data)
 
                 bands_data.append(band_data)
 
@@ -429,10 +477,6 @@ class SentinelDataLoader:
         # load image patch
         bands = self.get_bands(date)
         img_patch = bands[:, x:x + IMAGE_SIZE, y:y + IMAGE_SIZE]
-
-        # normalize the image patch to [0, 1]
-        img_patch = img_patch.astype(np.float32)
-        img_patch = img_patch / 255.0
         img_patch = np.moveaxis(img_patch, 0, -1)
 
         if get_coordinates:
