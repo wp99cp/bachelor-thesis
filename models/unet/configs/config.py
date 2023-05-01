@@ -16,7 +16,7 @@ NUM_CLASSES = 4
 CLASS_NAMES = ["background", "snow", "clouds", "water"]  # "thin_clouds"
 NUM_ENCODED_CHANNELS = 5  # Number of channels used to encode the grayscale image
 CLASS_WEIGHTS = [0.4132, 0.31163, 0.26706, 0.00812]  # class weights for background, snow, clouds, water
-ROOT_WEIGHTS = False  # instead of using the class weights, use the root weights
+ROOT_WEIGHTS = True  # instead of using the class weights, use the root weights
 
 # define threshold to filter weak predictions
 THRESHOLD = 0.75
@@ -35,12 +35,12 @@ LIMIT_DATASET_SIZE = 0
 # initialize learning rate, number of epochs to train for, and the
 # batch size
 INIT_LR = 0.001  # if using amp the INIT_LR should be below 0.001
-MOMENTUM = 0.950
+MOMENTUM = 0.975
 WEIGHT_DECAY = 0.1
 NUM_EPOCHS = 256
-BATCH_SIZE = 48  # fastest on Euler (assuming Quadro RTX 6000) is 32, however this may be too small (nan loss)
+BATCH_SIZE = 96  # fastest on Euler (assuming Quadro RTX 6000) is 32, however this may be too small (nan loss)
 
-WEIGHT_DECAY_PLATEAU_PATIENCE = 3
+WEIGHT_DECAY_PLATEAU_PATIENCE = 1
 EARLY_STOPPING_PATIENCE = 30
 
 STEPS_PER_EPOCH = 4096
@@ -49,7 +49,7 @@ STEPS_PER_EPOCH_TEST = 1024
 # switches to mixed precision training after the specified epoch
 # if set to 0, mixed precision training is disabled
 # make sure to disable mixed precision during inference!
-USE_PIXED_PRECISION = False
+USE_PIXED_PRECISION = True
 GRADIENT_CLIPPING = True
 
 # ====================================
