@@ -9,6 +9,7 @@ import cv2
 import numpy as np
 import rasterio
 from numpy import float32
+from pytictac import ClassTimer, accumulate_time, ClassContextTimer
 
 from PixelClassCounter import PixelClassCounter
 from SentinelMemoryManager import SentinelMemoryManager
@@ -26,7 +27,8 @@ class SentinelDataLoader:
             raw_data_base_dir: str = EXTRACTED_RAW_DATA,
             selected_bands: list[str] = SELECTED_BANDS,
             coverage_mode: bool = False,
-            border_width: int = BORDER_WIDTH
+            border_width: int = BORDER_WIDTH,
+            timer_enabled: bool = False
     ):
         """
 
@@ -55,6 +57,8 @@ class SentinelDataLoader:
         self.__coverage_mode = coverage_mode
         self.__border_width = border_width
         self.__coverage_coords = [self.__border_width, self.__border_width]
+
+        self.cct = ClassTimer(objects=[self], names=["SentinelDataLoader"], enabled=timer_enabled)
 
     def get_bands(self, date: str):
         return self.__memory_Manager.get_date_data(date)['bands']
@@ -86,6 +90,7 @@ class SentinelDataLoader:
         return math.floor((shape[0] - border_margin) / (IMAGE_SIZE // 2)) * \
             math.ceil((shape[1] - border_margin) / (IMAGE_SIZE // 2))
 
+    @accumulate_time
     def open_date(self, date: str, fast_mode: bool = False):
         """
         Sets the date for which the patches should be created.
@@ -135,6 +140,7 @@ class SentinelDataLoader:
     def get_PixelClassCounter(self):
         return self.__pixel_counter
 
+    @accumulate_time
     def __load_mask_into_memory(self, date: str):
         print("    Loading mask and mask_coverage...")
 
@@ -147,6 +153,7 @@ class SentinelDataLoader:
 
         return mask_data, mask_coverage_data
 
+    @accumulate_time
     def __load_bands_into_memory(self, date):
 
         """
@@ -195,120 +202,125 @@ class SentinelDataLoader:
         for i, band in enumerate(band_files):
 
             # load band into memory
-            with rasterio.open(band, dtype='uint16') as b:
-                band_data = b.read(1)
+            with ClassContextTimer(parent_obj=self, block_name="rasterio.open",
+                                   parent_method_name="__load_bands_into_memory"):
+                with rasterio.open(band, dtype='uint16') as b:
+                    band_data = b.read(1)
 
-            mean = np.mean(band_data)
-            sigma = np.std(band_data)
+            with ClassContextTimer(parent_obj=self, block_name="pre_process_band",
+                                   parent_method_name="__load_bands_into_memory"):
 
-            percentile_01 = np.percentile(band_data, 1)
-            percentile_1 = np.percentile(band_data, 1)
-            percentile_5 = np.percentile(band_data, 5)
-            percentile_10 = np.percentile(band_data, 10)
-            percentile_30 = np.percentile(band_data, 30)
-            percentile_70 = np.percentile(band_data, 70)
-            percentile_90 = np.percentile(band_data, 90)
-            percentile_95 = np.percentile(band_data, 95)
-            percentile_99 = np.percentile(band_data, 99)
-            percentile_999 = np.percentile(band_data, 99.9)
+                mean = np.mean(band_data)
+                sigma = np.std(band_data)
 
-            min_val_raw, max_val_raw = np.min(band_data), np.max(band_data)
+                percentile_01 = np.percentile(band_data, 1)
+                percentile_1 = np.percentile(band_data, 1)
+                percentile_5 = np.percentile(band_data, 5)
+                percentile_10 = np.percentile(band_data, 10)
+                percentile_30 = np.percentile(band_data, 30)
+                percentile_70 = np.percentile(band_data, 70)
+                percentile_90 = np.percentile(band_data, 90)
+                percentile_95 = np.percentile(band_data, 95)
+                percentile_99 = np.percentile(band_data, 99)
+                percentile_999 = np.percentile(band_data, 99.9)
 
-            # resize image
-            band_data = cv2.resize(band_data, (image_with, image_height), interpolation=cv2.INTER_CUBIC)
-            min_val_resized, max_val_resized = np.min(band_data), np.max(band_data)
+                min_val_raw, max_val_raw = np.min(band_data), np.max(band_data)
 
-            # Clipping to overall channel [mean - SIGMA_SCALE * sigma range, mean + SIGMA_SCALE * sigma range]
-            if SIGMA_CLIPPING:
-                lower_bound = max(0, mean - SIGMA_SCALE * sigma)
-                upper_bound = min(mean + SIGMA_SCALE * sigma, 65_535)
-                np.clip(band_data, lower_bound, upper_bound, out=band_data)
+                # resize image
+                band_data = cv2.resize(band_data, (image_with, image_height), interpolation=cv2.INTER_CUBIC)
+                min_val_resized, max_val_resized = np.min(band_data), np.max(band_data)
 
-            min_val_clipped, max_val_clipped = np.min(band_data), np.max(band_data)
+                # Clipping to overall channel [mean - SIGMA_SCALE * sigma range, mean + SIGMA_SCALE * sigma range]
+                if SIGMA_CLIPPING:
+                    lower_bound = max(0, mean - SIGMA_SCALE * sigma)
+                    upper_bound = min(mean + SIGMA_SCALE * sigma, 65_535)
+                    np.clip(band_data, lower_bound, upper_bound, out=band_data)
 
-            # Convert to float32
-            band_data = band_data.astype(np.float32)
+                min_val_clipped, max_val_clipped = np.min(band_data), np.max(band_data)
 
-            # Then normalizing according to (val - min) / (max - min)
-            # Then rescaling to 0-255
-            if SIGMA_CLIPPING:
-                band_data = (band_data - np.min(band_data)) / (np.max(band_data) - np.min(band_data)) * 255
-            elif PERCENTILE_CLPPING_DYNAMIC_WORLD_METHOD:
+                # Convert to float32
+                band_data = band_data.astype(np.float32)
 
-                # log scale the raw data (map 0 to 0)
-                np.log10(band_data, where=band_data > 0, out=band_data, dtype=float32)
+                # Then normalizing according to (val - min) / (max - min)
+                # Then rescaling to 0-255
+                if SIGMA_CLIPPING:
+                    band_data = (band_data - np.min(band_data)) / (np.max(band_data) - np.min(band_data)) * 255
+                elif PERCENTILE_CLPPING_DYNAMIC_WORLD_METHOD:
 
-                # print(f"Min/Max (log10):\t{np.min(band_data):2.4f}/{np.max(band_data):2.4f}")
+                    # log scale the raw data (map 0 to 0)
+                    np.log10(band_data, where=band_data > 0, out=band_data, dtype=float32)
 
-                # squeeze the data to 15% and 85% of [0, 1]
-                # val_out = (val_in - c) * (b - a) / (d - c) + a
-                a = -1.7346  # 0.15 == 1 / (1 + Exp[-x]) // Solve
-                b = +1.7346  # 0.85 == 1 / (1 + Exp[-x]) // Solve
-                c = np.log10(MEAN_PERCENTILES_30s[i])
-                d = np.log10(MEAN_PERCENTILES_70s[i])
+                    # print(f"Min/Max (log10):\t{np.min(band_data):2.4f}/{np.max(band_data):2.4f}")
 
-                band_data = (band_data - c) * (b - a) / (d - c) + a
-                # print(f"Min/Max (normalized):\t{np.min(band_data):2.4f}/{np.max(band_data):2.4f}")
+                    # squeeze the data to 15% and 85% of [0, 1]
+                    # val_out = (val_in - c) * (b - a) / (d - c) + a
+                    a = -1.7346  # 0.15 == 1 / (1 + Exp[-x]) // Solve
+                    b = +1.7346  # 0.85 == 1 / (1 + Exp[-x]) // Solve
+                    c = np.log10(MEAN_PERCENTILES_30s[i])
+                    d = np.log10(MEAN_PERCENTILES_70s[i])
 
-                # sigmoid function to normalize the data to 0-1
-                band_data = 1 / (1 + np.exp(-band_data))
-                # print(f"Min/Max (sigmoid):\t{np.min(band_data):2.4f}/{np.max(band_data):2.4f}")
+                    band_data = (band_data - c) * (b - a) / (d - c) + a
+                    # print(f"Min/Max (normalized):\t{np.min(band_data):2.4f}/{np.max(band_data):2.4f}")
 
-                # shift mean to, the final values should be in the range of [-1, 1] and has a max range of 1
-                offset = np.log10(MEAN_MEANs[i])
-                offset = (offset - c) * (b - a) / (d - c) + a
-                offset = 1 / (1 + np.exp(-offset))
-                band_data = band_data - offset
+                    # sigmoid function to normalize the data to 0-1
+                    band_data = 1 / (1 + np.exp(-band_data))
+                    # print(f"Min/Max (sigmoid):\t{np.min(band_data):2.4f}/{np.max(band_data):2.4f}")
 
-                # print(f"Min/Max (centralized):\t{np.min(band_data):2.4f}/{np.max(band_data):2.4f}")
-                # print()
+                    # shift mean to, the final values should be in the range of [-1, 1] and has a max range of 1
+                    offset = np.log10(MEAN_MEANs[i])
+                    offset = (offset - c) * (b - a) / (d - c) + a
+                    offset = 1 / (1 + np.exp(-offset))
+                    band_data = band_data - offset
 
-            else:
-                if not LEGACY_MODE:
-                    # Clip values to 0-10_000
-                    np.clip(band_data, 0, 10_000, out=band_data)
-                band_data = band_data / 10_000 * 255
+                    # print(f"Min/Max (centralized):\t{np.min(band_data):2.4f}/{np.max(band_data):2.4f}")
+                    # print()
 
-            # save band data
-            bands_data.append(band_data)
+                else:
+                    if not LEGACY_MODE:
+                        # Clip values to 0-10_000
+                        np.clip(band_data, 0, 10_000, out=band_data)
+                    band_data = band_data / 10_000 * 255
 
-            # ########################
-            # Report some statistics
-            # ########################
+                # save band data
+                bands_data.append(band_data)
 
-            band_id = i + 1
-            if i == 8:
-                band_id = "8A"
-            elif i > 8:
-                band_id = i
+                # ########################
+                # Report some statistics
+                # ########################
 
-            summary_stats.append({
-                "band": band_id,
-                "raw": {
-                    "min": min_val_raw,
-                    "max": max_val_raw,
-                    "percentile_01": percentile_01,
-                    "percentile_1": percentile_1,
-                    "percentile_5": percentile_5,
-                    "percentile_10": percentile_10,
-                    "percentile_30": percentile_30,
-                    "percentile_70": percentile_70,
-                    "percentile_90": percentile_90,
-                    "percentile_95": percentile_95,
-                    "percentile_99": percentile_99,
-                    "percentile_999": percentile_999,
-                    "sigma": sigma,
-                    "mean": mean,
-                },
-                "resized": {
-                    "min": min_val_resized,
-                    "max": max_val_resized,
-                },
-                "clipped": {
-                    "min": min_val_clipped,
-                    "max": max_val_clipped,
-                }
-            })
+                band_id = i + 1
+                if i == 8:
+                    band_id = "8A"
+                elif i > 8:
+                    band_id = i
+
+                summary_stats.append({
+                    "band": band_id,
+                    "raw": {
+                        "min": min_val_raw,
+                        "max": max_val_raw,
+                        "percentile_01": percentile_01,
+                        "percentile_1": percentile_1,
+                        "percentile_5": percentile_5,
+                        "percentile_10": percentile_10,
+                        "percentile_30": percentile_30,
+                        "percentile_70": percentile_70,
+                        "percentile_90": percentile_90,
+                        "percentile_95": percentile_95,
+                        "percentile_99": percentile_99,
+                        "percentile_999": percentile_999,
+                        "sigma": sigma,
+                        "mean": mean,
+                    },
+                    "resized": {
+                        "min": min_val_resized,
+                        "max": max_val_resized,
+                    },
+                    "clipped": {
+                        "min": min_val_clipped,
+                        "max": max_val_clipped,
+                    }
+                })
 
         # we load the elevation data separately, since it used a different data type
         if "ELEV" in self.selected_bands:
@@ -516,3 +528,6 @@ class SentinelDataLoader:
     def __load_mask(self, _date):
         mask_path = self.mask_base_dir + '/' + _date + '/mask.jp2'
         return rasterio.open(mask_path)
+
+    def report_time(self):
+        print(self.cct.__str__())

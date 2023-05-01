@@ -9,7 +9,7 @@ import torch
 from DataLoader.dataloader_utils import load_data
 from configs.config import report_config, DEVICE, BASE_OUTPUT, LOAD_CORRUPT_WEIGHTS, USE_PIXED_PRECISION
 from model.Model import UNet
-from model.inference.tile_inference import tile_inference
+from model.inference.tile_inference import run_inference
 from model.testing.testing import run_testing
 from training import train_unet
 
@@ -106,7 +106,7 @@ def main():
         unet.load_state_dict(state_dict)
         unet.print_summary()
 
-        tile_inference(pipeline_config, unet, model_file_name=model_file_name)
+        run_inference(pipeline_config, unet, model_file_name=model_file_name)
     else:
         print("[INFO] skipping inference.")
 

@@ -1,68 +1,15 @@
 import os
 
-import cv2
 import matplotlib
 import numpy as np
-import torch
 from matplotlib import pyplot as plt
 from matplotlib.patches import Patch
 
-from configs.config import IMAGE_SIZE, MASK_DATASET_PATH, DEVICE, BASE_OUTPUT, NUM_ENCODED_CHANNELS, THRESHOLD, \
+from configs.config import BASE_OUTPUT, NUM_ENCODED_CHANNELS, THRESHOLD, \
     THRESHOLDED_PREDICTION
 
 
-def make_predictions(model, image_path):
-    # set model to evaluation mode
-    model.eval()
-
-    # turn off gradient tracking
-    with torch.no_grad():
-        # load the image from disk, swap its color channels, cast it
-        # to float data type, and scale its pixel values
-        image = np.load(image_path)
-        # image = image['arr_0'] # this is only needed for the npy files saved with np.savez_compressed
-        orig = image.copy()
-        # orig = np.moveaxis(orig, 0, -1)
-
-        # find the filename and generate the path to ground truth
-        # mask
-        filename = image_path.split(os.path.sep)[-1]
-        # replace the extension of the image with .png
-        filename = filename.replace(".npy", ".png")
-        ground_truth_path = os.path.join(MASK_DATASET_PATH, filename)
-
-        # load the ground-truth segmentation mask in grayscale mode
-        # and resize it
-        gt_mask = cv2.imread(ground_truth_path, cv2.IMREAD_UNCHANGED)
-        gt_mask = cv2.resize(gt_mask, (IMAGE_SIZE, IMAGE_SIZE))
-
-        # make the channel axis to be the leading one, add a batch
-        # dimension, create a PyTorch tensor, and flash it to the
-        # current device
-        image = np.moveaxis(image, 2, 0)
-        image = np.expand_dims(image, 0)
-        image = torch.from_numpy(image).to(DEVICE)
-
-        # make the prediction, pass the results through the softmax
-        # function, and convert the result to a NumPy array
-        _, pred_mask = model(image)
-        pred_mask = pred_mask.squeeze()  # squeeze removes the batch dimension
-        pred_mask = pred_mask.cpu().numpy()  # move to CPU and convert to numpy array
-
-        # set pixels with a value greater than 0.5 to 1, and set
-        # pixels with a value less than or equal to 0.5 to 0
-        # pred_mask[pred_mask > THRESHOLD] = 1
-        # pred_mask[pred_mask <= THRESHOLD] = 0
-
-        # get filename from path
-        filename = image_path.split(os.path.sep)[-1]
-        filename = filename.replace(".npy", "")
-
-        # prepare a plot for visualization
-        print_results(orig, gt_mask, pred_mask, filename)
-
-
-def colorize_mask(mask_):
+def __colorize_mask(mask_):
     # Create color map with 4 colors
     cmap_ = np.array([
         [255, 255, 255],  # background
@@ -82,6 +29,15 @@ def colorize_mask(mask_):
 
 
 def print_results(orig_image, orig_mask, predMask, imagePath: str, file_path_prefix=''):
+    """
+    Print the results of a single patch prediction.
+    :param orig_image: the original image
+    :param orig_mask: the original mask
+    :param predMask: the predicted mask
+    :param imagePath: the path of the image
+    :param file_path_prefix: the prefix of the file path
+    """
+
     # initialize our figure
     matplotlib.use('Agg')
     figure, ax = plt.subplots(nrows=2, ncols=6, figsize=(30, 10))
@@ -101,7 +57,7 @@ def print_results(orig_image, orig_mask, predMask, imagePath: str, file_path_pre
     mask_alpha[orig_mask != 0] = 1
 
     orig_mask = (orig_mask * NUM_ENCODED_CHANNELS) / 255
-    cmap, rgb_mask = colorize_mask(orig_mask)
+    cmap, rgb_mask = __colorize_mask(orig_mask)
 
     # normalize image to [0, 1]
     rgb = rgb.astype(np.float32)
@@ -172,7 +128,7 @@ def print_results(orig_image, orig_mask, predMask, imagePath: str, file_path_pre
 
     mask_alpha = np.zeros(mask_alpha.shape, dtype=np.uint8)
     mask_alpha[pred_mask_encoded != 0] = 1
-    cmap, rgb_pred_mask = colorize_mask(pred_mask_encoded)
+    cmap, rgb_pred_mask = __colorize_mask(pred_mask_encoded)
 
     blended_image_prediction = rgb_increased_gamma * (1 - mask_alpha) + rgb_pred_mask * mask_alpha
     blended_image_prediction = np.clip(blended_image_prediction, 0, 1)

@@ -40,7 +40,7 @@ dataset:
   # forces a recreation of the dataset (1 or 0)
   # this deletes the dataset folder and recreates it using the current raw data
   # will be ignored if create_on_the_fly is enabled
-  recreate_dataset: 1
+  recreate_dataset: 0
 
   # limits the number of dates to be used for the dataset
   # if you wish to use all dates, just set this to 0
@@ -61,20 +61,20 @@ dataset:
 training:
 
   # enables the training (1 or 0)
-  enable: 1
+  enable: 0
 
   # continues the training from the checkpoint "unet.pth" (1 or 0)
   continue_training: 0
 
 inference:
 
-  enable_inference: 0
+  enable_inference: 1
 
   # this date is used for inference in the new mode
   s2_dates: [ '20211008T101829', '20211102T102201', '20210720T101559' ]
 
   # model name, if left empty the default model will be used (unet.pth)
-  model_file_name: 'unet_15762688_e2.pth' # 'unet_1c88144_e40.pth'
+  model_file_name: 'unet_15762688_e7.pth' # 'unet_1c88144_e40.pth'
 
   # limits the patches, 0 stands for the whole tile
   # this option is only used in the new mode
