@@ -16,11 +16,50 @@ bash helper-scripts/pipeline/pipeline.sh pipeline-config.yml
 Within the `pipeline-config.yml` you can configure if you wish to train the model or not, i.g. just run inference.
 
 ## Latest Results
+
 The following models were trained using the adjusted pre-processing and image splitting pipeline.
 The new pipeline has updated the normalization and clipping of the data and is therefore not compatible with older
 models.
 
+::: details Git Commit ([27926e7](https://github.com/wp99cp/bachelor-thesis/commit/27926e7)) - 01.05.2023
 
+This was `15762688` slurm job. Trained on all 36 scenes. The data was normalized using the 30/70 percentile method with
+constant values per band (based on the summary stats of the training data). The data was shifted such that the mean is
+zero per band.
+
+Snow coverage quite good after the first epoch, water and clouds are still a problem. However, the model is still
+learning....
+
+![img.png](../images/results/27926e7/results_after_first_epoch.png)
+
+:::
+
+::: details Git Commit ([8d687e8](https://github.com/wp99cp/bachelor-thesis/commit/8d687e8)) - 30.04.2023
+
+This was `15752952` slurm job. Trained on all 36 scenes. The data was normalized using the 30/70 percentile method with
+constant values per band (based on the summary stats of the training data). The data was shifted such that the mean is
+zero per band.
+
+This run had some issues with nan loss after 7 epochs. Thus, I increased the batch size from 32 to 48 for `27926e7`.
+Additionally, I reduced the imbalance weight by taking its square root for `27926e7`.
+
+![Training Graph](../images/results/8d687e8/training_graph.png)
+
+:::
+
+::: details Git Commit ([1c88144](https://github.com/wp99cp/bachelor-thesis/commit/1c88144)) - 30.04.2023
+
+This was `15685803` slurm job. Trained for 62 epochs, manually stopped. However, trained using only 21 datasets, due to
+a missing file. The data was normalized using the `percentile` method, but on a per band and per scene basis. This
+approach is not recommended, as it is not consistent.
+
+This run was mainly used to create the summary stats for a later run...
+
+Nevertheless, the model is quite good, but has problems with water.
+
+![Training Graph](../images/results/1c88144/training_graph.png)
+
+:::
 
 ## Older Models
 
@@ -44,6 +83,8 @@ This was `14235800` slurm job.
 
 Model trained using amp (mixed precision) and AdamW optimizer. Using all 13 bands and the elevation data.
 Great performance except for water.
+
+![Training Graph](../images/results/e40b271/training_graph.png)
 
 :::
 
