@@ -4,10 +4,10 @@ import os
 import torch
 from matplotlib import pyplot as plt
 from torch.nn import BCEWithLogitsLoss, DataParallel
-from torch.optim import RMSprop, lr_scheduler, Adam, AdamW
+from torch.optim import lr_scheduler, AdamW
 
-from configs.config import DEVICE, INIT_LR, BASE_OUTPUT, IMAGE_SIZE, CLASS_WEIGHTS, MOMENTUM, \
-    WEIGHT_DECAY, EARLY_STOPPING_PATIENCE, WEIGHT_DECAY_PLATEAU_PATIENCE, CONTINUE_TRAINING
+from configs.config import DEVICE, INIT_LR, BASE_OUTPUT, IMAGE_SIZE, CLASS_WEIGHTS, WEIGHT_DECAY, \
+    EARLY_STOPPING_PATIENCE, WEIGHT_DECAY_PLATEAU_PATIENCE, CONTINUE_TRAINING, ROOT_WEIGHTS
 from model.EarlyStopping import EarlyStopping
 from model.Model import UNet
 from model.ModelTrainer import ModelTrainer
@@ -109,6 +109,10 @@ def get_class_weights():
 
     # see https://stackoverflow.com/a/69832861/13371311
     class_weights = (1 - class_weights) / class_weights
+
+    if ROOT_WEIGHTS:
+        class_weights = torch.sqrt(class_weights)
+
     print("Class weights: ", class_weights)
 
     # repeat the weights for each pixel in the image

@@ -16,6 +16,7 @@ NUM_CLASSES = 4
 CLASS_NAMES = ["background", "snow", "clouds", "water"]  # "thin_clouds"
 NUM_ENCODED_CHANNELS = 5  # Number of channels used to encode the grayscale image
 CLASS_WEIGHTS = [0.4132, 0.31163, 0.26706, 0.00812]  # class weights for background, snow, clouds, water
+ROOT_WEIGHTS = True  # instead of using the class weights, use the root weights
 
 # define threshold to filter weak predictions
 THRESHOLD = 0.75
@@ -37,7 +38,7 @@ INIT_LR = 0.001  # if using amp the INIT_LR should be below 0.001
 MOMENTUM = 0.950
 WEIGHT_DECAY = 0.1
 NUM_EPOCHS = 256
-BATCH_SIZE = 32  # fastest to compute on Euler (assuming Quadro RTX 6000)
+BATCH_SIZE = 48  # fastest on Euler (assuming Quadro RTX 6000) is 32, however this may be too small (nan loss)
 
 WEIGHT_DECAY_PLATEAU_PATIENCE = 3
 EARLY_STOPPING_PATIENCE = 30
