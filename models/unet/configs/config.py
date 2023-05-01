@@ -38,7 +38,7 @@ INIT_LR = 0.001  # if using amp the INIT_LR should be below 0.001
 MOMENTUM = 0.975
 WEIGHT_DECAY = 0.1
 NUM_EPOCHS = 256
-BATCH_SIZE = 96  # fastest on Euler (assuming Quadro RTX 6000) is 32, however this may be too small (nan loss)
+BATCH_SIZE = 84  # fastest on Euler (assuming Quadro RTX 6000) is 32, however this may be too small (nan loss)
 
 WEIGHT_DECAY_PLATEAU_PATIENCE = 1
 EARLY_STOPPING_PATIENCE = 30
