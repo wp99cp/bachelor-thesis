@@ -16,7 +16,7 @@ NUM_CLASSES = 4
 CLASS_NAMES = ["background", "snow", "clouds", "water"]  # "thin_clouds"
 NUM_ENCODED_CHANNELS = 5  # Number of channels used to encode the grayscale image
 CLASS_WEIGHTS = [0.4132, 0.31163, 0.26706, 0.00812]  # class weights for background, snow, clouds, water
-ROOT_WEIGHTS = True  # instead of using the class weights, use the root weights
+ROOT_WEIGHTS = False  # instead of using the class weights, use the root weights
 
 # define threshold to filter weak predictions
 THRESHOLD = 0.75
