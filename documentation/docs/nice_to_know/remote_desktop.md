@@ -20,7 +20,6 @@ Some pip modules must be manually installed on the remote machine. You can do th
 ```bash
 pip install imutils
 pip install pytorch-model-summary
-
 ```
 
 :::

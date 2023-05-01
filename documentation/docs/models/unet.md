@@ -29,16 +29,13 @@ Currently by best model is `e40b271`. It works reliably in different scenes and 
 For older models the image splitter must be set to legacy mode. This can be done by setting inside the `config.py`.
 
 ```python
-# disable sigma clipping and normalization for inference 
-# with algorithms older than (including) `e40b271`.
-# and enable the legacy mode
-LEGACY_MODE = True
-
+# [...]
+LEGACY_MODE = False  # legacy: True
+# [...]
+PERCENTILE_CLPPING_DYNAMIC_WORLD_METHOD = True  # legacy: False
+# [...]
 SIGMA_CLIPPING = False
-SIGMA_SCALE = 2.0
-
-# val = (val - min) / (max - min)
-NORMALIZE = False
+# [...]
 ```
 
 ::: details Git Commit ([e40b271](https://github.com/wp99cp/bachelor-thesis/commit/e40b271)) - 14.04.2023

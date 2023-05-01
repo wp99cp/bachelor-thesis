@@ -1,5 +1,24 @@
 # Automated Annotations
 
+Our model is trained on a dataset automatically created out of water coverage, s2cloudless and the ExoLabs ground
+coverage classes.
+
+Based on those masks are computed automatically as follows, in each set overlies its results to the previous one:
+
+1) Union the water class of the `32TNS_10m_COP_Lakes.tif` and `32TNS_30m_JRC_surfaceWater.tif` to a single mask.
+2) Copy the snow class for the ExoLabs ground coverage
+3) Overlay the cloud prediction of s2cloudless on the previous mask
+
+## Scene Overview
+
+After the creation of the automated masks all scenes are visually inspected and pre-selected into two categories
+indecating if they are usable or not for training.
+
+Usable masks are further inspected and improved manually, see [Manually Edited and Cleanup Masks
+](/docs/pre-processing/clean_up_masks.html).
+
+The following table gives an overview of the scenes and their usability.
+
 | Date              | Description of Scene                                                                       | Usable  | Comment on Auto Annotation                                                                                                                                                                        |
 |-------------------|--------------------------------------------------------------------------------------------|:-------:|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `20210101T102329` | Nearly full cloud coverage                                                                 |    ❌    | All area covered by clouds                                                                                                                                                                        | 

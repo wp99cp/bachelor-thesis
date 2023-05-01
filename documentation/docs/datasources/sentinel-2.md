@@ -5,6 +5,14 @@ Sentinel 2 consists of 2 satellites. First came Sentinel 2A which was launched i
 Two additional satellites (Sentinel 2C and 2D) are planned to launch in 2024. This will make a total of four Sentinel-2
 satellites.
 
+
+::: info
+
+Sentinel-2 is an Earth observation mission from the Copernicus Programme that systematically acquires optical imagery at
+high spatial resolution over land and coastal waters. See [Wikipedia](https://en.wikipedia.org/wiki/Sentinel-2).
+
+:::
+
 ## Overview of all Bands and Some Combining Examples
 
 Sentinel-2 carries the Multispectral Imager (MSI). This sensor delivers 13 spectral bands ranging from 10 to 60-meter

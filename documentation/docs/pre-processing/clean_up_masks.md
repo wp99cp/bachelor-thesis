@@ -7,9 +7,6 @@ data.
 
 The following masks are manually checked, cleaned up and edited:
 
-The existing mask was calculated combining the ExoLab snow mask, s2cloudless for clouds and `32TNS_10m_COP_Lakes`
-combined with `32TNS_30m_JRC_surfaceWater` for water.
-
 To help with the cleanup you can use the jupyter notebook: `cleanup.ipynb`.
 
 | Date              | Description of Scene                                                                                                                                  | Method                                                                                                                                                                                      |
