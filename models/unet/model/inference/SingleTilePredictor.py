@@ -1,5 +1,6 @@
 import os
 import sys
+import threading
 
 import numpy as np
 import rasterio
@@ -137,7 +138,7 @@ class SingleTilePredictor:
             predicted_mask = predicted_mask.cpu().numpy().squeeze()
 
         if i % 250 == 0:
-            print_results(image, mask, predicted_mask, f"{x}_{y}", path_prefix)
+            threading.Thread(target=print_results, args=(image, mask, predicted_mask, (x, y), path_prefix)).start()
 
         # update smoother if shape is not correct
         if self.__smoother.shape[1] != w or self.__smoother.shape[2] != h:
