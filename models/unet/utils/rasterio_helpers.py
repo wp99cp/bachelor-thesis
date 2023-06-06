@@ -20,7 +20,7 @@ def _get_base_path(date):
 
 def get_profile(s2_date):
     base_path = _get_base_path(s2_date)
-    B02 = f"T32TNS_{s2_date}_B02.jp2"
+    B02 = f"T{os.environ['TILE_NAME']}_{s2_date}_B02.jp2"
     B02 = rasterio.open(f"{base_path}/{B02}")
 
     profile = {

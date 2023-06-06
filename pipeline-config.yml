@@ -1,6 +1,10 @@
 # [ignored on euler] deletes the results folder before starting the pipeline (1 or 0)
 clear_results: 0
 
+# This is the Tile ID of the tile to be processed
+# our default tile is 32TNS
+tile_name: '13TDE'
+
 # this section describes the data handling, i.g. the preparation of the data:
 # download and extraction, most of those settings will be ignored on euler
 data_handling:
@@ -13,7 +17,7 @@ data_handling:
 
   # [ignored on euler] use single quotes for the dates and the array syntax
   # only those dates will be downloaded, does not influence the extraction
-  s2_dates: [ '20211008T101829', '20210710T101559', '20210106T102411', '20210406T102021' ]
+  s2_dates: [  ]
 
   # [ignored on euler] here the data handling is done separately (1 or 0)
   # extracts all data from the raw data folder to the tmp folder
@@ -49,7 +53,9 @@ dataset:
   # this option will be used to select the dates
   # if you wish to create masks for all dates, just leave the array empty
   # s2_dates: [ '20210116T102351', '20210121T102239', '20210126T102311', '20210131T102149', '20210215T102121', '20210220T101939', '20210225T102021', '20210302T101839', '20210307T102021', '20210322T101649', '20210401T101559', '20210406T102021', '20210416T102021', '20210526T102021',  '20210531T101559', '20210610T101559', '20210615T102021',  '20210625T102021', '20210705T102031', '20210710T101559', '20210720T101559', '20210730T101559', '20210814T102031', '20210819T101559', '20210824T102031', '20210903T102021', '20210908T101559', '20210913T102021', '20210918T101639',  '20211008T101829', '20211013T101951', '20211018T101939', '20211028T102039',  '20211102T102201', '20211112T102251' ]
-  s2_dates: [ '20210111T102309', '20210116T102351', '20210121T102239', '20210126T102311', '20210131T102149', '20210215T102121', '20210220T101939', '20210225T102021', '20210302T101839', '20210307T102021', '20210322T101649', '20210401T101559', '20210406T102021', '20210416T102021', '20210526T102021', '20210531T101559', '20210610T101559', '20210615T102021', '20210625T102021', '20210705T102031', '20210710T101559', '20210720T101559', '20210730T101559', '20210814T102031', '20210819T101559', '20210824T102031', '20210903T102021', '20210908T101559', '20210913T102021', '20210918T101639', '20211008T101829', '20211013T101951', '20211018T101939', '20211028T102039', '20211102T102201', '20211112T102251' ]
+
+  # additional dates with new dataset: 20210111T102309, 20210205T102221, 20210312T101729, 20210809T101559, 20210923T102031, 20210928T101719, 20211023T102101, 20211107T102129, 20211117T102219, 20211127T102259, 20211202T102401, 20211207T102319, 20211217T102329, 20211222T102441, 20211227T102339
+  s2_dates: [ ]
 
   # WARNING: currently this option is very slow
   # loads the data directly without creating the dataset (1 or 0)
@@ -71,10 +77,10 @@ inference:
   enable_inference: 1
 
   # this date is used for inference in the new mode
-  s2_dates: [ '20211008T101829', '20211102T102201', '20210720T101559' ]
+  s2_dates: [ '20210210T175451', '20210705T174909' ]
 
   # model name, if left empty the default model will be used (unet.pth)
-  model_file_name: 'unet_15762688_e7.pth' # 'unet_1c88144_e40.pth'
+  model_file_name: 'unet_27926e7_ep30.pth' # 'unet_1c88144_e40.pth'
 
   # limits the patches, 0 stands for the whole tile
   # this option is only used in the new mode
@@ -86,17 +92,17 @@ inference:
 # Enable testing if you wish to test the model's performance.
 testing:
 
-  enable_testing: 1
+  enable_testing: 0
 
   # those dates must be included in the s2_dates of the inference step, otherwise the testing will fail
-  s2_dates: [ '20211008T101829', '20211102T102201', '20210720T101559' ]
+  s2_dates: [ '20211008T101829', '20210710T101559' ]
 
 # This is not yet implemented
 ensemble:
 
   # ensembles the predictions of different models
   # if enabled, all previous steps will be ignored
-  enable: 1
+  enable: 0
 
   # the names of the masks to be used for the ensemble
   mask_names: [ '20211217T102329_mask_prediction_2d0d993_e36' ]

@@ -84,7 +84,7 @@ class SentinelDataLoader:
         assert self.__coverage_mode is True, "Coverage mode is not enabled."
         assert date in self.__centers.keys(), "Date not opened."
 
-        shape = self.__memory_Manager.get_date_data(date)['mask'][1].shape
+        shape = (10980, 10980)
         border_margin = self.__border_width * 2
 
         return math.floor((shape[0] - border_margin) / (IMAGE_SIZE // 2)) * \
@@ -144,14 +144,18 @@ class SentinelDataLoader:
     def __load_mask_into_memory(self, date: str):
         print("    Loading mask and mask_coverage...")
 
-        mask = self.__load_mask(date)
-        mask_coverage = self.__load_mask_coverage(date)
+        # check if file exists self.mask_base_dir + '/' + _date
+        if os.path.isfile(self.mask_base_dir + '/' + date + '/mask_coverage.jp2') and \
+                os.path.isfile(self.mask_base_dir + '/' + date + '/mask.jp2'):
+            mask = self.__load_mask(date)
+            mask_coverage = self.__load_mask_coverage(date)
 
-        mask_data = mask.read(1)
-        mask_coverage_data = mask_coverage.read(1)
-        print(f"    Mask and mask_coverage loaded for {date}.")
+            mask_data = mask.read(1)
+            mask_coverage_data = mask_coverage.read(1)
+            print(f"    Mask and mask_coverage loaded for {date}.")
+            return mask_data, mask_coverage_data
 
-        return mask_data, mask_coverage_data
+        return None, None
 
     @accumulate_time
     def __load_bands_into_memory(self, date):
@@ -167,20 +171,20 @@ class SentinelDataLoader:
         print(f"    Loading bands for {date} into memory...")
 
         band_file_names = {
-            'B01': f"T32TNS_{date}_B01.jp2",
-            'B02': f"T32TNS_{date}_B02.jp2",
-            'B03': f"T32TNS_{date}_B03.jp2",
-            'B04': f"T32TNS_{date}_B04.jp2",
-            'B05': f"T32TNS_{date}_B05.jp2",
-            'B06': f"T32TNS_{date}_B06.jp2",
-            'B07': f"T32TNS_{date}_B07.jp2",
-            'B08': f"T32TNS_{date}_B08.jp2",
-            'B8A': f"T32TNS_{date}_B8A.jp2",
-            'B09': f"T32TNS_{date}_B09.jp2",
-            'B10': f"T32TNS_{date}_B10.jp2",
-            'B11': f"T32TNS_{date}_B11.jp2",
-            'B12': f"T32TNS_{date}_B12.jp2",
-            # 'TCI': f"T32TNS_{date}_TCI.jp2", # the TCI can be reconstructed from bands 4, 3, 2
+            'B01': f"T{os.environ['TILE_NAME']}_{date}_B01.jp2",
+            'B02': f"T{os.environ['TILE_NAME']}_{date}_B02.jp2",
+            'B03': f"T{os.environ['TILE_NAME']}_{date}_B03.jp2",
+            'B04': f"T{os.environ['TILE_NAME']}_{date}_B04.jp2",
+            'B05': f"T{os.environ['TILE_NAME']}_{date}_B05.jp2",
+            'B06': f"T{os.environ['TILE_NAME']}_{date}_B06.jp2",
+            'B07': f"T{os.environ['TILE_NAME']}_{date}_B07.jp2",
+            'B08': f"T{os.environ['TILE_NAME']}_{date}_B08.jp2",
+            'B8A': f"T{os.environ['TILE_NAME']}_{date}_B8A.jp2",
+            'B09': f"T{os.environ['TILE_NAME']}_{date}_B09.jp2",
+            'B10': f"T{os.environ['TILE_NAME']}_{date}_B10.jp2",
+            'B11': f"T{os.environ['TILE_NAME']}_{date}_B11.jp2",
+            'B12': f"T{os.environ['TILE_NAME']}_{date}_B12.jp2",
+            # 'TCI': f"T{os.environ['TILE_NAME']}_{date}_TCI.jp2", # the TCI can be reconstructed from bands 4, 3, 2
         }
 
         # Search for a folder starting with "S2B_MSIL1C_$DATE"
@@ -188,12 +192,17 @@ class SentinelDataLoader:
         band_files = [f"{base_dir}/{band_file_names[b]}" for b in self.selected_bands if b in band_file_names.keys()]
 
         # add additional metadata to the bands
-        elevation_tiff = f"{self.raw_data_base_dir}/32TNS_auxiliary_data/DEM_32TNS_10m_epsg32632.tif"
+        elevation_tiff = f"{self.raw_data_base_dir}/{os.environ['TILE_NAME']}_auxiliary_data/{os.environ['TILE_NAME']}_30m_DEM_AW3D30.tif"
+        print(f"    Elevation file: {elevation_tiff}")
 
         # upscale all bands to 10m resolution using cv2.resize
         b02_meta = rasterio.open(f"{base_dir}/{band_file_names['B02']}").meta
-        image_with = b02_meta['width']
+        image_width = b02_meta['width']
         image_height = b02_meta['height']
+
+        print(f"    Image width: {image_width}")
+        print(f"    Image height: {image_height}")
+        assert image_width == image_height == 10980, "Invalid image size."
 
         summary_stats = []
 
@@ -227,7 +236,7 @@ class SentinelDataLoader:
                 min_val_raw, max_val_raw = np.min(band_data), np.max(band_data)
 
                 # resize image
-                band_data = cv2.resize(band_data, (image_with, image_height), interpolation=cv2.INTER_CUBIC)
+                band_data = cv2.resize(band_data, (image_width, image_height), interpolation=cv2.INTER_CUBIC)
                 min_val_resized, max_val_resized = np.min(band_data), np.max(band_data)
 
                 # Clipping to overall channel [mean - SIGMA_SCALE * sigma range, mean + SIGMA_SCALE * sigma range]
@@ -327,6 +336,8 @@ class SentinelDataLoader:
             with rasterio.open(elevation_tiff, dtype='float32') as b:
                 band_data = b.read(1)
 
+                print(f"Size of elevation data: {band_data.shape}")
+
                 mean = np.mean(band_data)
                 sigma = np.std(band_data)
 
@@ -336,7 +347,11 @@ class SentinelDataLoader:
                 min_val_raw, max_val_raw = np.min(band_data), np.max(band_data)
 
                 # normalize elevation data
-                band_data = cv2.resize(band_data, (image_with, image_height), interpolation=cv2.INTER_CUBIC)
+                band_data = cv2.resize(band_data, (image_width, image_height), interpolation=cv2.INTER_CUBIC)
+                # convert to float32
+                band_data = band_data.astype(np.float32)
+                print(f"Size of elevation data: {band_data.shape}")
+                print(f"Datatype of elevation data: {band_data.dtype}")
 
                 min_val_resized, max_val_resized = np.min(band_data), np.max(band_data)
 
@@ -390,7 +405,7 @@ class SentinelDataLoader:
         if not os.path.exists(f"{RESULTS}/summary_stats"):
             os.makedirs(f"{RESULTS}/summary_stats")
 
-        with open(f"{RESULTS}/summary_stats/{date}.json", 'w') as f:
+        with open(f"{RESULTS}/summary_stats/{date}_{os.environ['TILE_NAME']}.json", 'w') as f:
             json.dump(summary_stats, f, indent=4, cls=NpEncoder)
 
         # convert to numpy array
@@ -478,23 +493,27 @@ class SentinelDataLoader:
 
         x, y = coords
 
-        # load mask patch
-        mask = self.get_mask(date)
-        mask_patch = mask[x:x + IMAGE_SIZE, y:y + IMAGE_SIZE]
-        mask_patch = mask_patch * (255 / NUM_ENCODED_CHANNELS)
-
-        # used to count the number of pixels in each class
-        self.__pixel_counter.update(mask_patch, date)
-
         # load image patch
         bands = self.get_bands(date)
         img_patch = bands[:, x:x + IMAGE_SIZE, y:y + IMAGE_SIZE]
         img_patch = np.moveaxis(img_patch, 0, -1)
 
-        if get_coordinates:
-            return coords, img_patch, mask_patch.astype(np.uint8)
+        # load mask patch
+        mask = self.get_mask(date)
 
-        return img_patch, mask_patch.astype(np.uint8)
+        mask_patch = None
+        if mask is not None:
+            mask_patch = mask[x:x + IMAGE_SIZE, y:y + IMAGE_SIZE]
+            mask_patch = mask_patch * (255 / NUM_ENCODED_CHANNELS)
+
+            # used to count the number of pixels in each class
+            self.__pixel_counter.update(mask_patch, date)
+            mask_patch = mask_patch.astype(np.uint8)
+
+        if get_coordinates:
+            return coords, img_patch, mask_patch
+
+        return img_patch, mask_patch
 
     def get_patch_centers(self, date):
 

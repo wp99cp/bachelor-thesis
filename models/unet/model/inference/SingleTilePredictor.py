@@ -101,7 +101,7 @@ class SingleTilePredictor:
 
     def __create_output_dir(self):
         model_name = self.model_file_name.split(".")[0]
-        path_prefix = os.path.join(f"{self.s2_date}_pred", model_name)
+        path_prefix = os.path.join(f"{os.environ['TILE_NAME']}_{self.s2_date}_pred", model_name)
         # create dir in BASE_OUTPUT/s2_date_pred/model_name
         os.makedirs(os.path.join(BASE_OUTPUT, path_prefix), exist_ok=True)
         # empty the content of the dir
@@ -119,11 +119,11 @@ class SingleTilePredictor:
     def __infer_patch(self, i, path_prefix: str, pbar: tqdm.std.tqdm, predicted_mask_full_tile):
         # choose a random patch
         (x, y), image, mask = self.patch_creator.next(get_coordinates=True)
-        w, h = mask.shape
 
         # prepare image
         img = np.moveaxis(image, 2, 0)
         img = np.expand_dims(img, 0)
+        (w, h) = img.shape[2:]
         pbar.set_description(f"Using {(x, y)} for prediction.")
 
         # make predictions and visualize the results, thus we can reuse the mask generation code
@@ -137,7 +137,7 @@ class SingleTilePredictor:
             _, predicted_mask = self.model(image_gpu)
             predicted_mask = predicted_mask.cpu().numpy().squeeze()
 
-        if i % 250 == 0:
+        if i % 250 == 0 and mask is not None:
             threading.Thread(target=print_results, args=(image, mask, predicted_mask, (x, y), path_prefix)).start()
 
         # update smoother if shape is not correct
@@ -194,6 +194,10 @@ class SingleTilePredictor:
 
     def __save_training_mask(self, path: str):
         mask = self.patch_creator.get_mask(self.s2_date)
+
+        if mask is None:
+            print(f"No training data for {self.s2_date}")
+            return  # no training data for this tile
 
         profile = get_profile(self.s2_date)
         profile["dtype"] = np.uint8
