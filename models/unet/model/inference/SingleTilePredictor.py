@@ -98,6 +98,18 @@ class SingleTilePredictor:
             self.__save_bands(path_prefix, name='FCI', selected_bands=[12, 7, 3])
 
         self.__save_training_mask(path=path_prefix)
+        self.__save_data_coverage(path_prefix)
+
+    def __save_data_coverage(self, path_prefix: str):
+
+        data_coverage = self.patch_creator.get_coverage(self.s2_date)
+        print(f"Data coverage shape: {data_coverage.shape}")
+
+        # save data coverage as jp2 image
+        if self.pipeline_config["inference"]["save_data_coverage"]:
+            path = os.path.join(BASE_OUTPUT, path_prefix, f"{self.s2_date}_data_coverage.jp2")
+            with rasterio.open(path, 'w', **get_profile(self.s2_date)) as data_coverage_file:
+                data_coverage_file.write(data_coverage, 1)
 
     def __create_output_dir(self):
         model_name = self.model_file_name.split(".")[0]

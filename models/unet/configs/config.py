@@ -97,6 +97,7 @@ THRESHOLDED_PREDICTION = False
 
 # base path of the dataset
 BASE_DIR = os.environ['TMPDIR'] if 'TMPDIR' in os.environ else '/projects/bachelor-thesis/tmp'
+BASE_DIR = os.environ['TMP_DIR'] if 'TMP_DIR' in os.environ else '/projects/bachelor-thesis/tmp'
 DATASET_PATH = os.environ['DATASET_DIR'] if 'DATASET_DIR' in os.environ else os.path.join(BASE_DIR, "dataset")
 
 # define the path to the images and masks dataset

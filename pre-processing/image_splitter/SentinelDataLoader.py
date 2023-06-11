@@ -66,6 +66,9 @@ class SentinelDataLoader:
     def get_mask(self, date: str):
         return self.__memory_Manager.get_date_data(date)['mask'][0]  # 0 is the mask, 1 is the mask_coverage
 
+    def get_coverage(self, date: str):
+        return self.__memory_Manager.get_date_data(date)['data_coverage']
+
     def get_mask_coverage(self, date: str):
         return self.__memory_Manager.get_date_data(date)['mask'][1]  # 0 is the mask, 1 is the mask_coverage
 
@@ -111,9 +114,16 @@ class SentinelDataLoader:
 
             self.__lock.release()
 
+            if not fast_mode:
+                bands, coverage = self.__load_bands_into_memory(date)
+            else:
+                bands = None
+                coverage = None
+
             self.__memory_Manager.add_date_data(date, {
-                'bands': self.__load_bands_into_memory(date) if not fast_mode else None,
+                'bands': bands,
                 'mask': self.__load_mask_into_memory(date),
+                'data_coverage': coverage
             })
 
         else:
@@ -207,6 +217,7 @@ class SentinelDataLoader:
         summary_stats = []
 
         # open and pre-process all bands (except additional metadata, i.g. elevation)
+        coverage = np.zeros((image_height, image_width), dtype=np.uint8)
         bands_data = []
         for i, band in enumerate(band_files):
 
@@ -215,6 +226,9 @@ class SentinelDataLoader:
                                    parent_method_name="__load_bands_into_memory"):
                 with rasterio.open(band, dtype='uint16') as b:
                     band_data = b.read(1)
+
+                    if band_data.shape == (image_height, image_width):
+                        coverage |= (band_data > 0)
 
             with ClassContextTimer(parent_obj=self, block_name="pre_process_band",
                                    parent_method_name="__load_bands_into_memory"):
@@ -415,7 +429,7 @@ class SentinelDataLoader:
         print(f"    Opened {len(bands_data)} bands for date {date}.")
         print(f"    Number of bands: {bands_data.shape}")
 
-        return bands_data
+        return bands_data, coverage
 
     def __get_date_base_dir(self, date):
         folders = [folder for folder in os.listdir(self.raw_data_base_dir) if f"_MSIL1C_{date}" in folder]
