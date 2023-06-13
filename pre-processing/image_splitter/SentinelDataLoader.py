@@ -203,15 +203,12 @@ class SentinelDataLoader:
 
         # add additional metadata to the bands 32TNS_30m_DEM_AW3D30.tif
         elevation_tiff = f"{self.raw_data_base_dir}/{os.environ['TILE_NAME']}_auxiliary_data/{os.environ['TILE_NAME']}_30m_DEM_AW3D30.tif"
-        print(f"    Elevation file: {elevation_tiff}")
 
         # upscale all bands to 10m resolution using cv2.resize
         b02_meta = rasterio.open(f"{base_dir}/{band_file_names['B02']}").meta
         image_width = b02_meta['width']
         image_height = b02_meta['height']
 
-        print(f"    Image width: {image_width}")
-        print(f"    Image height: {image_height}")
         assert image_width == image_height == 10980, "Invalid image size."
 
         summary_stats = []
@@ -458,7 +455,7 @@ class SentinelDataLoader:
         # TODO: implement this function
         return True
 
-    def next(self, get_coordinates: bool = False):
+    def next(self, get_coordinates: bool = False, date: str = None):
         """
         Creates a random patch from the raw data.
         :param get_coordinates: if True, the coordinates of the patch are returned
@@ -467,7 +464,8 @@ class SentinelDataLoader:
 
         # get a random date from the open dates
         assert len(self.__memory_Manager.get_open_dates()) > 0, "No dates are open, please open at least one date."
-        date = random.choice(list(self.__memory_Manager.get_open_dates()))
+        if date is None:
+            date = random.choice(list(self.__memory_Manager.get_open_dates()))
 
         # get a random patch from the given date
         if not self.__coverage_mode:

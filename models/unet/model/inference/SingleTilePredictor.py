@@ -6,7 +6,7 @@ import numpy as np
 import rasterio
 import torch
 import tqdm
-from pytictac import ClassTimer, accumulate_time, ClassContextTimer  # see https://pypi.org/project/pytictac/
+from pytictac import ClassTimer, accumulate_time  # see https://pypi.org/project/pytictac/
 from torch import nn
 
 from config import MEAN_MEANs, MEAN_PERCENTILES_30s, MEAN_PERCENTILES_70s
@@ -52,18 +52,18 @@ class SingleTilePredictor:
         self.__smoother = np.repeat(smoother[np.newaxis, ...], NUM_CLASSES, axis=0)
 
     @accumulate_time
+    def open_date(self):
+
+        # open the date
+        self.patch_creator.open_date(self.s2_date)
+
+    @accumulate_time
     def infer(self):
 
         """
         Runs the inference for the given date.
         """
-
         path_prefix = self.__create_output_dir()
-
-        # open the date
-        with ClassContextTimer(parent_obj=self, block_name=f"open_{self.s2_date}", parent_method_name="infer"):
-            self.patch_creator.open_date(self.s2_date)
-
         self.__save_contextual_data(path_prefix)
 
         profile = get_profile(self.s2_date)
@@ -130,7 +130,7 @@ class SingleTilePredictor:
     @accumulate_time
     def __infer_patch(self, i, path_prefix: str, pbar: tqdm.std.tqdm, predicted_mask_full_tile):
         # choose a random patch
-        (x, y), image, mask = self.patch_creator.next(get_coordinates=True)
+        (x, y), image, mask = self.patch_creator.next(get_coordinates=True, date=self.s2_date)
 
         # prepare image
         img = np.moveaxis(image, 2, 0)
