@@ -2,6 +2,7 @@ import copy
 import os
 import threading
 from queue import Queue
+from time import sleep
 
 from torch import nn
 
@@ -13,7 +14,7 @@ def __producer_file_opener(opening_queue: Queue, inference_queue: Queue):
 
         # wait for inference_queue to contain less than 2 elements
         while inference_queue.qsize() >= 2:
-            pass
+            sleep(1)
 
         single_tile_predictor = opening_queue.get()
         single_tile_predictor.open_date()
