@@ -44,6 +44,7 @@ def train_unet(train_loader, test_loader, train_ds, test_ds):
     # the classes are unbalanced, so we need to artificially increase the
     # weight of the positive classes
     class_weights = get_class_weights()
+    print(f"[INFO] class weights: {class_weights}")
 
     # initialize loss function and optimizer
     loss_func = BCEWithLogitsLoss(pos_weight=class_weights.to(DEVICE), reduction='mean')

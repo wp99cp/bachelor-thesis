@@ -3,7 +3,7 @@ clear_results: 0
 
 # This is the Tile ID of the tile to be processed
 # our default tile is 32TNS
-tile_name: '32VMP'
+tile_name: '32TNS'
 
 # this section describes the data handling, i.g. the preparation of the data:
 # download and extraction, most of those settings will be ignored on euler
@@ -44,7 +44,7 @@ dataset:
   # forces a recreation of the dataset (1 or 0)
   # this deletes the dataset folder and recreates it using the current raw data
   # will be ignored if create_on_the_fly is enabled
-  recreate_dataset: 0
+  recreate_dataset: 1
 
   # limits the number of dates to be used for the dataset
   # if you wish to use all dates, just set this to 0
@@ -55,7 +55,7 @@ dataset:
   # s2_dates: [ '20210116T102351', '20210121T102239', '20210126T102311', '20210131T102149', '20210215T102121', '20210220T101939', '20210225T102021', '20210302T101839', '20210307T102021', '20210322T101649', '20210401T101559', '20210406T102021', '20210416T102021', '20210526T102021',  '20210531T101559', '20210610T101559', '20210615T102021',  '20210625T102021', '20210705T102031', '20210710T101559', '20210720T101559', '20210730T101559', '20210814T102031', '20210819T101559', '20210824T102031', '20210903T102021', '20210908T101559', '20210913T102021', '20210918T101639',  '20211008T101829', '20211013T101951', '20211018T101939', '20211028T102039',  '20211102T102201', '20211112T102251' ]
 
   # additional dates with new dataset: 20210111T102309, 20210205T102221, 20210312T101729, 20210809T101559, 20210923T102031, 20210928T101719, 20211023T102101, 20211107T102129, 20211117T102219, 20211127T102259, 20211202T102401, 20211207T102319, 20211217T102329, 20211222T102441, 20211227T102339
-  s2_dates: [ ]
+  s2_dates: [ '20210111T102309', '20210116T102351', '20210121T102239', '20210126T102311', '20210131T102149', '20210215T102121', '20210220T101939', '20210225T102021', '20210302T101839', '20210307T102021', '20210322T101649', '20210401T101559', '20210406T102021', '20210416T102021', '20210526T102021', '20210531T101559', '20210610T101559', '20210615T102021', '20210625T102021', '20210705T102031', '20210710T101559', '20210720T101559', '20210730T101559', '20210814T102031', '20210819T101559', '20210824T102031', '20210903T102021', '20210908T101559', '20210913T102021', '20210918T101639', '20211008T101829', '20211013T101951', '20211018T101939', '20211028T102039', '20211102T102201', '20211112T102251' ]
 
   # WARNING: currently this option is very slow
   # loads the data directly without creating the dataset (1 or 0)
@@ -67,14 +67,14 @@ dataset:
 training:
 
   # enables the training (1 or 0)
-  enable: 0
+  enable: 1
 
   # continues the training from the checkpoint "unet.pth" (1 or 0)
   continue_training: 0
 
 inference:
 
-  enable_inference: 1
+  enable_inference: 0
 
   # this date is used for inference in the new mode
   # if empty inference is run for all dates for the specified tile
@@ -94,7 +94,7 @@ inference:
 # Enable testing if you wish to test the model's performance.
 testing:
 
-  enable_testing: 1
+  enable_testing: 0
   use_cache: 0 # skips comparison and use cached results to recreate plots
 
   # those dates must be included in the s2_dates of the inference step, otherwise the testing will fail

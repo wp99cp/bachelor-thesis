@@ -201,7 +201,7 @@ class SentinelDataLoader:
         base_dir = self.__get_date_base_dir(date)
         band_files = [f"{base_dir}/{band_file_names[b]}" for b in self.selected_bands if b in band_file_names.keys()]
 
-        # add additional metadata to the bands
+        # add additional metadata to the bands 32TNS_30m_DEM_AW3D30.tif
         elevation_tiff = f"{self.raw_data_base_dir}/{os.environ['TILE_NAME']}_auxiliary_data/{os.environ['TILE_NAME']}_30m_DEM_AW3D30.tif"
         print(f"    Elevation file: {elevation_tiff}")
 
@@ -372,7 +372,13 @@ class SentinelDataLoader:
                 if LEGACY_MODE:
                     band_data = band_data / 10_000 * 255
                 else:
-                    band_data = (band_data - np.mean(band_data)) / np.max(band_data)
+                    # based on the 32TNS data
+                    MAX_ELEV = 3913.0
+                    MEAN_ELEV = 1862.78
+                    band_data = (band_data - MEAN_ELEV) / MAX_ELEV
+
+                print(f"Elevation Data range: {np.min(band_data):2.4f}/{np.max(band_data):2.4f}")
+                print(f"Elevation Data Summary Stats: {np.mean(band_data):2.4f}/{np.std(band_data):2.4f}")
 
                 bands_data.append(band_data)
 
