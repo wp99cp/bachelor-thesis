@@ -48,7 +48,7 @@ def run_inference(pipeline_config, unet: nn.Module, model_file_name: str = 'unet
     producer_thread = threading.Thread(target=__producer_file_opener, args=(opening_queue, inference_queue))
     producer_thread.start()
 
-    while (not inference_queue.empty()) or (not opening_queue.empty()):
+    while (not inference_queue.empty()) or (producer_thread.is_alive()):
         print("Waiting for inference queue to be filled...")
         single_tile_predictor = inference_queue.get(timeout=10 * 60)  # wait 10 minutes to avoid deadlocks
 
