@@ -6,7 +6,7 @@ from matplotlib import pyplot as plt
 from matplotlib.patches import Patch
 
 from configs.config import BASE_OUTPUT, NUM_ENCODED_CHANNELS, THRESHOLD, \
-    THRESHOLDED_PREDICTION, IMAGE_SIZE
+    IMAGE_SIZE
 
 
 def __colorize_mask(mask_):
@@ -123,8 +123,6 @@ def print_results(orig_image, orig_mask, predMask, coords, file_path_prefix=''):
     ax[0, 1].legend(handles=legend_elements, loc='upper right')
 
     predMask = predMask.transpose(1, 2, 0)
-    if THRESHOLDED_PREDICTION:
-        predMask[:, :, :] = (predMask[:, :, :] > THRESHOLD).astype(int)
     pred_mask_encoded = np.argmax(predMask, axis=2)
 
     # compute difference between predicted mask and original mask

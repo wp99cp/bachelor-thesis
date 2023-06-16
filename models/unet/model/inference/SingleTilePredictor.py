@@ -122,10 +122,28 @@ class SingleTilePredictor:
         return path_prefix
 
     def __save_prediction(self, path_prefix: str, predicted_mask_full_tile):
+
+        if self.pipeline_config["inference"]["save_raw_predictions"]:
+            raw_profile = get_profile(self.s2_date)
+            raw_profile["dtype"] = 'float32'
+            raw_profile["count"] = 4
+
+            path_raw = os.path.join(BASE_OUTPUT, path_prefix, f"{self.s2_date}_mask_prediction_raw.jp2")
+            with rasterio.open(path_raw, 'w', **raw_profile) as mask_file_raw:
+                mask_file_raw.write(predicted_mask_full_tile[0, :, :], 1)
+                mask_file_raw.write(predicted_mask_full_tile[1, :, :], 2)
+                mask_file_raw.write(predicted_mask_full_tile[2, :, :], 3)
+                mask_file_raw.write(predicted_mask_full_tile[3, :, :], 4)
+
         # Create the empty JP2 file
         path = os.path.join(BASE_OUTPUT, path_prefix, f"{self.s2_date}_mask_prediction.jp2")
         with rasterio.open(path, 'w', **get_profile(self.s2_date)) as mask_file:
-            mask_file.write(get_encoded_prediction(predicted_mask_full_tile), 1)
+            mask_file.write(get_encoded_prediction(predicted_mask_full_tile, False), 1)
+
+        if self.pipeline_config["inference"]["save_raw_thresholded"]:
+            path = os.path.join(BASE_OUTPUT, path_prefix, f"{self.s2_date}_mask_prediction_thresholded.jp2")
+            with rasterio.open(path, 'w', **get_profile(self.s2_date)) as mask_file:
+                mask_file.write(get_encoded_prediction(predicted_mask_full_tile, True), 1)
 
     @accumulate_time
     def __infer_patch(self, i, path_prefix: str, pbar: tqdm.std.tqdm, predicted_mask_full_tile):
@@ -146,7 +164,20 @@ class SingleTilePredictor:
 
         with torch.no_grad():
             image_gpu = torch.from_numpy(img).to(DEVICE)
-            _, predicted_mask = self.model(image_gpu)
+
+            if self.pipeline_config["inference"]["use_all_rotations"]:
+                # predict mask for the 4 rotations
+                _, predicted_mask_up = self.model(image_gpu)
+                _, predicted_mask_left = self.model(torch.flip(image_gpu, [3]))
+                _, predicted_mask_right = self.model(torch.flip(image_gpu, [2]))
+                _, predicted_mask_down = self.model(torch.flip(image_gpu, [2, 3]))
+
+                # calc mean of the 4 predictions
+                predicted_mask = (predicted_mask_up + torch.flip(predicted_mask_left, [3]) +
+                                  torch.flip(predicted_mask_right, [2]) + torch.flip(predicted_mask_down, [2, 3])) / 4
+            else:
+                _, predicted_mask = self.model(image_gpu)
+
             predicted_mask = predicted_mask.cpu().numpy().squeeze()
 
         if i % 250 == 0 and mask is not None:

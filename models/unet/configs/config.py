@@ -19,7 +19,7 @@ CLASS_WEIGHTS = [0.4132, 0.31163, 0.26706, 0.00812]  # class weights for backgro
 ROOT_WEIGHTS = True  # instead of using the class weights, use the root weights
 
 # define threshold to filter weak predictions
-THRESHOLD = 0.75
+THRESHOLD = 0.90
 
 # 0 for unlimited
 # artificially limit the number of samples in the dataset
@@ -86,7 +86,6 @@ COVERED_PATCH_SIZE_MAX = 128  # in pixels
 # ====================================
 
 LOAD_CORRUPT_WEIGHTS = False
-THRESHOLDED_PREDICTION = False
 
 # ====================================
 # ====================================
