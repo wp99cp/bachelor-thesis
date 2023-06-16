@@ -35,10 +35,9 @@ LIMIT_DATASET_SIZE = 0
 # initialize learning rate, number of epochs to train for, and the
 # batch size
 INIT_LR = 0.001  # if using amp the INIT_LR should be below 0.001
-MOMENTUM = 0.975
 WEIGHT_DECAY = 0.1
-NUM_EPOCHS = 256
-BATCH_SIZE = 96  # fastest on Euler (assuming Quadro RTX 6000) is 32, however this may be too small (nan loss)
+NUM_EPOCHS = 60
+BATCH_SIZE = 48  # fastest on Euler (assuming Quadro RTX 6000) is 32, however this may be too small (nan loss)
 
 WEIGHT_DECAY_PLATEAU_PATIENCE = 1
 EARLY_STOPPING_PATIENCE = 30
@@ -49,7 +48,7 @@ STEPS_PER_EPOCH_TEST = 1024
 # switches to mixed precision training after the specified epoch
 # if set to 0, mixed precision training is disabled
 # make sure to disable mixed precision during inference!
-USE_PIXED_PRECISION = True
+USE_PIXED_PRECISION = False
 GRADIENT_CLIPPING = True
 
 # ====================================
@@ -97,6 +96,7 @@ THRESHOLDED_PREDICTION = False
 
 # base path of the dataset
 BASE_DIR = os.environ['TMPDIR'] if 'TMPDIR' in os.environ else '/projects/bachelor-thesis/tmp'
+BASE_DIR = os.environ['TMP_DIR'] if 'TMP_DIR' in os.environ else '/projects/bachelor-thesis/tmp'
 DATASET_PATH = os.environ['DATASET_DIR'] if 'DATASET_DIR' in os.environ else os.path.join(BASE_DIR, "dataset")
 
 # define the path to the images and masks dataset

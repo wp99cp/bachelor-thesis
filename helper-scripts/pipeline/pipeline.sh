@@ -48,6 +48,9 @@ echo "Loaded!"
 echo "==================="
 echo ""
 
+echo "Tile Name=${config_tile_name}"
+export TILE_NAME="${config_tile_name}"
+
 # =========================
 # Download the data if force download is set to 1
 # =========================
@@ -65,12 +68,20 @@ else
     rsync -avz --progress "$RAW_DATA_REMOTE_DIR/$f" "$DATA_RAW_DIR"
   done
 
-  if [ ! -d "$DATA_RAW_DIR/raw_data_32TNS_1C" ]; then
-    mkdir "$DATA_RAW_DIR/raw_data_32TNS_1C"
-  fi
+  echo ""
+  echo "Finished copying files auxiliary_data"
+  echo ""
+
   if [ ! -d "$DATA_RAW_DIR/raw_data_32TNS_2A" ]; then
     mkdir "$DATA_RAW_DIR/raw_data_32TNS_2A"
   fi
+
+  tiles=('32TNS' '32VMP' '07VEH' '13TDE')
+  for t in "${tiles[@]}"; do
+    if [ ! -d "$DATA_RAW_DIR/raw_data_${t}_1C" ]; then
+      mkdir "$DATA_RAW_DIR/raw_data_${t}_1C"
+    fi
+  done
 
   # interpret the string of $config_data_handling_s2_dates as an array
   # it uses the following syntax: ['20210106T102411', '20210406T102021']
@@ -83,20 +94,45 @@ else
     dates_as_array[$i]=$(echo "${dates_as_array[$i]}" | tr -d " ")
   done
 
-  for d in "${dates_as_array[@]}"; do
+  echo ""
+  # shellcheck disable=SC2145
+  echo "Dates to sync: ${dates_as_array[@]}"
 
-    # search for the file that contains the data
-    # inside the raw_data_32TNS_1C folder
-    file_name=$(find "$RAW_DATA_REMOTE_DIR/raw_data_32TNS_1C" -name "*$d*")
-    echo "Found file for $d: $file_name"
-    rsync -az --progress "$file_name" "$DATA_RAW_DIR/raw_data_32TNS_1C/" &
+  # check if the array is empty, by checking if the first element is empty
+  # and the length is exactly 1
+  is_empty_array=0
+  if [[ -z "${dates_as_array[0]}" ]] && [[ "${#dates_as_array[@]}" -eq 1 ]]; then
+    is_empty_array=1
+  fi
 
-    # and search inside the raw_data_32TNS_2A folder
-    file_name=$(find "$RAW_DATA_REMOTE_DIR/raw_data_32TNS_2A" -name "*$d*")
-    echo "Found file for $d: $file_name"
-    rsync -az --progress "$file_name" "$DATA_RAW_DIR/raw_data_32TNS_2A/" &
+  if [[ "${is_empty_array}" -eq 0 ]]; then
+    echo "Sync only the following dates: ${dates_as_array[@]}"
+    for d in "${dates_as_array[@]}"; do
 
-  done
+      # and search inside the raw_data_32TNS_2A folder
+      file_name=$(find "$RAW_DATA_REMOTE_DIR/raw_data_32TNS_2A" -name "*$d*")
+      echo "Found file for $d: $file_name"
+      rsync -az --progress "$file_name" "$DATA_RAW_DIR/raw_data_32TNS_2A/" &
+
+      for t in "${tiles[@]}"; do
+        # search for the file that contains the data
+        # inside the raw_data_32TNS_1C folder
+        file_name=$(find "$RAW_DATA_REMOTE_DIR/raw_data_${t}_1C" -name "*$d*")
+        echo "Found file for $d: $file_name"
+        rsync -az --progress "$file_name" "$DATA_RAW_DIR/raw_data_${t}_1C/" &
+      done
+
+    done
+
+  else
+
+    # sync all data if no dates are specified
+    echo "No dates specified. Sync all data."
+    rsync -az --progress "$RAW_DATA_REMOTE_DIR/raw_data_32TNS_2A/" "$DATA_RAW_DIR/raw_data_32TNS_2A/" &
+    for t in "${tiles[@]}"; do
+      rsync -az --progress "$RAW_DATA_REMOTE_DIR/raw_data_${t}_1C/" "$DATA_RAW_DIR/raw_data_${t}_1C/" &
+    done
+  fi
 
   wait # wait for all rsync processes to finish
 

@@ -25,7 +25,7 @@ def main():
 
         print(f"Reading in {filename}...")
 
-        if filename.endswith('.json'):
+        if filename.endswith('.json') and '_' not in filename:
             filepath = os.path.join(base_dir, filename)
 
             json_data = read_json_file(filepath)
@@ -108,22 +108,22 @@ def main():
     print()
 
     # create a boxplot for each band
-    fig, axs = plt.subplots(1, 5, figsize=(20, 4))
+    fig, axs = plt.subplots(2, 3, figsize=(20, 10))
 
-    axs[0].set_title("Mean")
-    axs[0].boxplot(bands_means.values(), labels=bands_means.keys())
+    axs[0][0].set_title("Mean")
+    axs[0][0].boxplot(bands_means.values(), labels=bands_means.keys())
 
-    axs[1].set_title("Max")
-    axs[1].boxplot(bands_maxs.values(), labels=bands_maxs.keys())
+    axs[0][1].set_title("Max")
+    axs[0][1].boxplot(bands_maxs.values(), labels=bands_maxs.keys())
 
-    axs[2].set_title("Min")
-    axs[2].boxplot(bands_mins.values(), labels=bands_mins.keys())
+    axs[0][2].set_title("Min")
+    axs[0][2].boxplot(bands_mins.values(), labels=bands_mins.keys())
 
-    axs[3].set_title("95th Percentile")
-    axs[3].boxplot(percentile_95s.values(), labels=percentile_95s.keys())
+    axs[1][0].set_title("70th Percentile")
+    axs[1][0].boxplot(percentile_70s.values(), labels=percentile_95s.keys())
 
-    axs[4].set_title("5th Percentile")
-    axs[4].boxplot(percentile_5s.values(), labels=percentile_5s.keys())
+    axs[1][1].set_title("30th Percentile")
+    axs[1][1].boxplot(percentile_30s.values(), labels=percentile_5s.keys())
 
     # save the figure
     plt.savefig("boxplot.png")

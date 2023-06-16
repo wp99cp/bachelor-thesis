@@ -6,7 +6,7 @@ from matplotlib import pyplot as plt
 from matplotlib.patches import Patch
 
 from configs.config import BASE_OUTPUT, NUM_ENCODED_CHANNELS, THRESHOLD, \
-    THRESHOLDED_PREDICTION
+    THRESHOLDED_PREDICTION, IMAGE_SIZE
 
 
 def __colorize_mask(mask_):
@@ -28,13 +28,13 @@ def __colorize_mask(mask_):
     return cmap_, mask_
 
 
-def print_results(orig_image, orig_mask, predMask, imagePath: str, file_path_prefix=''):
+def print_results(orig_image, orig_mask, predMask, coords, file_path_prefix=''):
     """
     Print the results of a single patch prediction.
     :param orig_image: the original image
     :param orig_mask: the original mask
     :param predMask: the predicted mask
-    :param imagePath: the path of the image
+    :param coords: the coordinates of the patch
     :param file_path_prefix: the prefix of the file path
     """
 
@@ -42,7 +42,7 @@ def print_results(orig_image, orig_mask, predMask, imagePath: str, file_path_pre
     matplotlib.use('Agg')
     figure, ax = plt.subplots(nrows=2, ncols=6, figsize=(30, 10))
 
-    # create a legend for the mask
+    (x, y) = coords
 
     # plot the original image, its mask, and the predicted mask
     rgb = orig_image[:, :, 1:4]
@@ -70,6 +70,13 @@ def print_results(orig_image, orig_mask, predMask, imagePath: str, file_path_pre
 
     rgb_increased_gamma = np.power(rgb, 1 / 2.2)
 
+    # print the location of the patch within the tile
+    # mark the location with a red rectangle in the original tile (10980x10980)
+    rect = matplotlib.patches.Rectangle((y, x), IMAGE_SIZE, IMAGE_SIZE, facecolor='r')
+    ax[0, 5].add_patch(rect)
+    ax[0, 5].set_xlim(0, 10980)
+    ax[0, 5].set_ylim(10980, 0)
+
     ax[0, 0].imshow(rgb)
 
     # Combine rgb and rgb_mask into a single image using rgb as background and rgb_mask as foreground with alpha mask
@@ -89,6 +96,7 @@ def print_results(orig_image, orig_mask, predMask, imagePath: str, file_path_pre
     ax[0, 2].set_title("Color Infrared")
     ax[0, 3].set_title("Short Wave Infrared")
     ax[0, 4].set_title("RGB Increased Gamma")
+    ax[0, 5].set_title("Position within Tile")
 
     ax[1, 2].set_title("Predicted Background")
     ax[1, 3].set_title("Predicted Snow")
@@ -139,7 +147,7 @@ def print_results(orig_image, orig_mask, predMask, imagePath: str, file_path_pre
     # set the layout of the figure and display it
     figure.tight_layout()
 
-    inference_path = os.path.join(BASE_OUTPUT, file_path_prefix, f"inference_{imagePath}.png")
+    inference_path = os.path.join(BASE_OUTPUT, file_path_prefix, f"inference_{x}_{y}.png")
     figure.savefig(inference_path)
 
     plt.close(figure)

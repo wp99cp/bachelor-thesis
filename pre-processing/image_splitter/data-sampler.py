@@ -104,7 +104,7 @@ def plot_patch_centers(date, _patch_creator: SentinelDataLoader):
     matplotlib.use('Agg')
     plt.clf()
     plt.imshow(mask_data, alpha=mask_coverage_data * 0.75)
-    plt.title('Overview of T32TNS')
+    plt.title(f'Overview of T{os.environ["TILE_NAME"]}')
     plt.xticks([])
     plt.yticks([])
 

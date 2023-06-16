@@ -30,7 +30,6 @@ class SentinelMemoryManager:
         """
 
         with self.__memory_lock:
-
             del self.__least_recently_used[self.__least_recently_used.index(date)]
             self.__close_date(date)
 

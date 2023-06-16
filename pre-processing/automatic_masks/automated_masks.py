@@ -30,7 +30,7 @@ class MaskGenerator:
     def _get_profile(self):
         base_path = self._get_base_path()
 
-        B02 = f"T32TNS_{self.sample_date}_B02.jp2"
+        B02 = f"T{os.environ['TILE_NAME']}_{self.sample_date}_B02.jp2"
         B02 = rasterio.open(f"{base_path}/{B02}")
 
         profiles = {
@@ -81,12 +81,12 @@ class MaskGenerator:
         print(f"Creating masks for {len(dates)} dates.")
 
         # open general auxiliary data
-        COP_Lakes_10m = f"{EXTRACTED_RAW_DATA}/32TNS_auxiliary_data/32TNS_10m_COP_Lakes.tif"
+        COP_Lakes_10m = f"{EXTRACTED_RAW_DATA}/{os.environ['TILE_NAME']}_auxiliary_data/{os.environ['TILE_NAME']}_10m_COP_Lakes.tif"
         COP_Lakes_10m = rasterio.open(COP_Lakes_10m)
         COP_Lakes_10m_arr = COP_Lakes_10m.read(1, window=from_bounds(*self.bounds, transform=COP_Lakes_10m.transform))
         COP_Lakes_10m.close()
 
-        JRC_surfaceWater_30m = f"{EXTRACTED_RAW_DATA}/32TNS_auxiliary_data/32TNS_30m_JRC_surfaceWater.tif"
+        JRC_surfaceWater_30m = f"{EXTRACTED_RAW_DATA}/{os.environ['TILE_NAME']}_auxiliary_data/{os.environ['TILE_NAME']}_30m_JRC_surfaceWater.tif"
         JRC_surfaceWater_30m = rasterio.open(JRC_surfaceWater_30m)
         JRC_surfaceWater_30m_arr = JRC_surfaceWater_30m.read(1, window=from_bounds(*self.bounds,
                                                                                    transform=JRC_surfaceWater_30m.transform))
@@ -97,7 +97,7 @@ class MaskGenerator:
                                               (COP_Lakes_10m_arr.shape[1], COP_Lakes_10m_arr.shape[0]),
                                               interpolation=cv2.INTER_NEAREST)
 
-        Glacier_RGIv6_30m = f"{EXTRACTED_RAW_DATA}/32TNS_auxiliary_data/32TNS_30m_Glacier_RGIv6.tif"
+        Glacier_RGIv6_30m = f"{EXTRACTED_RAW_DATA}/{os.environ['TILE_NAME']}_auxiliary_data/{os.environ['TILE_NAME']}_30m_Glacier_RGIv6.tif"
         Glacier_RGIv6_30m = rasterio.open(Glacier_RGIv6_30m)
         Glacier_RGIv6_30m_arr = Glacier_RGIv6_30m.read(1, window=from_bounds(*self.bounds,
                                                                              transform=Glacier_RGIv6_30m.transform))
@@ -132,7 +132,7 @@ class MaskGenerator:
             # get ExoLab classification
             path = f"{EXTRACTED_RAW_DATA}/ExoLabs_classification_S2/"
             files = os.listdir(path)
-            files = [f for f in files if f.startswith(f"S2_32TNS_{date_parsed}")]
+            files = [f for f in files if f.startswith(f"S2_{os.environ['TILE_NAME']}_{date_parsed}")]
             file = files[0]
 
             # read the ExoLab classification
@@ -173,19 +173,19 @@ class MaskGenerator:
         base_path = self._get_base_path(date)
 
         # Sentinel L1C Bands
-        B01 = f"T32TNS_{date}_B01.jp2"
-        B02 = f"T32TNS_{date}_B02.jp2"
-        B03 = f"T32TNS_{date}_B03.jp2"
-        B04 = f"T32TNS_{date}_B04.jp2"
-        B05 = f"T32TNS_{date}_B05.jp2"
-        B06 = f"T32TNS_{date}_B06.jp2"
-        B07 = f"T32TNS_{date}_B07.jp2"
-        B08 = f"T32TNS_{date}_B08.jp2"
-        B8A = f"T32TNS_{date}_B8A.jp2"
-        B09 = f"T32TNS_{date}_B09.jp2"
-        B10 = f"T32TNS_{date}_B10.jp2"
-        B11 = f"T32TNS_{date}_B11.jp2"
-        B12 = f"T32TNS_{date}_B12.jp2"
+        B01 = f"T{os.environ['TILE_NAME']}_{date}_B01.jp2"
+        B02 = f"T{os.environ['TILE_NAME']}_{date}_B02.jp2"
+        B03 = f"T{os.environ['TILE_NAME']}_{date}_B03.jp2"
+        B04 = f"T{os.environ['TILE_NAME']}_{date}_B04.jp2"
+        B05 = f"T{os.environ['TILE_NAME']}_{date}_B05.jp2"
+        B06 = f"T{os.environ['TILE_NAME']}_{date}_B06.jp2"
+        B07 = f"T{os.environ['TILE_NAME']}_{date}_B07.jp2"
+        B08 = f"T{os.environ['TILE_NAME']}_{date}_B08.jp2"
+        B8A = f"T{os.environ['TILE_NAME']}_{date}_B8A.jp2"
+        B09 = f"T{os.environ['TILE_NAME']}_{date}_B09.jp2"
+        B10 = f"T{os.environ['TILE_NAME']}_{date}_B10.jp2"
+        B11 = f"T{os.environ['TILE_NAME']}_{date}_B11.jp2"
+        B12 = f"T{os.environ['TILE_NAME']}_{date}_B12.jp2"
 
         # Read the bands
         bands_files = (B01, B02, B03, B04, B05, B06, B07, B08, B8A, B09, B10, B11, B12)
