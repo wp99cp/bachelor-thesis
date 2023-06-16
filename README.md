@@ -2,15 +2,15 @@
 
 This repository contains the source code for my bachelor thesis.
 The documentation can be found in the `documenation` directory. To view the documentation as a webpage,
-run the following command:
+run the following command inside the `documentation` directory:
 
 ```bash
 npm install
 npm run docs:dev
 ```
 
-## Source for LaTeX files
+(Note that assumes you have `npm` installed on your system.)
 
-The source code can be found
-at [github.com/wp99cp/bachelor-thesis-overleaf](https://github.com/wp99cp/bachelor-thesis-overleaf) and as a submodule
-inside the `bachlor-thesis-overleaf` directory.
+## Report and LaTeX-Source files
+
+The final report and the source files of the report can be found in the sub-repository `bachelor-thesis-overleaf`.
