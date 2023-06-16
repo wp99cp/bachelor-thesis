@@ -60,12 +60,12 @@ I've created a web application helps to annotate the images. The workflow is as 
 
 The following encoding is used to encode the differences between the prediction and the ground truth.
 
-| pred / training | background | cloud | snow | water |
-|:---------------:|:----------:|:-----:|:----:|:-----:|
-|   background    |     0      |  11   |  12  |  13   |
-|      cloud      |     1      |   0   |  14  |  15   |
-|      snow       |     2      |   4   |  0   |  16   |
-|      water      |     3      |   5   |  6   |   0   |
+| our / other | background | snow | cloud | water |
+|:-----------:|:----------:|:----:|:-----:|:-----:|
+| background  |     0      |  11  |  12   |  13   |
+|    snow     |     1      |  0   |  14   |  15   |
+|    cloud    |     2      |  4   |   0   |  16   |
+|    water    |     3      |  5   |   6   |   0   |
 
 ## Annotation Software
 

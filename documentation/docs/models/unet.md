@@ -21,11 +21,32 @@ The following models were trained using the adjusted pre-processing and image sp
 The new pipeline has updated the normalization and clipping of the data and is therefore not compatible with older
 models.
 
-::: details Git Commit ([27926e7](https://github.com/wp99cp/bachelor-thesis/commit/27926e7)) - 01.05.2023
+::: tip Best Performing Algorithm
+
+Currently, the best performing algorithm is `eaa7527` with the checkpoint of epoch 30: `unet_27926e7_ep30.pth`.
+
+:::
+
+::: details Git Commit ([eaa7527](https://github.com/wp99cp/bachelor-thesis/commit/eaa7527)) - 03.05.2023
+
+This was `15775547` slurm job. Trained **without** rooted imbalance weight. Trained on all 36 scenes.
+
+```python
+INIT_LR = 0.001  # if using amp the INIT_LR should be below 0.001
+MOMENTUM = 0.950
+WEIGHT_DECAY = 0.1
+NUM_EPOCHS = 256
+BATCH_SIZE = 48  # fastest on Euler (assuming Quadro RTX 6000) is 32, 
+# however this may be too small (nan loss)
+```
+
+:::
+
+::: details Git Commit ([27926e7](https://github.com/wp99cp/bachelor-thesis/commit/27926e7)) - 03.05.2023
 
 This was `15762688` slurm job. Trained on all 36 scenes. The data was normalized using the 30/70 percentile method with
 constant values per band (based on the summary stats of the training data). The data was shifted such that the mean is
-zero per band.
+zero per band. Trained using the rooted imbalance weight.
 
 Snow coverage quite good after the first epoch, water and clouds are still a problem. However, the model is still
 learning....
