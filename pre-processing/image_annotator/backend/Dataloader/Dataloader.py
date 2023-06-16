@@ -62,7 +62,7 @@ class Dataloader:
 
         # Those days are selected in a way to have a good mix of snow and cloud coverage
         # Images are distributed over several months to have a good mix of seasons
-        selected_dates = ["20211023T102101"]  # currently online "20210819T101559", "20210819T101559" "20210710T101559"
+        selected_dates = ["20210126T102311"]  # currently online "20210819T101559", "20210819T101559" "20210710T101559"
         # ["20211227T102339", "20210720T101559", "20210908T101559", "20210819T101559", "20211018T101939"]
 
         # randomly set a date
@@ -72,6 +72,9 @@ class Dataloader:
         self.cloud_detector = S2PixelCloudDetector(threshold=0.4, average_over=4, dilation_size=2, all_bands=True)
 
     def change_current_date(self, date):
+
+        print(f"Date changed to {date}, available dates: {self.available_dates}")
+
         assert date in self.available_dates, "Date not available"
         self.current_date = date
 
@@ -90,7 +93,7 @@ class Dataloader:
         scene_cloud_probs, cloud_mask04, cloud_mask06 = self._compute_s2cloud_masks()
 
         # false color RGB with band B02, B03, B12
-        false_color = self.bands_windowed[0, :, :, [11, 2, 1]]
+        false_color = self.bands_windowed[0, :, :, [12, 8, 3]]
         false_color = _clip_percentile(false_color)
 
         # true color RGB with band B04, B03,0 B02
@@ -146,8 +149,8 @@ class Dataloader:
         print(f"MIN/MAX: {np.min(swiss_map_tile)}, {np.max(swiss_map_tile)}")
 
         scenes = [
-            true_color,
             tci_windowed,
+            true_color,
             false_color,
             scene_cloud_probs,
             highlights,
@@ -396,6 +399,7 @@ class Dataloader:
         # TCI = True Color Image
         TCI = f"T32TNS_{self.current_date}_TCI.jp2"
         self.tci = rasterio.open(f"{base_path}/{TCI}")
+        print(f"Opened TCI: {base_path}/{TCI}")
 
         self.profiles = {
             '10m': {

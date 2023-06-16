@@ -36,7 +36,7 @@ export BASE_DIR=/scratch2/pucyril/bachelor-thesis
 # used to store the data (e.g. training sets, annotations, etc.)
 export DATA_DIR=$BASE_DIR/data
 export DATA_RAW_DIR=$DATA_DIR/raw
-export ANNOTATED_MASKS_DIR=$DATA_DIR/annotated_masks
+export ANNOTATED_MASKS_DIR=$DATA_DIR/clean_up_mask_2
 export MASKS_DIR=$DATA_DIR/masks
 export DATASET_DIR=$DATA_DIR/dataset
 
@@ -74,7 +74,7 @@ export BASE_DIR=/projects/bachelor-thesis
 # used to store the data (e.g. training sets, annotations, etc.)
 export DATA_DIR=$BASE_DIR/data
 export DATA_RAW_DIR=$DATA_DIR/raw
-export ANNOTATED_MASKS_DIR=$DATA_DIR/annotated_masks
+export ANNOTATED_MASKS_DIR=$DATA_DIR/clean_up_mask_2
 export MASKS_DIR=$DATA_DIR/masks
 export DATASET_DIR=$DATA_DIR/dataset
 

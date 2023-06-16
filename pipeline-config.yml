@@ -9,16 +9,16 @@ data_handling:
   # this will delete all old data and freshly download the s2_dates listed below
   # currently all data is manually downloaded to the pf-pc20
   # this was done using "cp -r /home/pf/pfstud/nimbus/download_data/* /scratch2/pucyril/bachelor-thesis/data/raw"
-  force_rsync: 0
+  force_rsync: 1
 
   # [ignored on euler] use single quotes for the dates and the array syntax
   # only those dates will be downloaded, does not influence the extraction
-  s2_dates: [ '20211008T101829', '20210710T101559', '20210106T102411', '20210406T102021' ]
+  s2_dates: [ '20210126T102311' ]
 
   # [ignored on euler] here the data handling is done separately (1 or 0)
   # extracts all data from the raw data folder to the tmp folder
   # currently all data has been extracted
-  force_extraction: 0
+  force_extraction: 1
 
 # this section describes the preprocessing of the data
 # e.g. if the masks should be created automatically or if
@@ -40,7 +40,7 @@ dataset:
   # forces a recreation of the dataset (1 or 0)
   # this deletes the dataset folder and recreates it using the current raw data
   # will be ignored if create_on_the_fly is enabled
-  recreate_dataset: 1
+  recreate_dataset: 0
 
   # limits the number of dates to be used for the dataset
   # if you wish to use all dates, just set this to 0
@@ -61,7 +61,7 @@ dataset:
 training:
 
   # enables the training (1 or 0)
-  enable: 1
+  enable: 0
 
   # continues the training from the checkpoint "unet.pth" (1 or 0)
   continue_training: 0
