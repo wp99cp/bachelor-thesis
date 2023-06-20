@@ -6,7 +6,7 @@ satellite: 'sentinel2' # 'sentinel2' or 'landsat8'
 
 # if you wish to run the pipeline for hand selected dates
 # you can specify them here (using yml array syntax)
-dates: [ '20210903T102021' ]
+dates: [ ]
 
 inference:
 

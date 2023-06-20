@@ -1,4 +1,5 @@
 import os
+from datetime import datetime
 from enum import Enum
 
 import numpy as np
@@ -145,4 +146,14 @@ class SentinelL1CReader(SatelliteReader):
             )
 
         bands = np.stack([b01, b02, b03, b04, b05, b06, b07, b08, b8A, b09, b10, b11, b12], axis=0)
+
+        date = datetime.strptime(date, '%Y%m%dT%H%M%S')
+        print(f"Read Sentinel-2 L1C data for {date.strftime('%Y-%m-%d')}")
+
+        # check if date is later than 2022-01-25
+        # todo: use other format instead
+        if date > datetime.strptime('20220125', '%Y%m%d'):
+            print("Sentinel-2 L1C data is after 2022-01-25, applying correction")
+            bands = bands - 1_000
+
         return bands.astype(np.uint16)
