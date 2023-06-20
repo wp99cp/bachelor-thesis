@@ -4,8 +4,9 @@
 ################
 
 current_dir=$(pwd)
-cd ../../
-source "$BASE_DIR/utilities/infer.sh"
+cd ../../.
+echo "Run infer script form $(pwd)"
+source "utilities/infer.sh"
 cd $current_dir
 
 ################
