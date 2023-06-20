@@ -3,11 +3,7 @@
 # Run the task
 ################
 
-current_dir=$(pwd)
-cd ../../.
-echo "Run infer script form $(pwd)"
-source "utilities/infer.sh"
-cd $current_dir
+source "$BASE_DIR/utilities/infer.sh"
 
 ################
 # Copy the produced Data
