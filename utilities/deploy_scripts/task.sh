@@ -4,7 +4,7 @@
 ################
 
 current_dir=$(pwd)
-cd $BASE_DIR
+cd ../../
 source "$BASE_DIR/utilities/infer.sh"
 cd $current_dir
 
