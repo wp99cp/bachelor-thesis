@@ -24,7 +24,7 @@ def main():
 
     print(f"[INFO] loading model weights from {model_file_name}...")
 
-    if os.environ.get("RUNS_ON_EULER", 0) == 1
+    if os.environ.get("RUNS_ON_EULER", 0) == 1:
         model_path = os.path.join(os.environ['MODEL_SAVE_DIR'], model_file_name)
     else:
         model_path = os.path.join(BASE_OUTPUT, model_file_name)
