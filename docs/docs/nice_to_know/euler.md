@@ -65,7 +65,7 @@ e.g. `module load gcc/8.2.0 python_gpu/3.10.4 cuda/11.7.0`).
 1) Run the following command to submit your task to the cluster:
 
 ```bash
-ansible-playbook -i hosts.yml submit_euler.yml --extra-vars "task=utilities/task"
+ansible-playbook -i hosts.yml submit_euler.yml --extra-vars "task=utilities/deploy_scripts"
 ```
 
 ::: details
@@ -76,7 +76,7 @@ This checks out the latest version of your task from the repository and submits 
 If you want to submit a specific version of your task, you can specify the `commit` parameter:
 
 ```bash
-ansible-playbook -i hosts.yml submit_euler.yml --extra-vars "task=utilities/task commit=1234567890"
+ansible-playbook -i hosts.yml submit_euler.yml --extra-vars "task=utilities/deploy_scripts commit=1234567890"
 ```
 
 2) You get notified via email when the task is finished. Results are saved under `$SCRATCH/<job.id>`. This means
