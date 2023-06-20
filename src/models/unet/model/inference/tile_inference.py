@@ -50,7 +50,12 @@ def run_inference(pipeline_config, unet: nn.Module, model_file_name: str = 'unet
 
     tile_id = pipeline_config["tile_id"]
     for date in dates:
-        opening_queue.put(SingleTilePredictor(pipeline_config, unet, date, tile_id, model_file_name))
+        try:
+            opening_queue.put(SingleTilePredictor(pipeline_config, unet, date, tile_id, model_file_name))
+        except AssertionError as e:
+            print(f"[ERROR] {e}")
+            print(f"[ERROR] Abort during opening scene for {date}")
+            continue
 
     producer_thread = threading.Thread(target=__producer_file_opener, args=(opening_queue, inference_queue))
     producer_thread.start()
