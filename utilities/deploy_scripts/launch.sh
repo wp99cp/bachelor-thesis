@@ -9,7 +9,7 @@
 #SBATCH --open-mode=truncate
 #SBATCH --output=/cluster/scratch/pucyril/%j/log/slurm-output.out
 #SBATCH --error=/cluster/scratch/pucyril/%j/log/slurm-error.out
-#SBATCH --account=es_schin
+#SBATCH --account=es_hutter
 #SBATCH --signal=B:USR1@600
 #SBATCH --mail-type=END
 
