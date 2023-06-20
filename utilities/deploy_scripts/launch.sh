@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#SBATCH --time=09:59:00
+#SBATCH --time=45:59:00
 #SBATCH -n 8
 #SBATCH --mem-per-cpu=4G
 #SBATCH --gpus=1
@@ -9,7 +9,7 @@
 #SBATCH --open-mode=truncate
 #SBATCH --output=/cluster/scratch/pucyril/%j/log/slurm-output.out
 #SBATCH --error=/cluster/scratch/pucyril/%j/log/slurm-error.out
-#SBATCH --account=es_hutter
+#SBATCH --account=es_schin
 #SBATCH --signal=B:USR1@600
 #SBATCH --mail-type=END
 
