@@ -31,6 +31,9 @@ mkdir -p "$TMP_DIR"
 export DATA_SENTINEL2=$SCRATCH/data_sources/data/sentinel2
 export DATA_LANDSAT8=$SCRATCH/data_sources/data/landsat8
 export MODEL_SAVE_DIR=$SCRATCH/data_sources/model_checkpoints
+
+echo "Set model save dir to $MODEL_SAVE_DIR"
+
 # create a RESULTS_DIR
 export RESULTS_DIR="$TMPDIR/results"
 mkdir -p "$RESULTS_DIR"

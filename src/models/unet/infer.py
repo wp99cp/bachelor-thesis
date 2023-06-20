@@ -26,11 +26,12 @@ def main():
 
     if os.environ.get("RUNS_ON_EULER", 0) == 1:
         model_path = os.path.join(os.environ['MODEL_SAVE_DIR'], model_file_name)
+        print(f"[INFO] loading model (EULER) weights from {model_path}...")
     else:
         model_path = os.path.join(BASE_OUTPUT, model_file_name)
+        print(f"[INFO] loading model weights from {model_path}...")
 
     # run inference
-
     assert USE_PIXED_PRECISION is False, "Inference with mixed precision is not supported yet."
 
     unet = UNet().to(DEVICE)
