@@ -28,8 +28,8 @@ export TMP_DIR="$TMPDIR/tmp"
 mkdir -p "$TMP_DIR"
 
 # Update the environment variable DATA_DIR to point to the local scratch space
-export DATA_SENTINEL2=$BASE_DIR/data_sources/data/sentinel2
-export DATA_LANDSAT8=$BASE_DIR/data_sources/data/landsat8
+export DATA_SENTINEL2=$SCRATCH/data_sources/data/sentinel2
+export DATA_LANDSAT8=$SCRATCH/data_sources/data/landsat8
 
 # create a RESULTS_DIR
 export RESULTS_DIR="$TMPDIR/results"
