@@ -1,91 +1,25 @@
-# [ignored on euler] deletes the results folder before starting the pipeline (1 or 0)
-clear_results: 0
-
-# This is the Tile ID of the tile to be processed
-# our default tile is 32TNS
-tile_name: '32TNS'
-
-# this section describes the data handling, i.g. the preparation of the data:
-# download and extraction, most of those settings will be ignored on euler
-data_handling:
-
-  # [ignored on euler] forces to download the raw data from the pf-server (1 or 0)
-  # this will delete all old data and freshly download the s2_dates listed below
-  # currently all data is manually downloaded to the pf-pc20
-  # this was done using "cp -r /home/pf/pfstud/nimbus/download_data/* /scratch2/pucyril/bachelor-thesis/data/raw"
-  force_rsync: 0
-
-  # [ignored on euler] use single quotes for the dates and the array syntax
-  # only those dates will be downloaded, does not influence the extraction
-  s2_dates: [ ]
-
-  # [ignored on euler] here the data handling is done separately (1 or 0)
-  # extracts all data from the raw data folder to the tmp folder
-  # currently all data has been extracted
-  force_extraction: 0
-
-# this section describes the preprocessing of the data
-# e.g. if the masks should be created automatically or if
-# some manual annotations should be used
-annotation:
-
-  # use the auto annotator to create the ground truth (1 or 0)
-  # currently this computes the s2cloudless predictions which is very slow
-  # then combines them with the ExoLab predictions
-  auto_annotation: 0
-
-  # masks will be only created for the following dates
-  # if you wish to create masks for all dates, just leave the array empty
-  s2_dates: [ ]
-
-# This section describes the training and validation dataset creation/loading
-dataset:
-
-  # forces a recreation of the dataset (1 or 0)
-  # this deletes the dataset folder and recreates it using the current raw data
-  # will be ignored if create_on_the_fly is enabled
-  recreate_dataset: 0
-
-  # limits the number of dates to be used for the dataset
-  # if you wish to use all dates, just set this to 0
-  limit_dates: 0
-
-  # this option will be used to select the dates
-  # if you wish to create masks for all dates, just leave the array empty
-  # s2_dates: [ '20210116T102351', '20210121T102239', '20210126T102311', '20210131T102149', '20210215T102121', '20210220T101939', '20210225T102021', '20210302T101839', '20210307T102021', '20210322T101649', '20210401T101559', '20210406T102021', '20210416T102021', '20210526T102021',  '20210531T101559', '20210610T101559', '20210615T102021',  '20210625T102021', '20210705T102031', '20210710T101559', '20210720T101559', '20210730T101559', '20210814T102031', '20210819T101559', '20210824T102031', '20210903T102021', '20210908T101559', '20210913T102021', '20210918T101639',  '20211008T101829', '20211013T101951', '20211018T101939', '20211028T102039',  '20211102T102201', '20211112T102251' ]
-
-  # additional dates with new dataset: 20210111T102309, 20210205T102221, 20210312T101729, 20210809T101559, 20210923T102031, 20210928T101719, 20211023T102101, 20211107T102129, 20211117T102219, 20211127T102259, 20211202T102401, 20211207T102319, 20211217T102329, 20211222T102441, 20211227T102339
-  s2_dates: [ '20210111T102309', '20210116T102351', '20210121T102239', '20210126T102311', '20210131T102149', '20210215T102121', '20210220T101939', '20210225T102021', '20210302T101839', '20210307T102021', '20210322T101649', '20210401T101559', '20210406T102021', '20210416T102021', '20210526T102021', '20210531T101559', '20210610T101559', '20210615T102021', '20210625T102021', '20210705T102031', '20210710T101559', '20210720T101559', '20210730T101559', '20210814T102031', '20210819T101559', '20210824T102031', '20210903T102021', '20210908T101559', '20210913T102021', '20210918T101639', '20211008T101829', '20211013T101951', '20211018T101939', '20211028T102039', '20211102T102201', '20211112T102251' ]
-
-  # WARNING: currently this option is very slow
-  # loads the data directly without creating the dataset (1 or 0)
-  # if this option is enabled the recreate_dataset option will be ignored
-  # in this mode, the dataloader will dynamically load the data from the raw folder
-  # instead of creating and saving the images as patches, on Euler this is faster
-  create_on_the_fly: 0
-
-training:
-
-  # enables the training (1 or 0)
-  enable: 0
-
-  # continues the training from the checkpoint "unet.pth" (1 or 0)
-  continue_training: 0
-
 inference:
 
   enable_inference: 1
 
   # this date is used for inference in the new mode
   # if empty inference is run for all dates for the specified tile
-  s2_dates: [ ]
+  s2_dates: [ '20210126T102311' ]
 
   # model name, if left empty the default model will be used (unet.pth)
-  model_file_name: 'unet_27926e7_ep30.pth' # 'unet_1c88144_e40.pth'
+  model_file_name: 'unet_a82e3cd_ep30.pth' # 'unet_1c88144_e40.pth'
 
   # limits the patches, 0 stands for the whole tile
   # this option is only used in the new mode
   limit_patches: 0
+
+  # use all rotations
+  # if enabled, the model will be run on all rotations of the patches
+  # and the results will be averaged, this improves the accuracy of the model
+  use_all_rotations: 1
+
+  save_raw_predictions: 1 # save raw predictions as float16 jp2 images
+  save_raw_thresholded: 1 # save raw predictions as uint8 jp2 images
 
   # save TCI and FCI for processed s2 dates
   save_RGB_jp2_images: 1
@@ -98,7 +32,7 @@ testing:
   use_cache: 0 # skips comparison and use cached results to recreate plots
 
   # those dates must be included in the s2_dates of the inference step, otherwise the testing will fail
-  s2_dates: [ ]
+  s2_dates: [ '20210126T102311' ]
 
 # This is not yet implemented
 ensemble:
