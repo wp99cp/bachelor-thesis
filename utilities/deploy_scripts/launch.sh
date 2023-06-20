@@ -2,9 +2,9 @@
 
 #SBATCH --time=03:59:00
 #SBATCH -n 8
-#SBATCH --mem-per-cpu=10G
+#SBATCH --mem-per-cpu=4G
 #SBATCH --gpus=1
-#SBATCH --gres=gpumem:20g
+#SBATCH --gres=gpumem:12g
 #SBATCH --tmp=120G
 #SBATCH --open-mode=truncate
 #SBATCH --output=/cluster/scratch/pucyril/%j/log/slurm-output.out

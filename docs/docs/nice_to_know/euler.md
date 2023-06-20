@@ -91,8 +91,7 @@ Keep in mind that you have to merge the `clean_up_masks` folder into the `mask` 
 :::
 
 ```bash
-scp -r data/annotated_masks/* pucyril@euler.ethz.ch:/cluster/scratch/pucyril/data_sources/masks && \
-scp -r tmp/* pucyril@euler.ethz.ch:/cluster/scratch/pucyril/data_sources/extracted_raw_data
+scp -r data/ pucyril@euler.ethz.ch:/cluster/scratch/pucyril/data_source
 ```
 
 Monitor your running tasks with the following command (inside `/cluster/scratch/pucyril/<jobId>/log`)
