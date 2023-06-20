@@ -17,7 +17,7 @@ inference:
 
   # limits the patches, 0 stands for the whole tile
   # this option is only used in the new mode
-  limit_patches: 10
+  limit_patches: 0
 
   # use all rotations
   # if enabled, the model will be run on all rotations of the patches

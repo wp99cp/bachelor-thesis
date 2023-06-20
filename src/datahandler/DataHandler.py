@@ -44,6 +44,7 @@ class DataHandler:
         self.__auxiliary_data = None
         self.__exo_labs = None
         self.__profile = None
+        self.__satellite_data_coverage = None
 
         self.__shape = None
 
@@ -79,6 +80,7 @@ class DataHandler:
 
         self.has_open_scene = True
         bands = np.stack(self.satelliteReader.read_bands(tile_id, date, self.resolution))
+        self.__satellite_data_coverage = self.__get_satellite_data_coverage(bands)
         self.__bands = self._normalize_bands(bands)
 
         self.__profile = self.satelliteReader.get_profile(tile_id=tile_id, date=date, resolution=self.resolution)
@@ -200,13 +202,17 @@ class DataHandler:
 
     @accumulate_time
     def get_satellite_data_coverage(self):
+
+        assert self.__satellite_data_coverage is not None, "Satellite data coverage is not loaded"
+        return self.__satellite_data_coverage
+
+    @accumulate_time
+    def __get_satellite_data_coverage(self, bands: np.ndarray):
         """
 
         Returns the coverage of the loaded data
 
         """
-
-        bands = self.get_bands()
 
         # open and pre-process all bands (except additional metadata, i.g. elevation)
         data_coverage = np.zeros(bands[0].shape, dtype=np.uint8)
