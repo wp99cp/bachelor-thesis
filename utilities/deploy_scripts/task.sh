@@ -1,8 +1,8 @@
-
 ################
 # Run the task
 ################
 
+echo "Current working dir: $(pwd)"
 source "$BASE_DIR/utilities/infer.sh"
 
 ################

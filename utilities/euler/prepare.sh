@@ -41,7 +41,7 @@ export TASK_DIR="$PWD"
 
 # get dirname without ...
 export BASE_DIR="$(realpath "$TASK_DIR/../..")"
-export PYTHONPATH="${PYTHONPATH}:$BASE_DIR/src"
+export PYTHONPATH="$BASE_DIR"
 echo "PYTHONPATH: $PYTHONPATH"
 
 echo "BASE_DIR: $BASE_DIR"
