@@ -3,7 +3,10 @@
 # Run the task
 ################
 
+current_dir=$(pwd)
+cd $BASE_DIR
 source "$BASE_DIR/utilities/infer.sh"
+cd $current_dir
 
 ################
 # Copy the produced Data
