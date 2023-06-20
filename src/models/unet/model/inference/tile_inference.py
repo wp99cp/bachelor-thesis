@@ -17,8 +17,15 @@ def __producer_file_opener(opening_queue: Queue, inference_queue: Queue):
             sleep(1)
 
         single_tile_predictor = opening_queue.get()
-        single_tile_predictor.open_scene()
-        inference_queue.put(single_tile_predictor)
+
+        try:
+            single_tile_predictor.open_scene()
+            inference_queue.put(single_tile_predictor)
+        except AssertionError as e:
+            print(f"[ERROR] {e}")
+            print(f"[ERROR] Skipping inference for {single_tile_predictor.date}")
+            print(f"[ERROR] Abort during opening scene for {single_tile_predictor.date}")
+            continue
 
 
 def run_inference(pipeline_config, unet: nn.Module, model_file_name: str = 'unet'):
@@ -63,6 +70,7 @@ def run_inference(pipeline_config, unet: nn.Module, model_file_name: str = 'unet
         except AssertionError as e:
             print(f"[ERROR] {e}")
             print(f"[ERROR] Skipping inference for {single_tile_predictor.date}")
+            print(f"[ERROR] Abort during inference for {single_tile_predictor.date}")
             continue
 
     print("Finished inference for all dates")
