@@ -1,8 +1,9 @@
+
 ################
 # Run the task
 ################
 
-source "$TASK_DIR/infer.sh"
+source "$BASE_DIR/utilities/infer.sh"
 
 ################
 # Copy the produced Data
