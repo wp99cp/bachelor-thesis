@@ -100,6 +100,7 @@ export TMP_DIR=$BASE_DIR/tmp
 # paths to the data
 export DATA_SENTINEL2=$BASE_DIR/data/sentinel2
 export DATA_LANDSAT8=$BASE_DIR/data/landsat8
+export AUXILIARY_DATA_DIR=$BASE_DIR/data/auxiliary_data
 
 # here the results are stored (e.g. model checkpoints, tensorboard logs, etc.)
 export RESULTS_DIR=$BASE_DIR/results

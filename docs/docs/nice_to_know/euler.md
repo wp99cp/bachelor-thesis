@@ -46,7 +46,7 @@ Some pip modules must be manually installed on the cluster. You can do this by r
 
 ```bash
 pip install imutils
-pip install pytorch-model-summary
+pip install pytorch-model-summary pytictac
 pip install numpy --pre torch torchvision torchaudio --force-reinstall --index-url https://download.pytorch.org/whl/nightly/cu117
 ```
 
