@@ -5,8 +5,8 @@ from time import sleep
 
 from torch import nn
 
-from src.python_helpers.pipeline_config import get_dates
 from src.models.unet.model.inference.SingleTilePredictor import SingleTilePredictor
+from src.python_helpers.pipeline_config import get_dates
 
 
 def __producer_file_opener(opening_queue: Queue, inference_queue: Queue):
@@ -22,7 +22,6 @@ def __producer_file_opener(opening_queue: Queue, inference_queue: Queue):
 
 
 def run_inference(pipeline_config, unet: nn.Module, model_file_name: str = 'unet'):
-
     dates = get_dates(pipeline_config)
 
     # if empty, we run inference for all dates of the specified tile
@@ -58,8 +57,13 @@ def run_inference(pipeline_config, unet: nn.Module, model_file_name: str = 'unet
             print("Timeout exception")
             break
 
-        single_tile_predictor.infer()
-        single_tile_predictor.report_time()
+        try:
+            single_tile_predictor.infer()
+            single_tile_predictor.report_time()
+        except AssertionError as e:
+            print(f"[ERROR] {e}")
+            print(f"[ERROR] Skipping inference for {single_tile_predictor.date}")
+            continue
 
     print("Finished inference for all dates")
     producer_thread.join()
