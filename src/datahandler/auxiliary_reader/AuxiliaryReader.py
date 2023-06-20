@@ -18,9 +18,7 @@ class AuxiliaryReader:
 
     def load_data(self, tile_id: str, auxiliary_data: AuxiliaryData):
         auxiliary_file_path = os.path.join(
-            os.environ['BASE_DIR'],
-            'data',
-            'auxiliary_data',
+            os.environ['AUXILIARY_DATA_DIR'],
             f"T{tile_id}",
             f"{tile_id}_{auxiliary_data.value}"
         )
