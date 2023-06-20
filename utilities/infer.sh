@@ -74,7 +74,7 @@ else
 fi
 
 # =========================
-Infer using existing model
+# Infer using existing model
 # =========================
 
 cat <<EOF
