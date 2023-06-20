@@ -38,7 +38,7 @@ def get_dates(pipeline_config):
 
         dates = []
         raw_data_dir = os.path.join(
-            os.environ['BASE_DIR'],
+            os.environ['DATA_DIR'],
             "data",
             pipeline_config['satellite'],
             "raw_data",
