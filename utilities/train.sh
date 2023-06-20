@@ -61,6 +61,8 @@ EOF
 
 # check if environment variable USE_CONDA_ENVIRONMENT is set
 
+echo "PYTHONPATH: $PYTHONPATH"
+
 if [[ -z "${USE_CONDA_ENVIRONMENT}" ]]; then
   echo "USE_CONDA_ENVIRONMENT is not set, assume all dependencies are installed"
 else
