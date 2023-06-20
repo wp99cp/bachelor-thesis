@@ -22,6 +22,7 @@ export default {
                     text: '',
                     items: [
                         {text: 'Getting Started', link: '/docs/working_pipeline/getting-started'},
+                        {text: 'Training', link: '/docs/working_pipeline/training'},
                         {text: 'Pipeline', link: '/docs/working_pipeline/pipeline'},
                     ],
                     collapsible: true,

@@ -95,15 +95,20 @@ However, for the sake of completeness, they are listed here:
 # all the source code and data
 export BASE_DIR=/scratch2/pucyril/bachelor-thesis
 
+export TMP_DIR=$BASE_DIR/tmp
+
 # paths to the data
-export DATA_SENTINEL2=$BASE_DIR/sentinel2
-export DATA_LANDSAT8=$BASE_DIR/landsat8
+export DATA_SENTINEL2=$BASE_DIR/data/sentinel2
+export DATA_LANDSAT8=$BASE_DIR/data/landsat8
 
 # here the results are stored (e.g. model checkpoints, tensorboard logs, etc.)
 export RESULTS_DIR=$BASE_DIR/results
 
 # add additional python paths
 export PYTHONPATH="${PYTHONPATH}:/scratch2/pucyril/python"
+
+export USE_CONDA_ENVIRONMENT=1
+export CONDA_ENVIRONMENT_NAME=bachelor_thesis
 ```
 
 :::
