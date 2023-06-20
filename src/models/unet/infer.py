@@ -19,10 +19,15 @@ def main():
         return
 
     model_file_name = pipeline_config["inference"]["model_file_name"]
-    if model_file_name is None or model_file_name == "" or os.environ.get("RUNS_ON_EULER", 0) == 1:
+    if model_file_name is None or model_file_name == "":
         model_file_name = "unet.pth"
+
     print(f"[INFO] loading model weights from {model_file_name}...")
-    model_path = os.path.join(BASE_OUTPUT, model_file_name)
+
+    if os.environ.get("RUNS_ON_EULER", 0) == 1
+        model_path = os.path.join(os.environ['MODEL_SAVE_DIR'], model_file_name)
+    else:
+        model_path = os.path.join(BASE_OUTPUT, model_file_name)
 
     # run inference
 
