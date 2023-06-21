@@ -2,7 +2,7 @@
 
 #SBATCH --time=45:59:00
 #SBATCH -n 8
-#SBATCH --mem-per-cpu=4G
+#SBATCH --mem-per-cpu=10G
 #SBATCH --gpus=1
 #SBATCH --gres=gpumem:20g
 #SBATCH --tmp=120G
