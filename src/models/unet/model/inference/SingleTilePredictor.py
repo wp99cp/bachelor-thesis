@@ -99,6 +99,10 @@ class SingleTilePredictor:
         self.patch_creator.dataloader.open_scene(tile_id=self.tile_id, date=self.date)
 
     @accumulate_time
+    def close_scene(self):
+        self.patch_creator.dataloader.close_scene(tile_id=self.tile_id, date=self.date)
+
+    @accumulate_time
     def __save_contextual_data(self, path_prefix: str):
         # save bands as RGB jp2 images
         if self.pipeline_config["inference"]["save_RGB_jp2_images"]:

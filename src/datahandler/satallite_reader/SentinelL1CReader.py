@@ -145,6 +145,26 @@ class SentinelL1CReader(SatelliteReader):
                 resampling=Resampling.nearest
             )
 
+
+        # TODO: this should actually not be necessary, but for some reason the bands have different shapes
+        # (off by one pixel)
+        min_shape = min(b01.shape, b02.shape, b03.shape, b04.shape, b05.shape, b06.shape, b07.shape,
+                        b08.shape, b8A.shape, b09.shape, b10.shape, b11.shape, b12.shape)
+        # crop all bands to the same shape
+        b01 = b01[:min_shape[0], :min_shape[1]]
+        b02 = b02[:min_shape[0], :min_shape[1]]
+        b03 = b03[:min_shape[0], :min_shape[1]]
+        b04 = b04[:min_shape[0], :min_shape[1]]
+        b05 = b05[:min_shape[0], :min_shape[1]]
+        b06 = b06[:min_shape[0], :min_shape[1]]
+        b07 = b07[:min_shape[0], :min_shape[1]]
+        b08 = b08[:min_shape[0], :min_shape[1]]
+        b8A = b8A[:min_shape[0], :min_shape[1]]
+        b09 = b09[:min_shape[0], :min_shape[1]]
+        b10 = b10[:min_shape[0], :min_shape[1]]
+        b11 = b11[:min_shape[0], :min_shape[1]]
+        b12 = b12[:min_shape[0], :min_shape[1]]
+
         bands = np.stack([b01, b02, b03, b04, b05, b06, b07, b08, b8A, b09, b10, b11, b12], axis=0)
 
         date = datetime.strptime(date, '%Y%m%dT%H%M%S')
