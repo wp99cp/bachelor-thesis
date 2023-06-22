@@ -1,59 +1,72 @@
 # import the necessary packages form the pre-processing/dataset_creator
 import os
-import sys
 from datetime import datetime
 
 import cv2
 import numpy as np
 import rasterio
 from matplotlib import pyplot as plt
+from rasterio.enums import Resampling
 
-from configs.config import BASE_OUTPUT, BASE_DIR
-from utils.rasterio_helpers import get_profile
-
-sys.path.insert(0, os.environ['BASE_DIR'] + '/helper-scripts/python_helpers')
-# noinspection PyUnresolvedReferences
-from pipeline_config import load_pipeline_config, get_dates
+from src.datahandler.WindowGenerator import WindowGenerator
+from src.models.unet.configs.config import BASE_OUTPUT
+from src.python_helpers.pipeline_config import get_dates
 
 
 def run_testing(pipeline_config, model_file_name='unet'):
     print("[INFO] running testing...")
 
-    inference_dates = get_dates(pipeline_config, pipeline_step="inference")
-    dates = get_dates(pipeline_config, pipeline_step="testing")
+    dates = get_dates(pipeline_config)
     print(f"[INFO] Run inference on dates: {dates}")
-    assert any(elem in inference_dates for elem in
-               dates), "Testing is only possible if inference is enabled for the same dates."
+
+    tile_name = pipeline_config["tile_id"]
+    print(f"[INFO] Tile name: {tile_name}")
 
     results = []
 
+    skipped_dates = []
+
     if pipeline_config["testing"]["use_cache"] == 0:
         for s2_date in dates:
-            model_name = model_file_name.split(".")[0]
-            path_prefix = os.path.join(f"{os.environ['TILE_NAME']}_{s2_date}_pred", model_name)
 
-            result = run_testing_on_date(s2_date, path_prefix)
-            if result["mean_iou"] is None:
-                raise Exception("Mean IoU is None")
+            try:
+                model_name = model_file_name.split(".")[0]
+                path_prefix = os.path.join(f"{tile_name}_{s2_date}_pred", model_name)
 
-            results.append({
-                'date': s2_date[0:4] + "-" + s2_date[4:6] + "-" + s2_date[6:8],
-                'mean_iou': result["mean_iou"]
-            })
+                result = run_testing_on_date(s2_date, tile_name, path_prefix, pipeline_config)
+                if result["mean_iou"] is None:
+                    raise Exception("Mean IoU is None")
+
+                results.append({
+                    'date': s2_date[0:4] + "-" + s2_date[4:6] + "-" + s2_date[6:8],
+                    'mean_iou': result["mean_iou"]
+                })
+
+            except Exception as e:
+                print(e)
+                print(f"[INFO] Skipping date {s2_date}")
+
+                skipped_dates.append(s2_date)
+
+                continue
 
         print(f"\n\n\n====================\n====================\n====================\n\n\n")
         print(results)
+
+        print(f"\n\n\n====================\n====================\n====================\n\n\n")
+        print(f"Skipped dates for tile_id={tile_name}:")
+        print(skipped_dates)
 
     # sort results by date
     results = sorted(results, key=lambda k: k['date'])
 
     # save results to file
     if pipeline_config["testing"]["use_cache"] == 0:
-        np.save(os.path.join(BASE_OUTPUT, f"difference_to_exolabs_{os.environ['TILE_NAME']}.npy"), results)
+        np.save(os.path.join(BASE_OUTPUT, f"difference_to_exolabs_{tile_name}.npy"), results)
 
     # load results from file
     if pipeline_config["testing"]["use_cache"] == 1:
-        results = np.load(os.path.join(BASE_OUTPUT, f"difference_to_exolabs_{os.environ['TILE_NAME']}.npy"),
+        results = np.load(os.path.join(BASE_OUTPUT, f"difference_to_exolabs_{tile_name}.npy"),
                           allow_pickle=True)
 
     labels = [x['date'] for x in results]
@@ -76,10 +89,10 @@ def run_testing(pipeline_config, model_file_name='unet'):
 
     plt.legend(loc="lower left")
 
-    plt.savefig(os.path.join(BASE_OUTPUT, f"{os.environ['TILE_NAME']}_mean_iou.png"))
+    plt.savefig(os.path.join(BASE_OUTPUT, f"{tile_name}_mean_iou.png"))
 
 
-def run_testing_on_date(s2_date, path_prefix):
+def run_testing_on_date(s2_date, tile_name, path_prefix, pipeline_config):
     print(s2_date)
 
     result = {
@@ -88,33 +101,63 @@ def run_testing_on_date(s2_date, path_prefix):
 
     # Step 1: load predicted, ground truth and the mask used for training
     with rasterio.open(os.path.join(BASE_OUTPUT, path_prefix, f"{s2_date}_mask_prediction.jp2")) as prediction_raw:
-        print("prediction_raw.bounds", prediction_raw.bounds)
+        window_generator = WindowGenerator(prediction_raw.transform)
+        window = window_generator.get_window(tile_id=tile_name)
 
-        # remove border of 256 pixels
-        bounds = prediction_raw.bounds
-        bounds = rasterio.coords.BoundingBox(
-            left=bounds.left + 1024,
-            bottom=bounds.bottom + 1024,
-            right=bounds.right - 1024,
-            top=bounds.top - 1024
+        prediction = prediction_raw.read(
+            1,
+            out_shape=(
+                prediction_raw.count,
+                int(window.height),
+                int(window.width)
+            ),
+            window=window,
+            resampling=Resampling.nearest
         )
-        window = prediction_raw.window(*bounds)
-        prediction = prediction_raw.read(1, window=window)
 
-        # load ground truth
-        profile = get_profile(s2_date)
+        profile = {
+            'driver': 'GTiff',
+            'dtype': np.uint8,
+            'nodata': 0,
+            'width': prediction_raw.width,
+            'height': prediction_raw.height,
+            'count': 1,
+            'crs': prediction_raw.crs,
+            'transform': prediction_raw.transform,
+            'blockxsize': 512,
+            'blockysize': 512,
+            'compress': 'lzw',
+        }
 
     s2_date_exoLabs_format = s2_date[0:4] + "-" + s2_date[4:6] + "-" + s2_date[6:8]
-    exoLabs_folder = os.path.join(BASE_DIR, f"ExoLabs_classification_S2_{os.environ['TILE_NAME']}")
+
+    exoLabs_folder = os.path.join(
+        os.environ['DATA_DIR'],
+        pipeline_config['satellite'],
+        "exoLabs",
+        f"T{pipeline_config['tile_id']}")
 
     exoLabs_file = \
         [f for f in os.listdir(exoLabs_folder) if
-         f.startswith(f"S2_{os.environ['TILE_NAME']}_{s2_date_exoLabs_format}")][0]
+         f.startswith(f"S2_{tile_name}_{s2_date_exoLabs_format}")][0]
 
     print(f"Loading exoLabs file: {exoLabs_file}")
     with rasterio.open(os.path.join(exoLabs_folder, exoLabs_file)) as exoLabs_raw:
-        # read pixels form the same area as our model
-        exo_labs_prediction_their_encoding = exoLabs_raw.read(1, window=window)
+
+        window_generator = WindowGenerator(exoLabs_raw.transform)
+        window = window_generator.get_window(tile_id=tile_name)
+
+        exo_labs_prediction_their_encoding = exoLabs_raw.read(
+            1,
+            out_shape=(
+                1,
+                int(window.height),
+                int(window.width)
+            ),
+            window=window,
+            resampling=Resampling.nearest
+        )
+
         print(f"ExoLabs prediction shape: {exo_labs_prediction_their_encoding.shape}")
 
         # convert pixel classes to same encoding as our model
@@ -141,15 +184,9 @@ def run_testing_on_date(s2_date, path_prefix):
         exo_labs_prediction[exo_labs_prediction_their_encoding == 6] = 3
         exo_labs_prediction[exo_labs_prediction_their_encoding == 8] = 1
 
-        # resample to same shape as our model
-        exo_labs_prediction = cv2.resize(exo_labs_prediction, (prediction.shape[1], prediction.shape[0]),
-                                         interpolation=cv2.INTER_NEAREST)
-
-    with rasterio.open(os.path.join(BASE_OUTPUT, path_prefix, f"{s2_date}_exolabs.jp2"), 'w',
-                       **profile) as exolabs_save:
-        exolabs_save.write(exo_labs_prediction, 1, window=window)
-
     with rasterio.open(os.path.join(BASE_OUTPUT, path_prefix, f"{s2_date}_data_coverage.jp2")) as data_coverage_raw:
+        window_generator = WindowGenerator(data_coverage_raw.transform)
+        window = window_generator.get_window(tile_id=tile_name)
         data_coverage = data_coverage_raw.read(1, window=window)
 
     # add a safety margin of 256 pixels around every data_coverage == 0 pixel
@@ -286,7 +323,7 @@ def report_pixel_counts(mask):
 
     if (numer_of_cloud_pixels / number_of_pixels * 100) > 85:
         print("WARNING: There are more than 85% cloud pixels in this image!")
-        raise Exception("Too many cloud pixels!")
+        # raise Exception("Too many cloud pixels!")
 
     numer_of_water_pixels = np.sum(mask == 3)
     print(f"- Number of water pixels:\t{numer_of_water_pixels:10d} "
