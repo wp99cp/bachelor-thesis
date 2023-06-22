@@ -100,7 +100,7 @@ class SingleTilePredictor:
 
     @accumulate_time
     def close_scene(self):
-        self.patch_creator.dataloader.close_scene(tile_id=self.tile_id, date=self.date)
+        self.patch_creator.dataloader.close_scene()
 
     @accumulate_time
     def __save_contextual_data(self, path_prefix: str):
