@@ -46,12 +46,12 @@ Some pip modules must be manually installed on the cluster. You can do this by r
 
 ```bash
 pip install imutils
-pip install pytorch-model-summary pytictac
-pip install numpy --pre torch torchvision torchaudio --force-reinstall --index-url https://download.pytorch.org/whl/nightly/cu117
+pip install pytorch-model-summary pytictac rasterio
+pip install numpy --pre torch torchvision torchaudio --force-reinstall --no-cache
 ```
 
 **Note:** You must run this command while loaded the correct python environment (
-e.g. `module load gcc/8.2.0 python_gpu/3.10.4 cuda/11.7.0`).
+e.g. `module load gcc/8.2.0 python_gpu/3.11.2 cuda/11.8.0`).
 
 :::
 
