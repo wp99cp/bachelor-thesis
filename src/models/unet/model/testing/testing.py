@@ -34,13 +34,8 @@ def run_testing(pipeline_config, model_file_name='unet'):
                 path_prefix = os.path.join(f"{tile_name}_{s2_date}_pred", model_name)
 
                 result = run_testing_on_date(s2_date, tile_name, path_prefix, pipeline_config)
-                if result["mean_iou"] is None:
-                    raise Exception("Mean IoU is None")
-
-                results.append({
-                    'date': s2_date[0:4] + "-" + s2_date[4:6] + "-" + s2_date[6:8],
-                    'mean_iou': result["mean_iou"]
-                })
+                result['date'] = s2_date[0:4] + "-" + s2_date[4:6] + "-" + s2_date[6:8]
+                results.append(result)
 
             except Exception as e:
                 print(e)
@@ -72,10 +67,12 @@ def run_testing(pipeline_config, model_file_name='unet'):
     labels = [x['date'] for x in results]
     labels = [datetime.strptime(d, '%Y-%m-%d') for d in labels]
 
-    mean_iou_cloud = [x['mean_iou']['cloud_iou'] for x in results]
-    mean_iou_snow = [x['mean_iou']['snow_iou'] for x in results]
-    mean_iou_water = [x['mean_iou']['water_iou'] for x in results]
-    mean_io_background = [x['mean_iou']['background_iou'] for x in results]
+    multiclass_iou = [x['iou']['multiclass_iou'] for x in results]
+
+    mean_iou_cloud = [x['iou']['cloud_iou'] for x in results]
+    mean_iou_snow = [x['iou']['snow_iou'] for x in results]
+    mean_iou_water = [x['iou']['water_iou'] for x in results]
+    mean_io_background = [x['iou']['background_iou'] for x in results]
 
     plt.figure(figsize=(10, 5))
     plt.plot(labels, mean_iou_cloud, label="cloud")
@@ -86,17 +83,25 @@ def run_testing(pipeline_config, model_file_name='unet'):
     plt.xlabel("Date")
     plt.ylabel("Mean IoU")
     plt.title("Mean IoU per class")
-
     plt.legend(loc="lower left")
-
     plt.savefig(os.path.join(BASE_OUTPUT, f"{tile_name}_mean_iou.png"))
+
+    plt.figure(figsize=(10, 5))
+    plt.plot(labels, multiclass_iou, label="IoU")
+    plt.xlabel("Date")
+    plt.ylabel("IoU")
+    plt.title("Multiclass IoU")
+    plt.legend(loc="lower left")
+    plt.savefig(os.path.join(BASE_OUTPUT, f"{tile_name}_multiclass_iou.png"))
 
 
 def run_testing_on_date(s2_date, tile_name, path_prefix, pipeline_config):
     print(s2_date)
 
     result = {
-        "mean_iou": None,
+        "iou": None,
+        "dice": None,
+        "jaccard": None
     }
 
     # Step 1: load predicted, ground truth and the mask used for training
@@ -143,7 +148,6 @@ def run_testing_on_date(s2_date, tile_name, path_prefix, pipeline_config):
 
     print(f"Loading exoLabs file: {exoLabs_file}")
     with rasterio.open(os.path.join(exoLabs_folder, exoLabs_file)) as exoLabs_raw:
-
         window_generator = WindowGenerator(exoLabs_raw.transform)
         window = window_generator.get_window(tile_id=tile_name)
 
@@ -218,9 +222,9 @@ def run_testing_on_date(s2_date, tile_name, path_prefix, pipeline_config):
 
     print("\n\n\n=================\nTesting results:\n=================\n")
     print("Report Similarity for Prediction vs. ExoLabs Prediction:")
-    result['mean_iou'] = report_uio(exo_labs_prediction, prediction)
-    report_dice(exo_labs_prediction, prediction)
-    report_jaccard(exo_labs_prediction, prediction)
+    result['iou'] = report_uio(exo_labs_prediction, prediction)
+    result['dice'] = report_dice(exo_labs_prediction, prediction)
+    result['jaccard'] = report_jaccard(exo_labs_prediction, prediction)
     print("\n\n\n=================\nTesting results:\n=================\n")
 
     return result
@@ -250,6 +254,14 @@ def report_jaccard(ground_truth, prediction):
     print(f"\nMean Jaccard (without background):\t{(snow_jaccard + cloud_jaccard + water_jaccard) / 3:02.3f}")
     print("")
 
+    return {
+        'snow_jaccard': snow_jaccard,
+        'cloud_jaccard': cloud_jaccard,
+        'water_jaccard': water_jaccard,
+        'background_jaccard': background_jaccard,
+        'mean_jaccard': (snow_jaccard + cloud_jaccard + water_jaccard) / 3
+    }
+
 
 def report_dice(ground_truth, prediction):
     def __calculate_dice(ground_truth, prediction):
@@ -275,6 +287,14 @@ def report_dice(ground_truth, prediction):
     print(f"Mean Dice (without background):\t{(snow_dice + cloud_dice + water_dice) / 3:02.3f}")
     print("")
 
+    return {
+        'snow_dice': snow_dice,
+        'cloud_dice': cloud_dice,
+        'water_dice': water_dice,
+        'background_dice': background_dice,
+        'mean_dice': (snow_dice + cloud_dice + water_dice) / 3
+    }
+
 
 def report_uio(ground_truth, prediction):
     def __calculate_iou(A, B):
@@ -297,6 +317,17 @@ def report_uio(ground_truth, prediction):
 
     print("")
     print(f"Mean IOU (without background):\t{(snow_iou + cloud_iou + water_iou) / 3:02.3f}")
+
+    multiclass_intersection = np.logical_and(ground_truth == 0, prediction == 0) + \
+                              np.logical_and(ground_truth == 1, prediction == 1) + \
+                              np.logical_and(ground_truth == 2, prediction == 2) + \
+                              np.logical_and(ground_truth == 3, prediction == 3)
+    multiclass_union = 1E-12 + np.logical_or(ground_truth == 0, prediction == 0) + \
+                       np.logical_or(ground_truth == 1, prediction == 1) + \
+                       np.logical_or(ground_truth == 2, prediction == 2) + \
+                       np.logical_or(ground_truth == 3, prediction == 3)
+    multiclass_iou = np.sum(multiclass_intersection) / np.sum(multiclass_union)
+    print(f"Multiclass IOU (incl. background):\t{multiclass_iou:02.3f}")
     print("")
 
     return {
@@ -304,6 +335,8 @@ def report_uio(ground_truth, prediction):
         'cloud_iou': cloud_iou,
         'water_iou': water_iou,
         'background_iou': background_iou,
+        'mean_iou': (snow_iou + cloud_iou + water_iou) / 3,
+        'multiclass_iou': multiclass_iou
     }
 
 
@@ -365,3 +398,28 @@ def __create_different_mask(window, profile, my_pred, other_pred, s2_date, path_
 
     with rasterio.open(path, 'w', **profile) as mask_file:
         mask_file.write(diff, 1, window=window)
+
+    ##########################
+    # create simplified mask
+    ##########################
+    print("Creating simplified mask...")
+    print("Shape of diff: ", diff.shape)
+    diff_rgb = np.zeros((diff.shape[0], diff.shape[1], 3), dtype=np.uint8)
+    STRETCH_FACTOR = 18
+    diff_rgb[:, :, 0] = diff * STRETCH_FACTOR
+    diff_rgb[:, :, 1] = diff * STRETCH_FACTOR
+    diff_rgb[:, :, 2] = diff * STRETCH_FACTOR
+
+    blurred_diff = cv2.medianBlur(diff_rgb, 5)
+
+    kernel = np.ones((16, 16), np.uint8)
+    erosion = cv2.erode(blurred_diff, kernel, iterations=1)
+    output = cv2.dilate(erosion, kernel, iterations=1)
+    print("Shape of output: ", output.shape)
+
+    output_gray = output[:, :, 0] / STRETCH_FACTOR
+    output_gray = output_gray.astype('uint8')
+
+    path = os.path.join(BASE_OUTPUT, path_prefix, f"{s2_date}_{name}_simplified.jp2")
+    with rasterio.open(path, 'w', **profile) as mask_file:
+        mask_file.write(output_gray, 1, window=window)

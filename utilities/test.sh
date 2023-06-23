@@ -94,6 +94,8 @@ if [[ -z "${RUNS_ON_EULER}" ]]; then
   python3 "$BASE_DIR/src/models/unet/test.py"
 else
 
+  export RESULTS_DIR="$SCRATCH/results"
+
   # Define a signal handler function to forward USR1 signals to the Python process
   handle_signal() {
     if [ "$1" = "USR1" ]; then
