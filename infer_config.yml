@@ -6,7 +6,7 @@ satellite: 'sentinel2' # 'sentinel2' or 'landsat8'
 
 # if you wish to run the pipeline for hand selected dates
 # you can specify them here (using yml array syntax)
-dates: ['20210111T175721', '20211127T175701', '20210205T175529', '20211107T175541', '20210426T174859', '20210730T174911', '20210610T174911', '20210322T175011', '20210116T175659', '20210411T174901', '20210630T174911']
+dates: [  ]
 
 inference:
 
@@ -22,7 +22,7 @@ inference:
   # use all rotations
   # if enabled, the model will be run on all rotations of the patches
   # and the results will be averaged, this improves the accuracy of the model
-  use_all_rotations: 1
+  use_all_rotations: 0
 
   save_raw_predictions: 0 # save raw predictions as float16 jp2 images
   save_raw_thresholded: 1 # save raw predictions as uint8 jp2 images
