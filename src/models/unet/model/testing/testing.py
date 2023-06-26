@@ -52,6 +52,11 @@ def run_testing(pipeline_config, model_file_name='unet'):
         print(f"Skipped dates for tile_id={tile_name}:")
         print(skipped_dates)
 
+    print(f"\n\n\n====================\n====================\n====================\n\n\n")
+    print(f"\n\n\n====================\n====================\n====================\n\n\n")
+    print(f"\n\n\n====================\n====================\n====================\n\n\n")
+    print(f"\n\n\n====================\n====================\n====================\n\n\n")
+
     # sort results by date
     results = sorted(results, key=lambda k: k['date'])
 
@@ -68,11 +73,17 @@ def run_testing(pipeline_config, model_file_name='unet'):
     labels = [datetime.strptime(d, '%Y-%m-%d') for d in labels]
 
     multiclass_iou = [x['iou']['multiclass_iou'] for x in results]
+    print(f"Mean multiclass IoU: {np.mean(multiclass_iou)}")
 
     mean_iou_cloud = [x['iou']['cloud_iou'] for x in results]
     mean_iou_snow = [x['iou']['snow_iou'] for x in results]
     mean_iou_water = [x['iou']['water_iou'] for x in results]
     mean_io_background = [x['iou']['background_iou'] for x in results]
+
+    print(f"Mean IoU cloud: {np.mean(mean_iou_cloud)}")
+    print(f"Mean IoU snow: {np.mean(mean_iou_snow)}")
+    print(f"Mean IoU water: {np.mean(mean_iou_water)}")
+    print(f"Mean IoU background: {np.mean(mean_io_background)}")
 
     plt.figure(figsize=(10, 5))
     plt.plot(labels, mean_iou_cloud, label="cloud")
@@ -187,6 +198,21 @@ def run_testing_on_date(s2_date, tile_name, path_prefix, pipeline_config):
         exo_labs_prediction[exo_labs_prediction_their_encoding == 3] = 2
         exo_labs_prediction[exo_labs_prediction_their_encoding == 6] = 3
         exo_labs_prediction[exo_labs_prediction_their_encoding == 8] = 1
+
+    with rasterio.open(os.path.join(BASE_OUTPUT, path_prefix, f"{s2_date}_mask_prediction_single_orientation.jp2")) as prediction_raw:
+        window_generator = WindowGenerator(prediction_raw.transform)
+        window = window_generator.get_window(tile_id=tile_name)
+
+        exo_labs_prediction = prediction_raw.read(
+            1,
+            out_shape=(
+                prediction_raw.count,
+                int(window.height),
+                int(window.width)
+            ),
+            window=window,
+            resampling=Resampling.nearest
+        )
 
     with rasterio.open(os.path.join(BASE_OUTPUT, path_prefix, f"{s2_date}_data_coverage.jp2")) as data_coverage_raw:
         window_generator = WindowGenerator(data_coverage_raw.transform)
@@ -390,7 +416,7 @@ def __create_different_mask(window, profile, my_pred, other_pred, s2_date, path_
     diff[mask_with_invalid_values] = 255
 
     # save the difference
-    path = os.path.join(BASE_OUTPUT, path_prefix, f"{s2_date}_{name}.jp2")
+    path = os.path.join(BASE_OUTPUT, path_prefix, f"{s2_date}_{name}_orientations.jp2")
 
     profile.update({
         'nodata': 255,
@@ -420,6 +446,6 @@ def __create_different_mask(window, profile, my_pred, other_pred, s2_date, path_
     output_gray = output[:, :, 0] / STRETCH_FACTOR
     output_gray = output_gray.astype('uint8')
 
-    path = os.path.join(BASE_OUTPUT, path_prefix, f"{s2_date}_{name}_simplified.jp2")
+    path = os.path.join(BASE_OUTPUT, path_prefix, f"{s2_date}_{name}_orientations_simplified.jp2")
     with rasterio.open(path, 'w', **profile) as mask_file:
         mask_file.write(output_gray, 1, window=window)

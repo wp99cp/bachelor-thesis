@@ -3,7 +3,7 @@
 ################
 
 echo "Current working dir: $(pwd)"
-source "$BASE_DIR/utilities/infer.sh"
+source "$BASE_DIR/utilities/test.sh"
 
 ################
 # Copy the produced Data
