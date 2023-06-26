@@ -6,14 +6,14 @@ satellite: 'sentinel2' # 'sentinel2' or 'landsat8'
 
 # if you wish to run the pipeline for hand selected dates
 # you can specify them here (using yml array syntax)
-dates: [  ]
+dates: [ ]
 
 inference:
 
   enable_inference: 1
 
   # model name, if left empty the default model will be used (unet.pth)
-  model_file_name: 'unet_a82e3cd_ep30.pth' # 'unet_1c88144_e40.pth'
+  model_file_name: 'unet_a82e3cd_ep60.pth' # 'unet_1c88144_e40.pth'
 
   # limits the patches, 0 stands for the whole tile
   # this option is only used in the new mode
@@ -22,7 +22,7 @@ inference:
   # use all rotations
   # if enabled, the model will be run on all rotations of the patches
   # and the results will be averaged, this improves the accuracy of the model
-  use_all_rotations: 0
+  use_all_rotations: 1
 
   save_raw_predictions: 0 # save raw predictions as float16 jp2 images
   save_raw_thresholded: 1 # save raw predictions as uint8 jp2 images
