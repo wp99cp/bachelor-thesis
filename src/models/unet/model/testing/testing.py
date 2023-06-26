@@ -116,7 +116,8 @@ def run_testing_on_date(s2_date, tile_name, path_prefix, pipeline_config):
     }
 
     # Step 1: load predicted, ground truth and the mask used for training
-    with rasterio.open(os.path.join(BASE_OUTPUT, path_prefix, f"{s2_date}_mask_prediction.jp2")) as prediction_raw:
+    with rasterio.open(os.path.join(BASE_OUTPUT, path_prefix,
+                                    f"{s2_date}_{pipeline_config['testing']['prediction_name']}.jp2")) as prediction_raw:
         window_generator = WindowGenerator(prediction_raw.transform)
         window = window_generator.get_window(tile_id=tile_name)
 
@@ -157,62 +158,65 @@ def run_testing_on_date(s2_date, tile_name, path_prefix, pipeline_config):
         [f for f in os.listdir(exoLabs_folder) if
          f.startswith(f"S2_{tile_name}_{s2_date_exoLabs_format}")][0]
 
-    print(f"Loading exoLabs file: {exoLabs_file}")
-    with rasterio.open(os.path.join(exoLabs_folder, exoLabs_file)) as exoLabs_raw:
-        window_generator = WindowGenerator(exoLabs_raw.transform)
-        window = window_generator.get_window(tile_id=tile_name)
+    if pipeline_config["testing"]["compare_to_prediction"] == 0:
+        print(f"Loading exoLabs file: {exoLabs_file}")
+        with rasterio.open(os.path.join(exoLabs_folder, exoLabs_file)) as exoLabs_raw:
+            window_generator = WindowGenerator(exoLabs_raw.transform)
+            window = window_generator.get_window(tile_id=tile_name)
 
-        exo_labs_prediction_their_encoding = exoLabs_raw.read(
-            1,
-            out_shape=(
+            exo_labs_prediction_their_encoding = exoLabs_raw.read(
                 1,
-                int(window.height),
-                int(window.width)
-            ),
-            window=window,
-            resampling=Resampling.nearest
-        )
+                out_shape=(
+                    1,
+                    int(window.height),
+                    int(window.width)
+                ),
+                window=window,
+                resampling=Resampling.nearest
+            )
 
-        print(f"ExoLabs prediction shape: {exo_labs_prediction_their_encoding.shape}")
+            print(f"ExoLabs prediction shape: {exo_labs_prediction_their_encoding.shape}")
 
-        # convert pixel classes to same encoding as our model
-        # 0 - background, no special class
-        # 1 - snow
-        # 2 - dense clouds
-        # 3 - water
-        # 4 - semi-transparent clouds
+            # convert pixel classes to same encoding as our model
+            # 0 - background, no special class
+            # 1 - snow
+            # 2 - dense clouds
+            # 3 - water
+            # 4 - semi-transparent clouds
 
-        # exolabs encoding:
-        # notObserved = 0      (-)     - no data
-        # noData = 1          (grey)   - unknown
-        # darkFeatures = 2    (black)  - unknown
-        # clouds = 3          (white)  - unknown
-        # snow = 4            (red)    - snow
-        # vegetation = 5      (green)  - no snow
-        # water = 6           (blue)   - no snow
-        # bareSoils = 7       (yellow) - no snow
-        # glacierIce = 8      (cyan)   - no snow
+            # exolabs encoding:
+            # notObserved = 0      (-)     - no data
+            # noData = 1          (grey)   - unknown
+            # darkFeatures = 2    (black)  - unknown
+            # clouds = 3          (white)  - unknown
+            # snow = 4            (red)    - snow
+            # vegetation = 5      (green)  - no snow
+            # water = 6           (blue)   - no snow
+            # bareSoils = 7       (yellow) - no snow
+            # glacierIce = 8      (cyan)   - no snow
 
-        exo_labs_prediction = np.zeros(exo_labs_prediction_their_encoding.shape, dtype=np.uint8)
-        exo_labs_prediction[exo_labs_prediction_their_encoding == 4] = 1
-        exo_labs_prediction[exo_labs_prediction_their_encoding == 3] = 2
-        exo_labs_prediction[exo_labs_prediction_their_encoding == 6] = 3
-        exo_labs_prediction[exo_labs_prediction_their_encoding == 8] = 1
+            exo_labs_prediction = np.zeros(exo_labs_prediction_their_encoding.shape, dtype=np.uint8)
+            exo_labs_prediction[exo_labs_prediction_their_encoding == 4] = 1
+            exo_labs_prediction[exo_labs_prediction_their_encoding == 3] = 2
+            exo_labs_prediction[exo_labs_prediction_their_encoding == 6] = 3
+            exo_labs_prediction[exo_labs_prediction_their_encoding == 8] = 1
 
-    with rasterio.open(os.path.join(BASE_OUTPUT, path_prefix, f"{s2_date}_mask_prediction_single_orientation.jp2")) as prediction_raw:
-        window_generator = WindowGenerator(prediction_raw.transform)
-        window = window_generator.get_window(tile_id=tile_name)
+    else:
+        with rasterio.open(os.path.join(BASE_OUTPUT, path_prefix,
+                                        f"{s2_date}_{pipeline_config['testing']['prediction_name_other']}.jp2")) as prediction_raw:
+            window_generator = WindowGenerator(prediction_raw.transform)
+            window = window_generator.get_window(tile_id=tile_name)
 
-        exo_labs_prediction = prediction_raw.read(
-            1,
-            out_shape=(
-                prediction_raw.count,
-                int(window.height),
-                int(window.width)
-            ),
-            window=window,
-            resampling=Resampling.nearest
-        )
+            exo_labs_prediction = prediction_raw.read(
+                1,
+                out_shape=(
+                    prediction_raw.count,
+                    int(window.height),
+                    int(window.width)
+                ),
+                window=window,
+                resampling=Resampling.nearest
+            )
 
     with rasterio.open(os.path.join(BASE_OUTPUT, path_prefix, f"{s2_date}_data_coverage.jp2")) as data_coverage_raw:
         window_generator = WindowGenerator(data_coverage_raw.transform)
@@ -240,7 +244,10 @@ def run_testing_on_date(s2_date, tile_name, path_prefix, pipeline_config):
     print("Pixel counts (ExoLabs Prediction):")
     report_pixel_counts(exo_labs_prediction)
 
-    __create_different_mask(window, profile, prediction, exo_labs_prediction, s2_date, path_prefix)
+    mask_diff_name = "mask_diff" + ( "_" +
+        pipeline_config['testing']['difference_map_postfix'] if "difference_map_postfix" in pipeline_config[
+            "testing"] else "")
+    __create_different_mask(window, profile, prediction, exo_labs_prediction, s2_date, path_prefix, name=mask_diff_name)
 
     # reduce to 1D arrays
     prediction = prediction.flatten()
@@ -416,7 +423,7 @@ def __create_different_mask(window, profile, my_pred, other_pred, s2_date, path_
     diff[mask_with_invalid_values] = 255
 
     # save the difference
-    path = os.path.join(BASE_OUTPUT, path_prefix, f"{s2_date}_{name}_orientations.jp2")
+    path = os.path.join(BASE_OUTPUT, path_prefix, f"{s2_date}_{name}.jp2")
 
     profile.update({
         'nodata': 255,
@@ -446,6 +453,6 @@ def __create_different_mask(window, profile, my_pred, other_pred, s2_date, path_
     output_gray = output[:, :, 0] / STRETCH_FACTOR
     output_gray = output_gray.astype('uint8')
 
-    path = os.path.join(BASE_OUTPUT, path_prefix, f"{s2_date}_{name}_orientations_simplified.jp2")
+    path = os.path.join(BASE_OUTPUT, path_prefix, f"{s2_date}_{name}_simplified.jp2")
     with rasterio.open(path, 'w', **profile) as mask_file:
         mask_file.write(output_gray, 1, window=window)
