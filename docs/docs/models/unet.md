@@ -7,13 +7,7 @@ Resources for Python Code
 
 ## Train the Model
 
-You can train the model using the following command:
-
-```bash
-bash helper-scripts/pipeline/pipeline.sh pipeline-config.yml
-```
-
-Within the `pipeline-config.yml` you can configure if you wish to train the model or not, i.g. just run inference.
+Using the [training pipeline](/docs/working_pipeline/training) the model can be trained.
 
 ## Latest Results
 
@@ -23,7 +17,69 @@ models.
 
 ::: tip Best Performing Algorithm
 
-Currently, the best performing algorithm is `eaa7527` with the checkpoint of epoch 30: `unet_27926e7_ep30.pth`.
+The best performing algorithm and the one used for evaluation is `a82e3cd` with the checkpoint of epoch
+30: `unet_a82e3cd_ep30.pth`.
+
+:::
+
+::: info Git Commit ([a82e3cd](https://github.com/wp99cp/bachelor-thesis/commit/a82e3cd)) - 03.05.2023
+
+Training ad described in the final report: using all 36 scenes, 30/70 percentile normalization. And trained for 60
+epochs.
+
+### Training results
+
+![a82e3cd_training.png](./../images/a82e3cd_training.png)
+
+```text
+Epoch: 30, train_loss: 0.049460, test_loss: 0.040753, EStop: 0/30
+Metrics for validation of epoch:  30
+ - pixel_accuracy___background: 0.9772
+ - union_over_inter_background: 0.9431
+ - dice_coefficient_background: 0.9711
+ - pixel_accuracy___snow: 0.9828
+ - union_over_inter_snow: 0.9424
+ - dice_coefficient_snow: 0.9708
+ - pixel_accuracy___clouds: 0.9880
+ - union_over_inter_clouds: 0.9513
+ - dice_coefficient_clouds: 0.9755
+ - pixel_accuracy___water: 1.0002
+ - union_over_inter_water: 0.7838
+ - dice_coefficient_water: 0.8665
+```
+
+and for the final epoch
+
+```text
+Start training epoch 60...
+Epoch: 60, train_loss: 0.049416, test_loss: 0.041064, EStop: 24/30
+Metrics for validation of epoch:  60
+ - pixel_accuracy___background: 0.9772
+ - union_over_inter_background: 0.9430
+ - dice_coefficient_background: 0.9711
+ - pixel_accuracy___snow: 0.9826
+ - union_over_inter_snow: 0.9417
+ - dice_coefficient_snow: 0.9704
+ - pixel_accuracy___clouds: 0.9878
+ - union_over_inter_clouds: 0.9509
+ - dice_coefficient_clouds: 0.9753
+ - pixel_accuracy___water: 1.0002
+ - union_over_inter_water: 0.7837
+ - dice_coefficient_water: 0.8665
+[INFO] saving the model...
+```
+
+
+### Timing Summary:
+
+```text
+ModelTrainer                          total [ms]    count [n]        std [ms]       mean [ms]
+  +-  __train_epoch:                  121592073.75  60               17121.069      2026534.562     
+  +-  __test_epoch:                   27197216.56   60               4201.037       453286.943      
+  +-  train:                          148802752.0   1                0.0            148802752.0    
+```
+
+Trained on NVIDIA TITAN RTX and an AMD EPYC 7742 64-Core Processor.
 
 :::
 

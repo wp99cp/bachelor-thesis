@@ -67,6 +67,8 @@ The following encoding is used to encode the differences between the prediction 
 |    cloud    |     2      |  4   |   0   |  16   |
 |    water    |     3      |  5   |   6   |   0   |
 
+-1 = 255 = ignored, i,g, we ignore a border of 256 pixels around the edges of the image.
+
 ## Annotation Software
 
 The annotation application is located under `/pre-processing/image_annotator`. It is a web application written in
