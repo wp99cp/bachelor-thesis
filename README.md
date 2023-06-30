@@ -1,3 +1,5 @@
+![Banner Image](./docs/docs/images/banner_image.png)
+
 # Deep Learning for Accurate Snow and Cloud Segmentation in Alpine Landscapes
 
 This repository contains the source code for my bachelor thesis: "Deep Learning for Accurate Snow and Cloud Segmentation
