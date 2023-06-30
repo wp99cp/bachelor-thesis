@@ -1,7 +1,7 @@
 # Deep Learning for Accurate Snow and Cloud Segmentation in Alpine Landscapes
 
-This repository contains the source code for my bachelor thesis.
-The documentation can be found in the `docs` directory. To view the documentation as a webpage,
+This repository contains the source code for my bachelor thesis: "Deep Learning for Accurate Snow and Cloud Segmentation
+in Alpine Landscapes". The documentation can be found in the `docs` directory. To view the documentation as a webpage,
 run the following command inside the `docs` directory:
 
 ```bash
