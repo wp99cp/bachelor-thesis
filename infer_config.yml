@@ -10,18 +10,20 @@ dates: [ ]
 
 inference:
 
-  enable_inference: 1
+  # if set to 0, the inference is skipped
+  enable_inference: 1 # 0 or 1
 
   # model name, if left empty the default model will be used (unet.pth)
   model_file_name: 'unet_a82e3cd_ep60.pth' # 'unet_1c88144_e40.pth'
 
-  # limits the patches, 0 stands for the whole tile
-  # this option is only used in the new mode
+  # limits number of patches to be processed, if set to 0, all patches will be processed
+  # this is helpful to debug the pipeline, for production this should be set to 0
   limit_patches: 0
 
   # use all rotations
   # if enabled, the model will be run on all rotations of the patches
   # and the results will be averaged, this improves the accuracy of the model
+  # --> see final report
   use_all_rotations: 1
 
   save_raw_predictions: 0 # save raw predictions as float16 jp2 images

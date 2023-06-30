@@ -9,7 +9,17 @@ Resources for Python Code
 
 Using the [training pipeline](/docs/working_pipeline/training) the model can be trained.
 
-## Latest Results
+## Model Architecture and Details
+
+The model architecture is based on
+the [U-Net: Convolutional Networks for Biomedical Image Segmentation](https://arxiv.org/abs/1505.04597). The model is
+implemented in `/src/models/unet/model/Model.py`. The code is based on https://github.com/milesial/Pytorch-UNet but
+adjusted for supporting the high dimensional input data. The config file in `/src/models/unet/config/config.py` contains
+the model configuration.
+
+![Model Architecture](./../images/unet_architecture.png)
+
+## Results
 
 The following models were trained using the adjusted pre-processing and image splitting pipeline.
 The new pipeline has updated the normalization and clipping of the data and is therefore not compatible with older
@@ -68,7 +78,6 @@ Metrics for validation of epoch:  60
  - dice_coefficient_water: 0.8665
 [INFO] saving the model...
 ```
-
 
 ### Timing Summary:
 

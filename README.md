@@ -11,6 +11,10 @@ npm run docs:dev
 
 (Note that assumes you have `npm` installed on your system.)
 
+As an alternative the Markdown documentation can be viewed on GitHub directly, although the formatting is not as nice
+and links may not work as expected. You find the files
+[here: ./docs/docs](./tree/main/docs/docs).
+
 ## Report and LaTeX-Source files
 
 The final report and the source files of the report can be found in the sub-repository `bachelor-thesis-overleaf`.
