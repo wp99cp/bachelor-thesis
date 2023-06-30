@@ -13,7 +13,7 @@ npm run docs:dev
 
 As an alternative the Markdown documentation can be viewed on GitHub directly, although the formatting is not as nice
 and links may not work as expected. You find the files
-[here: ./docs/docs](./tree/main/docs/docs).
+[here: ./docs/docs](./docs/docs).
 
 ## Report and LaTeX-Source files
 
