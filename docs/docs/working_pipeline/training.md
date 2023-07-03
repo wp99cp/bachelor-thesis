@@ -18,3 +18,7 @@ the pipeline should do. On the other hand, there is the `config.py` file, which 
 set constants, etc.
 
 The training pipeline can be configured using within the `train_config.yml` file.
+
+## Model Architecture and Details
+
+Details about the model architecture can be found [here](/docs/models/unet.html) as well as in the final report.

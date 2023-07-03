@@ -2,28 +2,28 @@ version: "3.9"
 
 services:
 
-    frontend:
-        image: registry.cevi.tools/pucyril/image_annotator_frontend
-        build:
-          context: frontend/.
-          dockerfile: Dockerfile
+  frontend:
+    image: registry.cevi.tools/pucyril/image_annotator_frontend
+    build:
+      context: frontend/.
+      dockerfile: Dockerfile
 
-        container_name: image_annotator
-        restart: always
-        ports:
-        - "80:80"
+    container_name: image_annotator
+    restart: always
+    ports:
+      - "80:80"
 
-    backend:
-        image: registry.cevi.tools/pucyril/image_annotator_backend
-        build:
-          context: backend/.
-          dockerfile: Dockerfile
+  backend:
+    image: registry.cevi.tools/pucyril/image_annotator_backend
+    build:
+      context: backend/.
+      dockerfile: Dockerfile
 
-        volumes:
-          - /projects/bachelor-thesis/data:/projects/bachelor-thesis/data
-          - /projects/bachelor-thesis/tmp:/projects/bachelor-thesis/tmp
+    volumes:
+      - /projects/bachelor-thesis/data:/projects/bachelor-thesis/data
+      - /projects/bachelor-thesis/tmp:/projects/bachelor-thesis/tmp
 
-        container_name: image_annotator_backend
-        restart: always
-        ports:
-        - "5000:5000"
+    container_name: image_annotator_backend
+    restart: always
+    ports:
+      - "5000:5000"

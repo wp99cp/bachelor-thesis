@@ -82,30 +82,6 @@ ansible-playbook -i hosts.yml submit_euler.yml --extra-vars "task=utilities/depl
 2) You get notified via email when the task is finished. Results are saved under `$SCRATCH/<job.id>`. This means
    that the results are only available for a limited time.
 
-## Copy Dataset to Euler
-
-::: danger
-
-Keep in mind that you have to merge the `clean_up_masks` folder into the `mask` directory!!
-
-:::
-
-```bash
-scp -r data/ pucyril@euler.ethz.ch:/cluster/scratch/pucyril/data_source
-```
-
-Monitor your running tasks with the following command (inside `/cluster/scratch/pucyril/<jobId>/log`)
-
-```bash
-watch "squeue && echo '' && tail -25 slurm-output.out"
-```
-
-Once the task is finished, you can view some stats using the following command:
-
-```bash
-myjobs -j  <jobId>
-```
-
 ## SSH into running Task
 
 To ssh into a running task, you can use the following command:

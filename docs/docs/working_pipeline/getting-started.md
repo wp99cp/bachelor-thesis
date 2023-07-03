@@ -78,6 +78,16 @@ $ data/auxiliary_data/07VEH$ ll
 07VEH_30m_treeCanopyCover.tif
 ```
 
+## Structure of the Source Code
+
+All the source code used for training and evaluation of the model can be found in the `/src` directory. The `utilities`
+folder contains the launch scripts and some helper python functions used to visualize the data and the results. The
+`utilities/ansible`, `utilities/euler`  and `utilities/deploy_script` folder contains the ansible scripts used to manage
+the data on the ETH cluster.
+
+```text
+
+
 ## Setting Environments Variables
 
 The segmentation pipelines is designed to work on different devices with potentially different file structures, thus it
@@ -98,6 +108,7 @@ export BASE_DIR=/scratch2/pucyril/bachelor-thesis
 export TMP_DIR=$BASE_DIR/tmp
 
 # paths to the data
+export DATA_DIR=$BASE_DIR/data
 export DATA_SENTINEL2=$BASE_DIR/data/sentinel2
 export DATA_LANDSAT8=$BASE_DIR/data/landsat8
 export AUXILIARY_DATA_DIR=$BASE_DIR/data/auxiliary_data

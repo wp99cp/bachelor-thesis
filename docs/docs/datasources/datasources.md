@@ -22,12 +22,4 @@ stored in `pf/pfstud/nimbus/downloaded_data`.
 
 :::
 
-## Additional Dataset (Not Used in this Project)
-
-The following table gives an overview of additional data sources that are not used in this project.
-
-![summary_of_datasets_available.png](../images/summary_of_datasets_available.png)
-![quality_of_available_datasets.png](../images/quality_of_available_datasets.png)
-
-Source: Skakun et al. (2022), Cloud Mask Intercomparison eXercise (CMIX): An evaluation of cloud masking algorithms for
-Landsat 8 and Sentinel-2
+Detailed description for the used datasets can be found in my final report.

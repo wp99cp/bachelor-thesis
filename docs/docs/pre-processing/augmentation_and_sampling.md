@@ -6,8 +6,4 @@ see `MixChannel: Advanced augmentation for multispectral satellite images (Illar
 
 :::
 
-::: danger
-
-Not yet documented as still evolving.
-
-:::
+The full process is described in the final report.
