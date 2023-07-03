@@ -6,18 +6,18 @@ satellite: 'sentinel2' # 'sentinel2' or 'landsat8'
 
 # if you wish to run the pipeline for hand selected dates
 # you can specify them here (using yml array syntax)
-dates: [ '20210116T102351' ]
+dates: [ ]
 
 testing:
 
   # enables the testing (1 or 0)
   enable: 1
-  model_name: 'compare'
+  model_name: 'unet_a82e3cd_ep30.pth'
   use_cache: 0
 
   # compare to predictions
-  compare_to_prediction: 1 # default is a comparison to the ExoLabs prediction
-  prediction_name: 'mask_prediction_40'
+  compare_to_prediction: 0 # default is a comparison to the ExoLabs prediction
+  prediction_name: 'mask_prediction'
   prediction_name_other: 'mask_prediction_60'
 
-  difference_map_postfix: '40-60'
+  difference_map_postfix: 'diff_exolabs'

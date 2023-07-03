@@ -98,10 +98,20 @@ def run_testing(pipeline_config, model_file_name='unet'):
     plt.savefig(os.path.join(BASE_OUTPUT, f"{tile_name}_mean_iou.png"))
 
     plt.figure(figsize=(10, 5))
-    plt.plot(labels, multiclass_iou, label="IoU")
+
+    # draw a rectangle to indicate the training period
+    # plt.axvspan(datetime.strptime('2021-01-01', '%Y-%m-%d'),
+    #            datetime.strptime('2021-12-31', '%Y-%m-%d'),
+    #            color='green', alpha=0.2, label="Training period")
+
+    plt.axhspan(0.99, 1.00, color='green', alpha=0.2, label="Training period")
+    plt.axhspan(0.95, 0.98, color='red', alpha=0.2, label="Significant Difference Visible")
+
+    plt.plot(labels, multiclass_iou, label="Multiclass IoU")
     plt.xlabel("Date")
     plt.ylabel("IoU")
-    plt.title("Multiclass IoU")
+    plt.ylim(0.94, 1.005)
+    plt.title(f"Multiclass IoU for {tile_name}")
     plt.legend(loc="lower left")
     plt.savefig(os.path.join(BASE_OUTPUT, f"{tile_name}_multiclass_iou.png"))
 
@@ -116,6 +126,8 @@ def run_testing_on_date(s2_date, tile_name, path_prefix, pipeline_config):
     }
 
     # Step 1: load predicted, ground truth and the mask used for training
+    print("Opening file with name: " + os.path.join(BASE_OUTPUT, path_prefix,
+                                                    f"{s2_date}_{pipeline_config['testing']['prediction_name']}.jp2"))
     with rasterio.open(os.path.join(BASE_OUTPUT, path_prefix,
                                     f"{s2_date}_{pipeline_config['testing']['prediction_name']}.jp2")) as prediction_raw:
         window_generator = WindowGenerator(prediction_raw.transform)
@@ -202,6 +214,9 @@ def run_testing_on_date(s2_date, tile_name, path_prefix, pipeline_config):
             exo_labs_prediction[exo_labs_prediction_their_encoding == 8] = 1
 
     else:
+        path = os.path.join(BASE_OUTPUT, path_prefix,
+                            f"{s2_date}_{pipeline_config['testing']['prediction_name_other']}.jp2")
+        print(f"Loading other prediction file: {path}")
         with rasterio.open(os.path.join(BASE_OUTPUT, path_prefix,
                                         f"{s2_date}_{pipeline_config['testing']['prediction_name_other']}.jp2")) as prediction_raw:
             window_generator = WindowGenerator(prediction_raw.transform)
@@ -244,9 +259,10 @@ def run_testing_on_date(s2_date, tile_name, path_prefix, pipeline_config):
     print("Pixel counts (ExoLabs Prediction):")
     report_pixel_counts(exo_labs_prediction)
 
-    mask_diff_name = "mask_diff" + ( "_" +
-        pipeline_config['testing']['difference_map_postfix'] if "difference_map_postfix" in pipeline_config[
-            "testing"] else "")
+    mask_diff_name = "mask_diff" + ("_" +
+                                    pipeline_config['testing']['difference_map_postfix'] if "difference_map_postfix" in
+                                                                                            pipeline_config[
+                                                                                                "testing"] else "")
     __create_different_mask(window, profile, prediction, exo_labs_prediction, s2_date, path_prefix, name=mask_diff_name)
 
     # reduce to 1D arrays
