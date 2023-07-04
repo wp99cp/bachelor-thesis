@@ -25,7 +25,7 @@ dates: [ ]
 testing:
 
   # enables the testing (1 or 0)
-  enable: 1
+  enable: 0
   model_name: 'unet_a82e3cd_ep30.pth'
   use_cache: 1
 
