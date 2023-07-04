@@ -5,7 +5,7 @@ tile_id: '32TNS'
 satellite: 'sentinel2' # 'sentinel2' or 'landsat8'
 
 # limit to landcover type
-limit_to_landcover: 1
+limit_to_landcover: 0
 #  0: {name: ‘water’, color: ‘#419BDF’},
 #  1: {name: ‘trees’, color: ‘#397D49’},
 #  2: {name: ‘grass’, color: ‘#88B053’},
