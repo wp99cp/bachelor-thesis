@@ -78,6 +78,21 @@ def run_testing(pipeline_config, model_file_name='unet'):
 
     # remove corrupted dates: 2022-02-20
     results = [x for x in results if x['date'] != '2022-02-20']
+
+    # print dates with multiclass_iou below 0.4
+    for result in results:
+        if result['iou']['multiclass_iou'] < 0.4:
+            print(f"Date {result['date']} has multiclass_iou below 0.4")
+            print(f"Multiclass IoU: {result['iou']['multiclass_iou']}")
+
+    # results = [x for x in results if x['date'] not in [ '2021-01-11', '2021-01-16', '2021-01-21', '2021-01-26', '2021-01-31', '2021-02-15', '2021-02-20'
+    #                                                     '2021-02-25', '2021-03-02', '2021-03-07', '2021-03-22', '2021-04-01', '2021-04-06', '2021-04-16',
+    #                                                     '2021-05-26', '2021,05,31', '2021-06-10', '2021-06-15', '2021-06-25', '2021-07-05', '2021-07-10',
+    #                                                     '2021-07-20', '2021-07-30', '2021-08-14', '2021-08-19', '2021-08-24', '2021-09-03', '2021-09-08',
+    #                                                     '2021-09-13', '2021-09-18', '2021-10-08', '2021-10-13', '2021-10-18', '2021-10-28', '2021-11-02',
+    #                                                     '2021-11-12'] ]
+    print(f"Count n={len(results)}")
+
     labels = [x['date'] for x in results]
     labels = [datetime.strptime(d, '%Y-%m-%d') for d in labels]
 
@@ -106,22 +121,81 @@ def run_testing(pipeline_config, model_file_name='unet'):
     plt.legend(loc="lower left")
     plt.savefig(os.path.join(BASE_OUTPUT, f"{tile_name}_mean_iou.png"))
 
+    ####################################################################################################################
+    ####################################################################################################################
+    ####################################################################################################################
+
     plt.figure(figsize=(10, 5))
-
     # draw a rectangle to indicate the training period
-    # plt.axvspan(datetime.strptime('2021-01-01', '%Y-%m-%d'),
-    #            datetime.strptime('2021-12-31', '%Y-%m-%d'),
-    #            color='green', alpha=0.2, label="Training period")
 
-    plt.axhspan(0.85, 1.00, color='green', alpha=0.1, label="Training period")
-    plt.axhspan(0.7, 0.85, color='red', alpha=0.1, label="Significant Difference Visible")
+    cloudy_points = []
+    partially_cloudy_points = []
+    wrong_cloudy_points = []
 
-    plt.plot(labels, multiclass_iou, label="Multiclass IoU")
+    normal_points = []
+    THRESHOLD = 0.85
+
+    mean_cloud_coverage = 0
+
+    for scene in results:
+
+        total_pixel = scene['report_pixel_counts_prediction']['number_of_pixels_with_data']
+        cloud_pixel = scene['report_pixel_counts_prediction']['number_of_cloud_pixels']
+
+        mean_cloud_coverage += cloud_pixel / total_pixel
+
+        total_pixel_exolabs = scene['report_pixel_counts_exo_labs_prediction']['number_of_pixels_with_data']
+        cloud_pixel_exolabs = scene['report_pixel_counts_exo_labs_prediction']['number_of_cloud_pixels']
+
+        if cloud_pixel / total_pixel > THRESHOLD and cloud_pixel_exolabs / total_pixel_exolabs > THRESHOLD:
+
+            cloudy_points.append((datetime.strptime(scene['date'], '%Y-%m-%d'),
+                                  scene['iou']['multiclass_iou']))
+
+        elif cloud_pixel / total_pixel > THRESHOLD:
+
+            partially_cloudy_points.append((datetime.strptime(scene['date'], '%Y-%m-%d'),
+                                            scene['iou']['multiclass_iou']))
+
+        elif cloud_pixel_exolabs / total_pixel_exolabs > THRESHOLD:
+            wrong_cloudy_points.append((datetime.strptime(scene['date'], '%Y-%m-%d'),
+                                        scene['iou']['multiclass_iou']))
+
+        else:
+            normal_points.append((datetime.strptime(scene['date'], '%Y-%m-%d'),
+                                  scene['iou']['multiclass_iou']))
+
+    print(f"Mean cloud coverage: {mean_cloud_coverage / len(results)}")
+
+    manual_annotated_points = [('2021-01-25', 0.2688154210225818), ('2021-03-28', 0.13375687405978565)]
+
+    # combine with partially_cloudy_points
+    manual_annotated_points.extend(partially_cloudy_points)
+
+    print("normal points avg: ", np.mean([x[1] for x in normal_points]))
+    print("cloudy points std: ", np.std([x[1] for x in cloudy_points]))
+
+    plt.plot(labels, multiclass_iou, label="multi-class IoU", color='slategray', zorder=1)
+
+    plt.scatter([x[0] for x in cloudy_points], [x[1] for x in cloudy_points], color='green',
+                marker="X", label=f"cloudy scene (>{THRESHOLD}%) (both models agree)", zorder=2)
+    plt.scatter([x[0] for x in partially_cloudy_points], [x[1] for x in partially_cloudy_points], color='orange',
+                marker="P", label=f"cloudy scene (>{THRESHOLD}%) (our model only)", zorder=2)
+    plt.scatter([x[0] for x in wrong_cloudy_points], [x[1] for x in wrong_cloudy_points], color='blue',
+                marker="*", label=f"cloudy scene (>{THRESHOLD}%) (ExoLabs only)", zorder=2)
+    plt.scatter([x[0] for x in manual_annotated_points], [x[1] for x in manual_annotated_points], color='red',
+                s=100, facecolors='none', edgecolors='r', zorder=2, label="scenes mentioned")
+
+    mean = np.mean([x[1] for x in normal_points])
+    std = np.std([x[1] for x in normal_points])
+    plt.axhspan(mean - std, mean + std, color='green', alpha=0.1, label="mean IoU +/- std")
+    # plt.axhspan(0, 0.8, color='orange', alpha=0.1, label="significant difference")
+
     plt.xlabel("Date")
     plt.ylabel("IoU")
     # plt.ylim(0.94, 1.005)
-    plt.title(f"Multiclass IoU for {tile_name}")
-    plt.legend(loc="lower left")
+    plt.title(f"Multi-Class IoU for {tile_name}")
+    plt.legend(loc="lower right")
     plt.savefig(os.path.join(BASE_OUTPUT, f"{tile_name}_multiclass_iou.png"))
 
 
