@@ -81,16 +81,10 @@ def run_testing(pipeline_config, model_file_name='unet'):
 
     # print dates with multiclass_iou below 0.4
     for result in results:
-        if result['iou']['multiclass_iou'] < 0.4:
+        if result['iou']['multiclass_iou'] < 0.75:
             print(f"Date {result['date']} has multiclass_iou below 0.4")
             print(f"Multiclass IoU: {result['iou']['multiclass_iou']}")
 
-    # results = [x for x in results if x['date'] not in [ '2021-01-11', '2021-01-16', '2021-01-21', '2021-01-26', '2021-01-31', '2021-02-15', '2021-02-20'
-    #                                                     '2021-02-25', '2021-03-02', '2021-03-07', '2021-03-22', '2021-04-01', '2021-04-06', '2021-04-16',
-    #                                                     '2021-05-26', '2021,05,31', '2021-06-10', '2021-06-15', '2021-06-25', '2021-07-05', '2021-07-10',
-    #                                                     '2021-07-20', '2021-07-30', '2021-08-14', '2021-08-19', '2021-08-24', '2021-09-03', '2021-09-08',
-    #                                                     '2021-09-13', '2021-09-18', '2021-10-08', '2021-10-13', '2021-10-18', '2021-10-28', '2021-11-02',
-    #                                                     '2021-11-12'] ]
     print(f"Count n={len(results)}")
 
     labels = [x['date'] for x in results]
@@ -167,10 +161,11 @@ def run_testing(pipeline_config, model_file_name='unet'):
 
     print(f"Mean cloud coverage: {mean_cloud_coverage / len(results)}")
 
-    manual_annotated_points = [('2021-01-25', 0.2688154210225818), ('2021-03-28', 0.13375687405978565)]
-
     # combine with partially_cloudy_points
+    manual_annotated_points = [('2021-01-06', 0.7190), ('2021-01-11', 0.7335), ('2021-03-12', 0.7236),
+                               ('2022-11-02', 0.74412), ('2022-12-27', 0.7072)]
     manual_annotated_points.extend(partially_cloudy_points)
+    print(partially_cloudy_points)
 
     print("normal points avg: ", np.mean([x[1] for x in normal_points]))
     print("cloudy points std: ", np.std([x[1] for x in cloudy_points]))
@@ -186,6 +181,16 @@ def run_testing(pipeline_config, model_file_name='unet'):
     plt.scatter([x[0] for x in manual_annotated_points], [x[1] for x in manual_annotated_points], color='red',
                 s=100, facecolors='none', edgecolors='r', zorder=2, label="scenes mentioned")
 
+    # training_dates = [x for x in results if x['date'] in [ '2021-01-11', '2021-01-16', '2021-01-21', '2021-01-26', '2021-01-31', '2021-02-15', '2021-02-20'
+    #                                                      '2021-02-25', '2021-03-02', '2021-03-07', '2021-03-22', '2021-04-01', '2021-04-06', '2021-04-16',
+    #                                                      '2021-05-26', '2021,05,31', '2021-06-10', '2021-06-15', '2021-06-25', '2021-07-05', '2021-07-10',
+    #                                                      '2021-07-20', '2021-07-30', '2021-08-14', '2021-08-19', '2021-08-24', '2021-09-03', '2021-09-08',
+    #                                                      '2021-09-13', '2021-09-18', '2021-10-08', '2021-10-13', '2021-10-18', '2021-10-28', '2021-11-02',
+    #                                                      '2021-11-12'] ]
+
+    # plt.scatter([x['date'] for x in training_dates], [x['iou']['multiclass_iou'] for x in training_dates],
+    #             s=20, facecolors='none', edgecolors='violet', zorder=2, label="training scenes")
+
     mean = np.mean([x[1] for x in normal_points])
     std = np.std([x[1] for x in normal_points])
     plt.axhspan(mean - std, mean + std, color='green', alpha=0.1, label="mean IoU +/- std")
@@ -193,7 +198,7 @@ def run_testing(pipeline_config, model_file_name='unet'):
 
     plt.xlabel("Date")
     plt.ylabel("IoU")
-    # plt.ylim(0.94, 1.005)
+    plt.ylim(0.45, 1.01)
     plt.title(f"Multi-Class IoU for {tile_name}")
     plt.legend(loc="lower right")
     plt.savefig(os.path.join(BASE_OUTPUT, f"{tile_name}_multiclass_iou.png"))
