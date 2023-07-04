@@ -9,7 +9,7 @@ from matplotlib import pyplot as plt
 from rasterio.enums import Resampling
 
 from src.datahandler.WindowGenerator import WindowGenerator
-from src.models.unet.configs.config import BASE_OUTPUT
+from src.models.unet.configs.config import BASE_OUTPUT, AUXILIARY_DATA_DIR
 from src.python_helpers.pipeline_config import get_dates
 
 
@@ -60,15 +60,24 @@ def run_testing(pipeline_config, model_file_name='unet'):
     # sort results by date
     results = sorted(results, key=lambda k: k['date'])
 
+    # if limited to class
+    limited = ''
+    if pipeline_config["limit_to_landcover"] == 1:
+        limited = '_limited'
+        for i in pipeline_config["landcover_classes"]:
+            limited += f"_{str(i)}"
+
     # save results to file
     if pipeline_config["testing"]["use_cache"] == 0:
-        np.save(os.path.join(BASE_OUTPUT, f"difference_to_exolabs_{tile_name}.npy"), results)
+        np.save(os.path.join(BASE_OUTPUT, f"difference_to_exolabs_{tile_name}{limited}.npy"), results)
 
     # load results from file
     if pipeline_config["testing"]["use_cache"] == 1:
-        results = np.load(os.path.join(BASE_OUTPUT, f"difference_to_exolabs_{tile_name}.npy"),
+        results = np.load(os.path.join(BASE_OUTPUT, f"difference_to_exolabs_{tile_name}{limited}.npy"),
                           allow_pickle=True)
 
+    # remove corrupted dates: 2022-02-20
+    results = [x for x in results if x['date'] != '2022-02-20']
     labels = [x['date'] for x in results]
     labels = [datetime.strptime(d, '%Y-%m-%d') for d in labels]
 
@@ -104,13 +113,13 @@ def run_testing(pipeline_config, model_file_name='unet'):
     #            datetime.strptime('2021-12-31', '%Y-%m-%d'),
     #            color='green', alpha=0.2, label="Training period")
 
-    plt.axhspan(0.99, 1.00, color='green', alpha=0.2, label="Training period")
-    plt.axhspan(0.95, 0.98, color='red', alpha=0.2, label="Significant Difference Visible")
+    plt.axhspan(0.85, 1.00, color='green', alpha=0.1, label="Training period")
+    plt.axhspan(0.7, 0.85, color='red', alpha=0.1, label="Significant Difference Visible")
 
     plt.plot(labels, multiclass_iou, label="Multiclass IoU")
     plt.xlabel("Date")
     plt.ylabel("IoU")
-    plt.ylim(0.94, 1.005)
+    # plt.ylim(0.94, 1.005)
     plt.title(f"Multiclass IoU for {tile_name}")
     plt.legend(loc="lower left")
     plt.savefig(os.path.join(BASE_OUTPUT, f"{tile_name}_multiclass_iou.png"))
@@ -170,6 +179,8 @@ def run_testing_on_date(s2_date, tile_name, path_prefix, pipeline_config):
         [f for f in os.listdir(exoLabs_folder) if
          f.startswith(f"S2_{tile_name}_{s2_date_exoLabs_format}")][0]
 
+    exo_labs_prediction = np.zeros(prediction.shape, dtype=np.uint8)
+
     if pipeline_config["testing"]["compare_to_prediction"] == 0:
         print(f"Loading exoLabs file: {exoLabs_file}")
         with rasterio.open(os.path.join(exoLabs_folder, exoLabs_file)) as exoLabs_raw:
@@ -207,7 +218,6 @@ def run_testing_on_date(s2_date, tile_name, path_prefix, pipeline_config):
             # bareSoils = 7       (yellow) - no snow
             # glacierIce = 8      (cyan)   - no snow
 
-            exo_labs_prediction = np.zeros(exo_labs_prediction_their_encoding.shape, dtype=np.uint8)
             exo_labs_prediction[exo_labs_prediction_their_encoding == 4] = 1
             exo_labs_prediction[exo_labs_prediction_their_encoding == 3] = 2
             exo_labs_prediction[exo_labs_prediction_their_encoding == 6] = 3
@@ -248,16 +258,35 @@ def run_testing_on_date(s2_date, tile_name, path_prefix, pipeline_config):
     data_coverage[:, 0:64] = 0
     data_coverage[:, -64:] = 0
 
+    if pipeline_config["limit_to_landcover"] == 1:
+        landcover_file = pipeline_config["landcover_file"]
+        landcover_file = os.path.join(AUXILIARY_DATA_DIR, f"T{tile_name}", landcover_file)
+        print(f"Loading landcover file: {landcover_file}")
+
+        with rasterio.open(landcover_file) as landcover_raw:
+            window_generator = WindowGenerator(landcover_raw.transform)
+            window_landcover = window_generator.get_window(tile_id=tile_name)
+            landcover = landcover_raw.read(1, window=window_landcover)
+            print(f"Landcover shape: {landcover.shape}")
+
+            data_coverage_landcover_mask = np.zeros(data_coverage.shape, dtype=np.uint8)
+            for i in pipeline_config["landcover_classes"]:
+                print(f"Removing landcover class {i} from data coverage")
+                data_coverage_landcover_mask[landcover == i] = 1
+
+            data_coverage &= data_coverage_landcover_mask
+
     prediction[data_coverage == 0] = 255
+    exo_labs_prediction[data_coverage == 0] = 255
 
     # Step 3: calculate metrics
     print("\n\n\n=================\nTesting results:\n=================\n")
 
     print("Pixel counts (Our Prediction):")
-    report_pixel_counts(prediction)
+    result['report_pixel_counts_prediction'] = report_pixel_counts(prediction, data_coverage)
 
     print("Pixel counts (ExoLabs Prediction):")
-    report_pixel_counts(exo_labs_prediction)
+    result['report_pixel_counts_exo_labs_prediction'] = report_pixel_counts(exo_labs_prediction, data_coverage)
 
     mask_diff_name = "mask_diff" + ("_" +
                                     pipeline_config['testing']['difference_map_postfix'] if "difference_map_postfix" in
@@ -389,33 +418,46 @@ def report_uio(ground_truth, prediction):
     }
 
 
-def report_pixel_counts(mask):
+def report_pixel_counts(mask, data_coverage):
     # mask may be a 2D array or a 1D array
     number_of_pixels = mask.size if mask.ndim == 1 else mask.shape[0] * mask.shape[1]
 
-    print(f"- Total Number of pixels:\t{number_of_pixels:10d} ( 100.000 % )")
+    # number of pixesl with data_coverage == 1
+    number_of_pixels_with_data = np.sum(data_coverage == 1)
+
+    print(f"- Total Number of pixels:\t\t{number_of_pixels:10d} ( 100.000 % )")
+    print(f"- Number of Pixels with valid data:\t{number_of_pixels_with_data:10d} "
+          f"( {(number_of_pixels_with_data / number_of_pixels * 100):02.3f} % )")
 
     numer_of_snow_pixels = np.sum(mask == 1)
-    print(f"- Number of snow pixels:\t{numer_of_snow_pixels:10d} "
+    print(f"- Number of snow pixels:\t\t{numer_of_snow_pixels:10d} "
           f"( {(numer_of_snow_pixels / number_of_pixels * 100):02.3f} % )")
 
     numer_of_cloud_pixels = np.sum(mask == 2)
-    print(f"- Number of cloud pixels:\t{numer_of_cloud_pixels:10d} "
+    print(f"- Number of cloud pixels:\t\t{numer_of_cloud_pixels:10d} "
           f"( {(numer_of_cloud_pixels / number_of_pixels * 100):02.3f} % )")
 
     if (numer_of_cloud_pixels / number_of_pixels * 100) > 85:
-        print("WARNING: There are more than 85% cloud pixels in this image!")
+        print(" » WARNING: There are more than 85% cloud pixels in this image!")
         # raise Exception("Too many cloud pixels!")
 
     numer_of_water_pixels = np.sum(mask == 3)
-    print(f"- Number of water pixels:\t{numer_of_water_pixels:10d} "
+    print(f"- Number of water pixels:\t\t{numer_of_water_pixels:10d} "
           f"( {(numer_of_water_pixels / number_of_pixels * 100):02.3f} % )")
 
     numer_of_background_pixels = np.sum(mask == 0)
-    print(f"- Number of background pixels:\t{numer_of_background_pixels:10d} "
+    print(f"- Number of background pixels:\t\t{numer_of_background_pixels:10d} "
           f"( {(numer_of_background_pixels / number_of_pixels * 100):02.3f} % )")
 
     print("")
+
+    return {
+        'number_of_pixels': number_of_pixels,
+        'number_of_pixels_with_data': number_of_pixels_with_data,
+        'number_of_snow_pixels': numer_of_snow_pixels,
+        'number_of_cloud_pixels': numer_of_cloud_pixels,
+        'number_of_water_pixels': numer_of_water_pixels,
+    }
 
 
 def __create_different_mask(window, profile, my_pred, other_pred, s2_date, path_prefix, name="mask_diff"):

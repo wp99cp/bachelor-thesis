@@ -103,6 +103,7 @@ DATASET_PATH = os.path.join(BASE_DIR, "dataset") if DATASET_PATH == '' else DATA
 IMAGE_DATASET_PATH = os.path.join(DATASET_PATH, "images")
 MASK_DATASET_PATH = os.path.join(DATASET_PATH, "masks")
 BASE_OUTPUT = os.environ['RESULTS_DIR'] if 'RESULTS_DIR' in os.environ else 'res'
+AUXILIARY_DATA_DIR = os.environ['AUXILIARY_DATA_DIR']
 
 # determine the device to be used for training and evaluation
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"

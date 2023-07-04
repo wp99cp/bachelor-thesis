@@ -1,8 +1,22 @@
 # configures the tile used
-tile_id: '07VEH'
+tile_id: '32TNS'
 
 # configures the satellite used
 satellite: 'sentinel2' # 'sentinel2' or 'landsat8'
+
+# limit to landcover type
+limit_to_landcover: 0
+#  0: {name: ‘water’, color: ‘#419BDF’},
+#  1: {name: ‘trees’, color: ‘#397D49’},
+#  2: {name: ‘grass’, color: ‘#88B053’},
+#  3: {name: ‘flooded_vegetation’, color: ‘#7A87C6’},
+#  4: {name: ‘crops’, color: ‘#E49635’},
+#  5: {name: ‘shrub_and_scrub’, color: ‘#DFC35A’},
+#  6: {name: ‘built’, color: ‘#C4281B’},
+#  7: {name: ‘bare’, color: ‘#A59B8F’},
+#  8: {name: ‘snow_and_ice’, color: ‘#B39FE1’},
+landcover_classes: [ 8 ] # we only include those ones
+landcover_file: '32TNS_10m_landcover_DW_y-2021-2022_m-06-10.tif'
 
 # if you wish to run the pipeline for hand selected dates
 # you can specify them here (using yml array syntax)
@@ -20,4 +34,4 @@ testing:
   prediction_name: 'mask_prediction'
   prediction_name_other: 'mask_prediction_60'
 
-  difference_map_postfix: 'diff_exolabs'
+  difference_map_postfix: 'exolabs'
