@@ -100,16 +100,16 @@ def run_testing(pipeline_config, model_file_name='unet'):
 
 
     # print dates with multiclass_iou below
-    for result, miou in zip(results, mean_iou):
-        threshold = 0.6
-        threshold_top = 0.6
-
-        total_pixel_exolabs = result['report_pixel_counts_exo_labs_prediction']['number_of_pixels_with_data']
-        cloud_pixel_exolabs = result['report_pixel_counts_exo_labs_prediction']['number_of_cloud_pixels']
-
-        if miou < threshold and result['iou']['multiclass_iou'] > threshold_top and cloud_pixel_exolabs / total_pixel_exolabs < 0.6:
-            print(f"Date {result['date']} has mean iou below {threshold}")
-            print(f"mean IoU: {miou} vs Mean multiclass IoU: {result['iou']['multiclass_iou']}")
+    # for result, miou in zip(results, mean_iou):
+    #     threshold = 0.6
+    #     threshold_top = 0.6
+    #
+    #     total_pixel_exolabs = result['report_pixel_counts_exo_labs_prediction']['number_of_pixels_with_data']
+    #     cloud_pixel_exolabs = result['report_pixel_counts_exo_labs_prediction']['number_of_cloud_pixels']
+    #
+    #     if miou < threshold and result['iou']['multiclass_iou'] > threshold_top and cloud_pixel_exolabs / total_pixel_exolabs < 0.6:
+    #         print(f"Date {result['date']} has mean iou below {threshold}")
+    #         print(f"mean IoU: {miou} vs Mean multiclass IoU: {result['iou']['multiclass_iou']}")
 
     mean_iou_cloud = [x['iou']['cloud_iou'] for x in results]
     mean_iou_snow = [x['iou']['snow_iou'] for x in results]
