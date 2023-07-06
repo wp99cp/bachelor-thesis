@@ -79,10 +79,11 @@ def run_testing(pipeline_config, model_file_name='unet'):
     # remove corrupted dates: 2022-02-20
     results = [x for x in results if x['date'] != '2022-02-20']
 
-    # print dates with multiclass_iou below 0.4
+    # print dates with multiclass_iou below
     for result in results:
-        if result['iou']['multiclass_iou'] < 0.75:
-            print(f"Date {result['date']} has multiclass_iou below 0.4")
+        threshold = 0.8
+        if result['iou']['multiclass_iou'] < threshold:
+            print(f"Date {result['date']} has multiclass_iou below {threshold}")
             print(f"Multiclass IoU: {result['iou']['multiclass_iou']}")
 
     print(f"Count n={len(results)}")
@@ -91,7 +92,24 @@ def run_testing(pipeline_config, model_file_name='unet'):
     labels = [datetime.strptime(d, '%Y-%m-%d') for d in labels]
 
     multiclass_iou = [x['iou']['multiclass_iou'] for x in results]
+    mean_iou = [
+        (x['iou']['snow_iou'] + x['iou']['cloud_iou'] + x['iou']['background_iou'] + x['iou']['water_iou']) / 4 for x in
+        results]
     print(f"Mean multiclass IoU: {np.mean(multiclass_iou)}")
+    print(f"Mean mean IoU: {np.mean(mean_iou)}")
+
+
+    # print dates with multiclass_iou below
+    for result, miou in zip(results, mean_iou):
+        threshold = 0.6
+        threshold_top = 0.6
+
+        total_pixel_exolabs = result['report_pixel_counts_exo_labs_prediction']['number_of_pixels_with_data']
+        cloud_pixel_exolabs = result['report_pixel_counts_exo_labs_prediction']['number_of_cloud_pixels']
+
+        if miou < threshold and result['iou']['multiclass_iou'] > threshold_top and cloud_pixel_exolabs / total_pixel_exolabs < 0.6:
+            print(f"Date {result['date']} has mean iou below {threshold}")
+            print(f"mean IoU: {miou} vs Mean multiclass IoU: {result['iou']['multiclass_iou']}")
 
     mean_iou_cloud = [x['iou']['cloud_iou'] for x in results]
     mean_iou_snow = [x['iou']['snow_iou'] for x in results]
@@ -162,8 +180,7 @@ def run_testing(pipeline_config, model_file_name='unet'):
     print(f"Mean cloud coverage: {mean_cloud_coverage / len(results)}")
 
     # combine with partially_cloudy_points
-    manual_annotated_points = [('2021-01-06', 0.7190), ('2021-01-11', 0.7335), ('2021-03-12', 0.7236),
-                               ('2022-11-02', 0.74412), ('2022-12-27', 0.7072)]
+    manual_annotated_points = [] # [('2021-01-11', 0.589), ('2021-02-20', 0.6603), ('2021-08-09', 0.777)]
     manual_annotated_points.extend(partially_cloudy_points)
     print(partially_cloudy_points)
 
@@ -171,6 +188,7 @@ def run_testing(pipeline_config, model_file_name='unet'):
     print("cloudy points std: ", np.std([x[1] for x in cloudy_points]))
 
     plt.plot(labels, multiclass_iou, label="multi-class IoU", color='slategray', zorder=1)
+    plt.plot(labels, mean_iou, label="mean IoU", zorder=1)
 
     plt.scatter([x[0] for x in cloudy_points], [x[1] for x in cloudy_points], color='green',
                 marker="X", label=f"cloudy scene (>{THRESHOLD}%) (both models agree)", zorder=2)
@@ -198,7 +216,7 @@ def run_testing(pipeline_config, model_file_name='unet'):
 
     plt.xlabel("Date")
     plt.ylabel("IoU")
-    plt.ylim(0.45, 1.01)
+    plt.ylim(0, 1.0)
     plt.title(f"Multi-Class IoU for {tile_name}")
     plt.legend(loc="lower right")
     plt.savefig(os.path.join(BASE_OUTPUT, f"{tile_name}_multiclass_iou.png"))
@@ -479,11 +497,11 @@ def report_uio(ground_truth, prediction):
                               np.logical_and(ground_truth == 1, prediction == 1) + \
                               np.logical_and(ground_truth == 2, prediction == 2) + \
                               np.logical_and(ground_truth == 3, prediction == 3)
-    multiclass_union = 1E-12 + np.logical_or(ground_truth == 0, prediction == 0) + \
+    multiclass_union = np.logical_or(ground_truth == 0, prediction == 0) + \
                        np.logical_or(ground_truth == 1, prediction == 1) + \
                        np.logical_or(ground_truth == 2, prediction == 2) + \
                        np.logical_or(ground_truth == 3, prediction == 3)
-    multiclass_iou = np.sum(multiclass_intersection) / np.sum(multiclass_union)
+    multiclass_iou = np.sum(multiclass_intersection) / (np.sum(multiclass_union) + 1E-12)
     print(f"Multiclass IOU (incl. background):\t{multiclass_iou:02.3f}")
     print("")
 
