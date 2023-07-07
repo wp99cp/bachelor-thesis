@@ -27,7 +27,7 @@ testing:
   # enables the testing (1 or 0)
   enable: 1
   model_name: 'unet_a82e3cd_ep30.pth'
-  use_cache: 1
+  use_cache: 0
 
   # compare to predictions
   compare_to_prediction: 0 # default is a comparison to the ExoLabs prediction
