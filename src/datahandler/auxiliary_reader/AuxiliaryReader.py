@@ -15,7 +15,6 @@ class AuxiliaryData(Enum):
 
 
 class AuxiliaryReader:
-
     def load_data(self, tile_id: str, auxiliary_data: AuxiliaryData):
         auxiliary_file_path = os.path.join(
             os.environ['AUXILIARY_DATA_DIR'],

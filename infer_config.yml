@@ -1,12 +1,12 @@
 # configures the tile used
-tile_id: '32TNS'
+tile_id: '07VEH'
 
 # configures the satellite used
 satellite: 'sentinel2' # 'sentinel2' or 'landsat8'
 
 # if you wish to run the pipeline for hand selected dates
 # you can specify them here (using yml array syntax)
-dates: [ '20220521T101601' ]
+dates: [ ]
 
 inference:
 
@@ -26,8 +26,8 @@ inference:
   # --> see final report
   use_all_rotations: 1
 
-  save_raw_predictions: 1 # save raw predictions as float16 jp2 images
-  save_raw_thresholded: 1 # save raw predictions as uint8 jp2 images
+  save_raw_predictions: 0 # save raw predictions as float16 jp2 images
+  save_raw_thresholded: 0 # save raw predictions as uint8 jp2 images
 
   # save TCI and FCI for processed s2 dates
   save_RGB_jp2_images: 1

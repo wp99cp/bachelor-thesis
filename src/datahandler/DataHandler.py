@@ -186,7 +186,7 @@ class DataHandler:
             self.__exo_labs = self.__exo_labs_reader.load_data(tile_id=self.tile_id, date=self.date)
 
         assert self.__exo_labs.shape == self.__shape, \
-            f"Auxiliary data has wrong shape: {self.__exo_labs.shape} but the expected shape is {self.__shape}"
+            f"ExoLabs data has wrong shape: {self.__exo_labs.shape} but the expected shape is {self.__shape}"
 
         data = self.__exo_labs
 

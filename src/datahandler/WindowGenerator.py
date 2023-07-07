@@ -8,22 +8,22 @@ WINDOWS = {
         "top": 5200020
     },
     '32VMP': {
-        "left": 400050,
-        "bottom": 6790330,
-        "right": 509740,
-        "top": 6899980
+        "left": 399960,
+        "bottom": 6790200,
+        "right": 509760,
+        "top": 6900000
     },
     '13TDE': {
-        "left": 400260,
-        "bottom": 4390510,
-        "right": 509720,
-        "top": 4499940
+        "left": 399960,
+        "bottom": 4390200,
+        "right": 509760,
+        "top": 4500000
     },
     '07VEH': {
-        "left": 501290,
-        "bottom": 6691290,
-        "right": 608330,
-        "top": 6798330
+        "left": 499980,
+        "bottom": 6690240,
+        "right": 609780,
+        "top": 6800040
     }
 }
 
@@ -33,11 +33,14 @@ class WindowGenerator:
     def __init__(self, transform):
         self.transform = transform
 
-    def get_window(self, tile_id: str):
+    def get_window(self, tile_id: str, margin_in_pixels: int = 0):
         assert tile_id in WINDOWS.keys(), f"Tile id {tile_id} not found in WINDOWS dictionary."
         window = WINDOWS[tile_id]
-        return from_bounds(left=window["left"],
-                           bottom=window["bottom"],
-                           right=window["right"],
-                           top=window["top"],
+        assert margin_in_pixels >= 0, "Margin must be greater than 0"
+        assert margin_in_pixels % 60 == 0, "Margin must be a multiple of 60"
+
+        return from_bounds(left=window["left"] + margin_in_pixels,
+                           bottom=window["bottom"] + margin_in_pixels,
+                           right=window["right"] - margin_in_pixels,
+                           top=window["top"] - margin_in_pixels,
                            transform=self.transform)

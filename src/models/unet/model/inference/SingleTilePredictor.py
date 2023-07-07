@@ -7,6 +7,7 @@ import tqdm
 from pytictac import ClassTimer, accumulate_time, ClassContextTimer  # see https://pypi.org/project/pytictac/
 from torch import nn
 
+from src.datahandler.WindowGenerator import WindowGenerator
 from src.datahandler.NormalizedDataHandler import NormalizedDataHandler, MEAN_PERCENTILES_70s, MEAN_MEANs, \
     MEAN_PERCENTILES_30s
 from src.datahandler.auxiliary_reader.AuxiliaryReader import AuxiliaryData
@@ -44,6 +45,7 @@ class SingleTilePredictor:
         satellite_reader = SentinelL1CReader()
         dataloader = NormalizedDataHandler(satellite_reader=satellite_reader)
         self.profile = satellite_reader.get_profile(date=s2_date, resolution=10, tile_id=tile_id)
+        print(self.profile)
 
         self.patch_creator = CoveragePatchCreator(
             dataloader=dataloader,
@@ -68,9 +70,11 @@ class SingleTilePredictor:
 
         predicted_mask_full_tile = np.zeros((
             NUM_CLASSES,
-            self.profile["height"],
-            self.profile["width"]),
+            self.patch_creator.dataloader.get_bands()[0].shape[0],
+            self.patch_creator.dataloader.get_bands()[0].shape[1]
+            ),
             dtype='float32')
+        print(f"shape of predicted_mask_full_tile: {predicted_mask_full_tile.shape}")
 
         limit_patches = self.__get_num_patches()
 
@@ -121,7 +125,9 @@ class SingleTilePredictor:
         if self.pipeline_config["inference"]["save_data_coverage"]:
             path = os.path.join(BASE_OUTPUT, path_prefix, f"{self.date}_data_coverage.jp2")
             with rasterio.open(path, 'w', **self.profile) as data_coverage_file:
-                data_coverage_file.write(data_coverage, 1)
+                window_generator = WindowGenerator(data_coverage_file.transform)
+                window = window_generator.get_window(tile_id=self.tile_id)
+                data_coverage_file.write(data_coverage, 1, window=window)
 
     def __create_output_dir(self):
         model_name = self.model_file_name.split(".")[0]
@@ -142,20 +148,27 @@ class SingleTilePredictor:
 
             path_raw = os.path.join(BASE_OUTPUT, path_prefix, f"{self.date}_mask_prediction_raw.jp2")
             with rasterio.open(path_raw, 'w', **raw_profile) as mask_file_raw:
-                mask_file_raw.write(predicted_mask_full_tile[0, :, :], 1)
-                mask_file_raw.write(predicted_mask_full_tile[1, :, :], 2)
-                mask_file_raw.write(predicted_mask_full_tile[2, :, :], 3)
-                mask_file_raw.write(predicted_mask_full_tile[3, :, :], 4)
+                window_generator = WindowGenerator(mask_file_raw.transform)
+                window = window_generator.get_window(tile_id=self.tile_id)
+                mask_file_raw.write(predicted_mask_full_tile[0, :, :], 1, window=window)
+                mask_file_raw.write(predicted_mask_full_tile[1, :, :], 2, window=window)
+                mask_file_raw.write(predicted_mask_full_tile[2, :, :], 3, window=window)
+                mask_file_raw.write(predicted_mask_full_tile[3, :, :], 4, window=window)
 
         # Create the empty JP2 file
+        print(f"Saving mask prediction for with shape {predicted_mask_full_tile.shape}")
         path = os.path.join(BASE_OUTPUT, path_prefix, f"{self.date}_mask_prediction.jp2")
         with rasterio.open(path, 'w', **self.profile) as mask_file:
-            mask_file.write(get_encoded_prediction(predicted_mask_full_tile, False), 1)
+            window_generator = WindowGenerator(mask_file.transform)
+            window = window_generator.get_window(tile_id=self.tile_id)
+            mask_file.write(get_encoded_prediction(predicted_mask_full_tile, False), 1, window=window)
 
         if self.pipeline_config["inference"]["save_raw_thresholded"]:
             path = os.path.join(BASE_OUTPUT, path_prefix, f"{self.date}_mask_prediction_thresholded.jp2")
             with rasterio.open(path, 'w', **self.profile) as mask_file:
-                mask_file.write(get_encoded_prediction(predicted_mask_full_tile, True), 1)
+                window_generator = WindowGenerator(mask_file.transform)
+                window = window_generator.get_window(tile_id=self.tile_id)
+                mask_file.write(get_encoded_prediction(predicted_mask_full_tile, True), 1, window=window)
 
     @accumulate_time
     def __infer_patch(self, pbar: tqdm.std.tqdm, predicted_mask_full_tile):
@@ -251,13 +264,16 @@ class SingleTilePredictor:
         image = image.astype(np.uint8)
 
         assert image.shape[0] == 3, "image must have 3 channels"
+        print(f"Saving {name} with shape {image.shape} and dtype {image.dtype}.")
 
         # use rasterio to save the tci
         profile = self.profile.copy()
         profile["count"] = 3
         profile["dtype"] = np.uint8  # could also use uint8 to save space or float16 to preserve more information
         with rasterio.open(os.path.join(BASE_OUTPUT, path, f"{name}.jp2"), 'w', **profile) as dst:
-            dst.write(image)
+            window_generator = WindowGenerator(dst.transform)
+            window = window_generator.get_window(tile_id=self.tile_id)
+            dst.write(image, window=window)
 
     def __save_training_mask(self, path: str):
 

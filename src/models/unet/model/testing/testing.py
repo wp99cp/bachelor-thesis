@@ -79,9 +79,20 @@ def run_testing(pipeline_config, model_file_name='unet'):
     # remove corrupted dates: 2022-02-20
     results = [x for x in results if x['date'] != '2022-02-20']
 
+    # results = [x for x in results if x['date'] in ['2021-01-11', '2021-01-16', '2021-01-21', '2021-01-26', '2021-01-31', '2021-02-15', '2021-02-20'
+    #                                                      '2021-02-25', '2021-03-02', '2021-03-07', '2021-03-22', '2021-04-01', '2021-04-06', '2021-04-16',
+    #                                                      '2021-05-26', '2021,05,31', '2021-06-10', '2021-06-15', '2021-06-25', '2021-07-05', '2021-07-10',
+    #                                                      '2021-07-20', '2021-07-30', '2021-08-14', '2021-08-19', '2021-08-24', '2021-09-03', '2021-09-08',
+    #                                                      '2021-09-13', '2021-09-18', '2021-10-08', '2021-10-13', '2021-10-18', '2021-10-28', '2021-11-02',
+    #                                                      '2021-11-12'] ]
+
+    # results = [x for x in results if '2021-' not in x['date']]
+
+
+
     # print dates with multiclass_iou below
     for result in results:
-        threshold = 0.8
+        threshold = 0.5
         if result['iou']['multiclass_iou'] < threshold:
             print(f"Date {result['date']} has multiclass_iou below {threshold}")
             print(f"Multiclass IoU: {result['iou']['multiclass_iou']}")
@@ -180,15 +191,20 @@ def run_testing(pipeline_config, model_file_name='unet'):
     print(f"Mean cloud coverage: {mean_cloud_coverage / len(results)}")
 
     # combine with partially_cloudy_points
-    manual_annotated_points = [] # [('2021-01-11', 0.589), ('2021-02-20', 0.6603), ('2021-08-09', 0.777)]
+    manual_annotated_points = [('2021-01-25', 0.43), ('2021-03-28', 0.24)]
+
+    # 32TNS: [('2021-01-06', 0.84), ('2021-01-11', 0.85), ('2021-03-12', 0.84), ('2022-11-02', 0.86), ('2022-12-27', 0.83)]
+    # 13TDE: [('2021-01-11', 0.741), ('2021-02-20', 0.795), ('2021-08-09', 0.874)]
+    # 07VEH: [('2021-01-25', 0.43), ('2021-03-28', 0.24)]
+    # 32VMP: []
+
     manual_annotated_points.extend(partially_cloudy_points)
     print(partially_cloudy_points)
 
-    print("normal points avg: ", np.mean([x[1] for x in normal_points]))
-    print("cloudy points std: ", np.std([x[1] for x in cloudy_points]))
+
 
     plt.plot(labels, multiclass_iou, label="multi-class IoU", color='slategray', zorder=1)
-    plt.plot(labels, mean_iou, label="mean IoU", zorder=1)
+    # plt.plot(labels, mean_iou, label="mean IoU", zorder=1)
 
     plt.scatter([x[0] for x in cloudy_points], [x[1] for x in cloudy_points], color='green',
                 marker="X", label=f"cloudy scene (>{THRESHOLD}%) (both models agree)", zorder=2)
@@ -205,20 +221,24 @@ def run_testing(pipeline_config, model_file_name='unet'):
     #                                                      '2021-07-20', '2021-07-30', '2021-08-14', '2021-08-19', '2021-08-24', '2021-09-03', '2021-09-08',
     #                                                      '2021-09-13', '2021-09-18', '2021-10-08', '2021-10-13', '2021-10-18', '2021-10-28', '2021-11-02',
     #                                                      '2021-11-12'] ]
-
+    #
     # plt.scatter([x['date'] for x in training_dates], [x['iou']['multiclass_iou'] for x in training_dates],
     #             s=20, facecolors='none', edgecolors='violet', zorder=2, label="training scenes")
 
     mean = np.mean([x[1] for x in normal_points])
     std = np.std([x[1] for x in normal_points])
-    plt.axhspan(mean - std, mean + std, color='green', alpha=0.1, label="mean IoU +/- std")
+    plt.axhspan(mean - std, mean + std, color='green', alpha=0.1, label="mean mcIoU +/- std (non-cloudy scenes)")
     # plt.axhspan(0, 0.8, color='orange', alpha=0.1, label="significant difference")
 
+    print("normal points avg: ", mean)
+    print("normal points std: ", std)
+
     plt.xlabel("Date")
-    plt.ylabel("IoU")
-    plt.ylim(0, 1.0)
+    plt.ylabel("mcIoU")
+    plt.ylim(0.2, 1.01)
     plt.title(f"Multi-Class IoU for {tile_name}")
     plt.legend(loc="lower right")
+    plt.legend(ncol=1)
     plt.savefig(os.path.join(BASE_OUTPUT, f"{tile_name}_multiclass_iou.png"))
 
 
@@ -243,8 +263,8 @@ def run_testing_on_date(s2_date, tile_name, path_prefix, pipeline_config):
             1,
             out_shape=(
                 prediction_raw.count,
-                int(window.height),
-                int(window.width)
+                int(window.width),
+                int(window.height)
             ),
             window=window,
             resampling=Resampling.nearest
@@ -288,8 +308,8 @@ def run_testing_on_date(s2_date, tile_name, path_prefix, pipeline_config):
                 1,
                 out_shape=(
                     1,
-                    int(window.height),
-                    int(window.width)
+                    int(window.width),
+                    int(window.height)
                 ),
                 window=window,
                 resampling=Resampling.nearest
@@ -333,8 +353,8 @@ def run_testing_on_date(s2_date, tile_name, path_prefix, pipeline_config):
                 1,
                 out_shape=(
                     prediction_raw.count,
-                    int(window.height),
-                    int(window.width)
+                    int(window.width),
+                    int(window.height)
                 ),
                 window=window,
                 resampling=Resampling.nearest

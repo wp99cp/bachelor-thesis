@@ -145,7 +145,6 @@ class SentinelL1CReader(SatelliteReader):
                 resampling=Resampling.nearest
             )
 
-
         # TODO: this should actually not be necessary, but for some reason the bands have different shapes
         # (off by one pixel)
         min_shape = min(b01.shape, b02.shape, b03.shape, b04.shape, b05.shape, b06.shape, b07.shape,
