@@ -7,6 +7,7 @@ import numpy as np
 import rasterio
 from matplotlib import pyplot as plt
 from rasterio.enums import Resampling
+from sklearn import metrics
 
 from src.datahandler.WindowGenerator import WindowGenerator
 from src.models.unet.configs.config import BASE_OUTPUT, AUXILIARY_DATA_DIR
@@ -404,7 +405,8 @@ def run_testing_on_date(s2_date, tile_name, path_prefix, pipeline_config):
                                     pipeline_config['testing']['difference_map_postfix'] if "difference_map_postfix" in
                                                                                             pipeline_config[
                                                                                                 "testing"] else "")
-    __create_different_mask(window, profile, prediction, exo_labs_prediction, s2_date, path_prefix, name=mask_diff_name)
+    result['confusion_matrix'] = __create_different_mask(window, profile, prediction, exo_labs_prediction, s2_date,
+                                                         path_prefix, name=mask_diff_name)
 
     # reduce to 1D arrays
     prediction = prediction.flatten()
@@ -626,3 +628,9 @@ def __create_different_mask(window, profile, my_pred, other_pred, s2_date, path_
     path = os.path.join(BASE_OUTPUT, path_prefix, f"{s2_date}_{name}_simplified.jp2")
     with rasterio.open(path, 'w', **profile) as mask_file:
         mask_file.write(output_gray, 1, window=window)
+
+    confusion_matrix = metrics.confusion_matrix(my_pred.flatten(), other_pred.flatten(), labels=[0, 1, 2, 3])
+    print("Confusion matrix:")
+    print(confusion_matrix)
+
+    return confusion_matrix
