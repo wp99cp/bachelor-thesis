@@ -1,5 +1,5 @@
 # configures the tile used
-tile_id: '07VEH'
+tile_id: '32VMP'
 
 # configures the satellite used
 satellite: 'sentinel2' # 'sentinel2' or 'landsat8'
