@@ -88,8 +88,6 @@ def run_testing(pipeline_config, model_file_name='unet'):
 
     # results = [x for x in results if '2021-' not in x['date']]
 
-
-
     # print dates with multiclass_iou below
     for result in results:
         threshold = 0.5
@@ -108,7 +106,6 @@ def run_testing(pipeline_config, model_file_name='unet'):
         results]
     print(f"Mean multiclass IoU: {np.mean(multiclass_iou)}")
     print(f"Mean mean IoU: {np.mean(mean_iou)}")
-
 
     # print dates with multiclass_iou below
     # for result, miou in zip(results, mean_iou):
@@ -201,8 +198,6 @@ def run_testing(pipeline_config, model_file_name='unet'):
     manual_annotated_points.extend(partially_cloudy_points)
     print(partially_cloudy_points)
 
-
-
     plt.plot(labels, multiclass_iou, label="multi-class IoU", color='slategray', zorder=1)
     # plt.plot(labels, mean_iou, label="mean IoU", zorder=1)
 
@@ -257,7 +252,7 @@ def run_testing_on_date(s2_date, tile_name, path_prefix, pipeline_config):
     with rasterio.open(os.path.join(BASE_OUTPUT, path_prefix,
                                     f"{s2_date}_{pipeline_config['testing']['prediction_name']}.jp2")) as prediction_raw:
         window_generator = WindowGenerator(prediction_raw.transform)
-        window = window_generator.get_window(tile_id=tile_name)
+        window = window_generator.get_window(tile_id=tile_name, margin_in_pixels=600)
 
         prediction = prediction_raw.read(
             1,
@@ -302,7 +297,7 @@ def run_testing_on_date(s2_date, tile_name, path_prefix, pipeline_config):
         print(f"Loading exoLabs file: {exoLabs_file}")
         with rasterio.open(os.path.join(exoLabs_folder, exoLabs_file)) as exoLabs_raw:
             window_generator = WindowGenerator(exoLabs_raw.transform)
-            window = window_generator.get_window(tile_id=tile_name)
+            window = window_generator.get_window(tile_id=tile_name, margin_in_pixels=600)
 
             exo_labs_prediction_their_encoding = exoLabs_raw.read(
                 1,
@@ -347,7 +342,7 @@ def run_testing_on_date(s2_date, tile_name, path_prefix, pipeline_config):
         with rasterio.open(os.path.join(BASE_OUTPUT, path_prefix,
                                         f"{s2_date}_{pipeline_config['testing']['prediction_name_other']}.jp2")) as prediction_raw:
             window_generator = WindowGenerator(prediction_raw.transform)
-            window = window_generator.get_window(tile_id=tile_name)
+            window = window_generator.get_window(tile_id=tile_name, margin_in_pixels=600)
 
             exo_labs_prediction = prediction_raw.read(
                 1,
@@ -362,7 +357,7 @@ def run_testing_on_date(s2_date, tile_name, path_prefix, pipeline_config):
 
     with rasterio.open(os.path.join(BASE_OUTPUT, path_prefix, f"{s2_date}_data_coverage.jp2")) as data_coverage_raw:
         window_generator = WindowGenerator(data_coverage_raw.transform)
-        window = window_generator.get_window(tile_id=tile_name)
+        window = window_generator.get_window(tile_id=tile_name, margin_in_pixels=600)
         data_coverage = data_coverage_raw.read(1, window=window)
 
     # add a safety margin of 256 pixels around every data_coverage == 0 pixel
